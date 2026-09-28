@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestão de Projetos</title>
+<meta name="description" content="Gestão de projetos com macroentregas, TRL e relatórios — roda inteiramente no navegador.">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<header class="topo">
+  <div class="marca"><img src="assets/templates/logo_inovaagro_embrapii.png" alt=""><span>Gestão de Projetos</span></div>
+  <div class="seletor">
+    <button class="btn" id="btnProjetos" title="Abrir, criar ou importar projetos">📂 Projetos</button>
+    <span id="localProjeto"></span>
+  </div>
+  <div class="acoes-topo">
+    <span id="estadoSalvo" class="estado"></span>
+    <button class="btn primario" id="btnSalvar" title="Salvar (Ctrl+S): grava o JSON e dispara o e-mail de andamento">💾 Salvar</button>
+    <button class="btn" id="btnConfig" title="Configurações deste navegador (e-mail, seu nome)">⚙</button>
+  </div>
+</header>
+
+<nav class="abas" id="abas">
+  <button data-aba="projeto" class="ativa">Projeto</button>
+  <button data-aba="equipe">Equipe e Interessados</button>
+  <button data-aba="areas">Áreas / Responsáveis</button>
+  <button data-aba="macros">Macroentregas</button>
+  <button data-aba="cronograma">Cronograma</button>
+  <button data-aba="riscos">Riscos</button>
+  <button data-aba="qualidade">Qualidade</button>
+  <button data-aba="trl">TRL</button>
+  <button data-aba="licoes">Lições aprendidas</button>
+  <button data-aba="relatorios">Relatórios e Exportação</button>
+</nav>
+
+<main id="conteudo" class="conteudo"><div class="boas-vindas">Carregando…</div></main>
+
+<div id="modal" class="modal oculto" role="dialog" aria-modal="true">
+  <div class="modal-caixa"><button class="modal-fechar" aria-label="Fechar">×</button><div id="modalCorpo"></div></div>
+</div>
+<div id="toasts" class="toasts"></div>
+
+<noscript><p style="padding:20px">Este sistema precisa de JavaScript habilitado.</p></noscript>
+
+<!-- bibliotecas locais (funcionam sem internet): pdfmake (PDF) e JSZip (ZIP) -->
+<script src="lib/pdfmake.min.js"></script>
+<script src="lib/vfs_fonts.js"></script>
+<script src="lib/jszip.min.js"></script>
+<!-- sistema -->
+<script src="assets/js/config.js"></script>
+<script src="assets/js/templates.js"></script>
+<script src="assets/js/exemplo.js"></script>
+<script src="assets/js/nucleo.js"></script>
+<script src="assets/js/armazenamento.js"></script>
+<script src="assets/js/email.js"></script>
+<script src="assets/js/pdf.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/abas.js"></script>
+<script src="assets/js/abnt.js"></script>
+<script src="assets/js/macros.js"></script>
+<script src="assets/js/gantt.js"></script>
+<script src="assets/js/riscos.js"></script>
+<script src="assets/js/trl.js"></script>
+<script src="assets/js/relatorios.js"></script>
+<script>App.iniciar();</script>
+</body>
+</html>

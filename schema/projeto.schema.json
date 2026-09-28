@@ -1,0 +1,621 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gestao-projetos/projeto.schema.json",
+  "title": "gestão do projeto <nome>",
+  "description": "Arquivo único de gestão do projeto. Fica na pasta do projeto junto com figuras/, imatec/, relatorios/ e historico/. Figuras são referenciadas por caminho relativo.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "projeto",
+    "interessados",
+    "areas",
+    "macroentregas",
+    "riscos",
+    "qualidade",
+    "licoesAprendidas",
+    "trl",
+    "log"
+  ],
+  "$defs": {
+    "data": {
+      "type": "string",
+      "description": "Data ISO AAAA-MM-DD ou vazio",
+      "pattern": "^(\\d{4}-\\d{2}-\\d{2})?$"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail ou vazio"
+    },
+    "pessoa": {
+      "type": "object",
+      "properties": {
+        "nome": {
+          "type": "string"
+        },
+        "email": {
+          "$ref": "#/$defs/email"
+        }
+      },
+      "required": [
+        "nome",
+        "email"
+      ]
+    },
+    "trl": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9
+    },
+    "secao": {
+      "enum": [
+        "introducao",
+        "objetivos",
+        "resultados",
+        "conclusao",
+        "etapasFuturas"
+      ]
+    },
+    "noTrl": {
+      "type": "object",
+      "description": "Item da árvore de maturidade importada. 'chave' é gerada pelo sistema a partir do caminho (P1/S2/A1/C3) porque 'id' e 'stringId' do arquivo de origem se repetem.",
+      "required": [
+        "chave",
+        "titulo",
+        "tipo",
+        "trlInformado",
+        "filhos"
+      ],
+      "properties": {
+        "chave": {
+          "type": "string",
+          "pattern": "^[PSACN]\\d+(/[PSACN]\\d+)*$"
+        },
+        "idOriginal": {},
+        "stringId": {
+          "type": "string"
+        },
+        "titulo": {
+          "type": "string"
+        },
+        "tipo": {
+          "type": "string",
+          "description": "product | subsystem | assembly | component"
+        },
+        "nivel": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "visivel": {
+          "type": "boolean"
+        },
+        "keyTechItems": {
+          "type": "string"
+        },
+        "justification": {
+          "type": "string"
+        },
+        "implementationMethod": {
+          "type": "string"
+        },
+        "supplier": {
+          "type": "string"
+        },
+        "trlInformado": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/trl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "filhos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/noTrl"
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "projeto": {
+      "type": "object",
+      "required": [
+        "nome",
+        "codigo"
+      ],
+      "properties": {
+        "nome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "codigo": {
+          "type": "string",
+          "minLength": 1,
+          "examples": [
+            "PINV-2210.0006"
+          ]
+        },
+        "unidadeEmbrapii": {
+          "type": "string"
+        },
+        "empresaParceira": {
+          "type": "string"
+        },
+        "responsavelEmpresa": {
+          "type": "string"
+        },
+        "endereco": {
+          "type": "string"
+        },
+        "ano": {
+          "type": "integer"
+        },
+        "dataInicio": {
+          "$ref": "#/$defs/data"
+        },
+        "dataFimPrevista": {
+          "$ref": "#/$defs/data"
+        },
+        "coordenador": {
+          "$ref": "#/$defs/pessoa"
+        },
+        "coordenadorAdjunto": {
+          "$ref": "#/$defs/pessoa"
+        },
+        "equipe": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nome": {
+                "type": "string"
+              },
+              "email": {
+                "$ref": "#/$defs/email"
+              },
+              "funcao": {
+                "type": "string"
+              },
+              "areas": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "ids das áreas"
+              }
+            }
+          }
+        },
+        "introducao": {
+          "type": "string"
+        },
+        "objetivoGeral": {
+          "type": "string"
+        },
+        "trlEsperadoFinal": {
+          "$ref": "#/$defs/trl"
+        }
+      }
+    },
+    "interessados": {
+      "type": "array",
+      "description": "Recebem o e-mail 'andamento projeto <nome>' a cada salvamento",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "email": {
+            "$ref": "#/$defs/email"
+          },
+          "papel": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "responsaveis"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "examples": [
+              "A1"
+            ]
+          },
+          "nome": {
+            "type": "string"
+          },
+          "noImatec": {
+            "type": "string",
+            "description": "chave do item da árvore TRL vinculado"
+          },
+          "noImatecTitulo": {
+            "type": "string",
+            "description": "título do item (usado para revincular após reimportação)"
+          },
+          "responsaveis": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/pessoa"
+            },
+            "description": "um ou mais responsáveis (quem cobrar)"
+          },
+          "trlEsperado": {
+            "$ref": "#/$defs/trl"
+          }
+        }
+      }
+    },
+    "macroentregas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "uid",
+          "numero",
+          "titulo",
+          "atividades",
+          "figuras",
+          "tabelas",
+          "aceite"
+        ],
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "identificador estável (riscos e lições apontam para ele)"
+          },
+          "numero": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "sempre sequencial; refeito ao remover"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "dataInicio": {
+            "$ref": "#/$defs/data"
+          },
+          "dataPrevista": {
+            "$ref": "#/$defs/data"
+          },
+          "dataEntrega": {
+            "$ref": "#/$defs/data"
+          },
+          "status": {
+            "enum": [
+              "planejada",
+              "em andamento",
+              "concluída",
+              "aceita",
+              "atrasada"
+            ]
+          },
+          "percentualConcluido": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "usado só quando não há atividades"
+          },
+          "trlEsperado": {
+            "$ref": "#/$defs/trl"
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objetivosEtapa": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "resultados": {
+            "type": "string"
+          },
+          "conclusao": {
+            "type": "string"
+          },
+          "etapasFuturas": {
+            "type": "string"
+          },
+          "atividades": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "estável; o código exibido (1.1, 1.2…) é calculado"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "responsavel": {
+                  "type": "string"
+                },
+                "inicio": {
+                  "$ref": "#/$defs/data"
+                },
+                "fim": {
+                  "$ref": "#/$defs/data"
+                },
+                "dependeDe": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "percentual": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "area": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "figuras": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "arquivo"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^fig_\\d+$"
+                },
+                "arquivo": {
+                  "type": "string",
+                  "pattern": "^figuras/[A-Za-z0-9._-]+$"
+                },
+                "titulo": {
+                  "type": "string"
+                },
+                "fonte": {
+                  "type": "string"
+                },
+                "secao": {
+                  "$ref": "#/$defs/secao"
+                }
+              }
+            }
+          },
+          "tabelas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "titulo": {
+                  "type": "string"
+                },
+                "fonte": {
+                  "type": "string"
+                },
+                "secao": {
+                  "$ref": "#/$defs/secao"
+                },
+                "cabecalho": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "linhas": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "aceite": {
+            "type": "object",
+            "properties": {
+              "dataAceite": {
+                "$ref": "#/$defs/data"
+              },
+              "nomeResponsavelEmpresa": {
+                "type": "string"
+              },
+              "aceito": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "riscos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "probabilidade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "impacto": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "resposta": {
+            "enum": [
+              "evitar",
+              "mitigar",
+              "transferir",
+              "aceitar"
+            ]
+          },
+          "planoAcao": {
+            "type": "string"
+          },
+          "responsavel": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "aberto",
+              "monitorado",
+              "fechado"
+            ]
+          },
+          "macroUid": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "qualidade": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "requisito": {
+            "type": "string"
+          },
+          "criterioAceite": {
+            "type": "string"
+          },
+          "metodoVerificacao": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pendente",
+              "conforme",
+              "não conforme",
+              ""
+            ]
+          },
+          "pdca": {
+            "type": "object",
+            "properties": {
+              "planejar": {
+                "type": "string"
+              },
+              "executar": {
+                "type": "string"
+              },
+              "verificar": {
+                "type": "string"
+              },
+              "agir": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "licoesAprendidas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/data"
+          },
+          "macroUid": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "recomendacao": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "trl": {
+      "type": "object",
+      "properties": {
+        "ultimaImportacao": {
+          "type": "string"
+        },
+        "arquivoOrigem": {
+          "type": "string",
+          "description": "imatec/imatec_<data>.json (arquivo original guardado)"
+        },
+        "arvore": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/noTrl"
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "incluirAndamentoNaMacro": {
+          "type": "boolean"
+        }
+      }
+    },
+    "log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dataHora": {
+            "type": "string"
+          },
+          "acao": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "id": {
+      "type": "string",
+      "description": "identificador do projeto (usado quando guardado no navegador)"
+    }
+  }
+}
