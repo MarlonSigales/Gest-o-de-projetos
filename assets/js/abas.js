@@ -7,13 +7,26 @@ App.abas.projeto = {
     const c = App.campo;
     return `
 <h2>${esc(App.p.projeto.nome || 'Novo projeto')}</h2>
+<div class="cartao vigencia"><h3 style="margin-top:0">Vigência do projeto</h3><div class="grade-campos">
+  ${c('projeto.dataInicio', 'Data de início', { tipo: 'date' })}
+  ${c('projeto.dataFimPrevista', 'Data de término (original)', { tipo: 'date' })}
+  <div id="vigResumo" class="vig-resumo"></div>
+</div>
+<h4>Termos aditivos e subtrativos de prazo</h4>
+${App.tabela('projeto.aditivos', [
+    { campo: 'tipo', rotulo: 'Tipo', tipo: 'select', largura: '130px', opcoes: [['aditivo', 'Aditivo (+)'], ['subtrativo', 'Subtrativo (−)']] },
+    { campo: 'quantidade', rotulo: 'Quantidade', tipo: 'number', min: 0, largura: '100px' },
+    { campo: 'unidade', rotulo: 'Unidade', tipo: 'select', largura: '100px', opcoes: [['meses', 'meses'], ['dias', 'dias']] },
+    { campo: 'numero', rotulo: 'Nº do termo', largura: '120px' },
+    { campo: 'dataTermo', rotulo: 'Data do termo', tipo: 'date', largura: '150px' },
+    { campo: 'justificativa', rotulo: 'Justificativa', tipo: 'textarea' },
+  ], { novo: 'aditivo', botao: 'Adicionar termo aditivo/subtrativo', vazio: 'Nenhum termo: vale a data de término original.' })}
+</div>
 <div id="painelKpi"></div>
 <div class="cartao"><h3 style="margin-top:0">Identificação</h3><div class="grade-campos">
   ${c('projeto.nome', 'Nome do projeto *', { classe: 'largo' })}
   ${c('projeto.codigo', 'Código *', { ph: 'PINV-2210.0006' })}
   ${c('projeto.ano', 'Ano (capa dos relatórios)', { tipo: 'number' })}
-  ${c('projeto.dataInicio', 'Início', { tipo: 'date' })}
-  ${c('projeto.dataFimPrevista', 'Término previsto', { tipo: 'date' })}
   ${c('projeto.unidadeEmbrapii', 'Unidade EMBRAPII', { classe: 'largo' })}
   ${c('projeto.empresaParceira', 'Empresa parceira')}
   ${c('projeto.responsavelEmpresa', 'Responsável na empresa (assina o aceite)')}
@@ -35,6 +48,18 @@ App.abas.projeto = {
   analise() {
     const an = App.an, el = $('#painelKpi');
     if (!el || !an) return;
+    const v = an.vigencia, vr = $('#vigResumo');
+    if (vr) {
+      const sinal = v.variacaoDias > 0 ? '+' : '';
+      vr.innerHTML = `<div class="r">Término vigente</div><div class="v">${v.fimVigente ? dataBR(v.fimVigente) : '—'}</div>
+        <div class="r">${v.inicio ? 'de ' + dataBR(v.inicio) : ''}${v.duracaoDias !== null ? ' · ' + v.duracaoDias + ' dias' : ''}${v.termos.length ? ` · ${v.nAditivos} aditivo(s), ${v.nSubtrativos} subtrativo(s) (${sinal}${v.variacaoDias ?? 0} dias)` : ''}${v.restamDias !== null ? ` · ${v.restamDias >= 0 ? 'restam ' + v.restamDias + ' dias' : '<b class="gap-neg">encerrada</b>'}` : ''}</div>`;
+      $$('#conteudo .vigencia tbody tr').forEach((tr, k) => {
+        const t = v.termos[k];
+        const td = tr.querySelector('td:last-child');
+        if (t && td && !td.querySelector('.vig-fim')) td.insertAdjacentHTML('afterbegin', `<div class="vig-fim muted" title="término após este termo">→ ${dataBR(t.fimDepois)}</div>`);
+        else if (t && td) td.querySelector('.vig-fim').textContent = '→ ' + dataBR(t.fimDepois);
+      });
+    }
     const t = an.trl;
     el.innerHTML = `<div class="kpis">
       <div class="kpi"><div class="r">Percentual geral</div><div class="v">${an.percentualGeral}%</div><div class="barra-prog"><i style="width:${an.percentualGeral}%"></i></div></div>
@@ -48,6 +73,8 @@ App.abas.projeto = {
 
 // ------------------------------------------------------------------ EQUIPE E INTERESSADOS
 App.abas.equipe = {
+  depois() { const el = $('#destResumo'); if (el) el.innerHTML = App.resumoDestinatarios(); },
+  analise() { const el = $('#destResumo'); if (el) el.innerHTML = App.resumoDestinatarios(); },
   render() {
     return `<h2>Equipe e interessados</h2>
 <div class="cartao"><h3 style="margin-top:0">Equipe do projeto</h3>
@@ -58,14 +85,41 @@ ${App.tabela('projeto.equipe', [
     { campo: 'funcao', rotulo: 'Função', largura: '20%' },
     { campo: 'areas', rotulo: 'Áreas', tipo: 'multi', opcoes: App.opcoesAreas(false) },
   ], { novo: 'membro', botao: 'Adicionar membro', vazio: 'Nenhum membro cadastrado.' })}</div>
+<div class="cartao"><h3 style="margin-top:0">Grupos de e-mail</h3>
+<p class="muted">Grupos marcados como <b>gestão</b> recebem o <b>ZIP completo</b> do projeto; os demais recebem <b>os PDFs e o JSON</b>. Quem estiver em gestão e em outro grupo recebe <b>apenas como gestão</b>.</p>
+${App.tabela('gruposEmail', [
+    { campo: 'nome', rotulo: 'Nome do grupo' },
+    { campo: 'gestao', rotulo: 'Gestão (recebe ZIP completo)', tipo: 'checkbox', render: true, largura: '220px' },
+  ], { novo: 'grupo', botao: 'Adicionar grupo' })}</div>
 <div class="cartao"><h3 style="margin-top:0">Interessados no andamento (recebem o e-mail a cada salvamento)</h3>
-<p class="muted">Assunto do e-mail: <b>andamento projeto ${esc(App.p.projeto.nome || '<nome>')}</b>, com o JSON atualizado. Modo de envio atual: <b>${esc(App.descricaoModoEmail())}</b> (altere em ⚙ Configurações).</p>
-${App.tabela('interessados', [
-    { campo: 'nome', rotulo: 'Nome', largura: '30%' },
-    { campo: 'email', rotulo: 'E-mail *', tipo: 'email', largura: '35%' },
-    { campo: 'papel', rotulo: 'Papel (ex.: gestor, empresa)' },
-  ], { novo: 'interessado', botao: 'Adicionar interessado', vazio: 'Cadastre ao menos um e-mail para poder salvar.' })}</div>`;
+<p class="muted">Assunto: <b>andamento projeto ${esc(App.p.projeto.nome || '<nome>')}</b>. Modo de envio: <b>${esc(App.descricaoModoEmail())}</b> (⚙ Configurações).</p>
+${App.tabelaInteressados()}
+<div id="destResumo"></div></div>`;
   },
+};
+
+App.tabelaInteressados = function () {
+  const gs = App.p.gruposEmail;
+  let h = `<div class="rolagem"><table class="tab-edit"><thead><tr><th style="width:22%">Nome</th><th style="width:26%">E-mail *</th><th style="width:16%">Papel</th><th>Grupos</th><th class="acoes"></th></tr></thead><tbody>`;
+  if (!App.p.interessados.length) h += '<tr><td colspan="5" class="vazio">Cadastre ao menos um e-mail para poder salvar.</td></tr>';
+  App.p.interessados.forEach((it, i) => {
+    h += `<tr><td>${App.campo(`interessados.${i}.nome`, '')}</td><td>${App.campo(`interessados.${i}.email`, '', { tipo: 'email' })}</td><td>${App.campo(`interessados.${i}.papel`, '')}</td>
+      <td><div class="barra" style="margin:0">${gs.map((g) => `<label class="chk ${it.grupos.includes(g.id) ? 'on' : ''}"><input type="checkbox" data-acao="grupo-toggle" data-i="${i}" data-g="${esc(g.id)}" ${it.grupos.includes(g.id) ? 'checked' : ''}> ${esc(g.nome || g.id)}${g.gestao ? ' ★' : ''}</label>`).join('')}</div></td>
+      <td class="acoes"><button class="btn pequeno perigo" data-acao="rem-linha" data-lista="interessados" data-i="${i}">✕</button></td></tr>`;
+  });
+  return h + `</tbody></table></div><div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="interessados" data-novo="interessado">+ Adicionar interessado</button><span class="muted">★ = grupo de gestão</span></div>`;
+};
+App.acoes['grupo-toggle'] = (el) => {
+  const it = App.p.interessados[+el.dataset.i];
+  const g = el.dataset.g;
+  it.grupos = it.grupos.includes(g) ? it.grupos.filter((x) => x !== g) : it.grupos.concat(g);
+  App.marcarSujo(true); App.render();
+};
+App.resumoDestinatarios = function () {
+  const d = Nucleo.destinatarios(App.p);
+  const li = (l) => l.map((r) => `<li>${esc(r.nome ? r.nome + ' <' + r.email + '>' : r.email)}</li>`).join('') || '<li class="muted">ninguém</li>';
+  return `<div class="grade-campos" style="margin-top:10px"><div class="ok-box"><b>Gestão — recebe o ZIP completo</b><ul>${li(d.gestao)}</ul></div>
+    <div class="info-box" style="margin:6px 0"><b>Demais — recebem os PDFs e o JSON</b><ul>${li(d.demais)}</ul></div></div>`;
 };
 
 // ------------------------------------------------------------------ ÁREAS / RESPONSÁVEIS
@@ -120,15 +174,26 @@ App.abas.areas = {
 };
 
 // ------------------------------------------------------------------ QUALIDADE
+App.qfdPedido = false; // pedido do JSON do QFD já mostrado nesta sessão (por projeto)
 App.abas.qualidade = {
   render() {
+    const o = App.p.qfdOrigem || {};
+    const nQfd = App.p.qualidade.filter((q) => q.qfd && q.qfd.id && !q.qfd.removidoDoQfd).length;
     let h = `<h2>Gestão da qualidade</h2>
+<div class="cartao ${o.importadoEm ? '' : 'qfd-pedido'}"><h3 style="margin-top:0">Especificações do QFD</h3>
+  <p>Os critérios de qualidade são as <b>especificações de projeto</b>, obtidas com o QFD no <b>projeto informacional</b> (aba Projeto de produto/serviço). O <b>backup completo (JSON)</b> do sistema QFD traz: requisitos de projeto na ordem de importância, valor-meta com o sentido de melhoria, forma de avaliação, aspectos indesejáveis e o valor medido do produto. A situação é calculada como no QFD: atingida ⇒ conforme; não atingida ⇒ não conforme; sem medição ⇒ pendente.</p>
+  <div class="barra"><button class="btn ${o.importadoEm ? '' : 'primario'}" data-acao="ir-aba" data-aba="produto" data-etapa="informacional">🛠 Ir ao projeto informacional (QFD)</button>
+  <label class="btn">⬆ ${o.importadoEm ? 'Reimportar' : 'Importar'} JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfd"></label>
+  <span class="muted">${o.importadoEm ? `Última importação: ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} · ${esc(o.arquivo)} · ${nQfd} requisito(s) de projeto` : '<b class="gap-neg">Nenhum QFD importado neste projeto.</b>'}</span></div>
+  <p class="muted">Na reimportação, os requisitos são atualizados pelo identificador do QFD; o PDCA e os requisitos cadastrados à mão são mantidos, e a situação só muda quando o QFD traz medição.</p></div>
 <div class="cartao"><h3 style="margin-top:0">Requisitos, critérios de aceite e verificação</h3>
 ${App.tabela('qualidade', [
     { campo: 'requisito', rotulo: 'Requisito', tipo: 'textarea' },
-    { campo: 'criterioAceite', rotulo: 'Critério de aceite', tipo: 'textarea' },
-    { campo: 'metodoVerificacao', rotulo: 'Método de verificação', tipo: 'textarea' },
-    { campo: 'status', rotulo: 'Situação', tipo: 'select', render: true, largura: '140px', opcoes: [['pendente', 'pendente'], ['conforme', 'conforme'], ['não conforme', 'não conforme']] },
+    { campo: 'criterioAceite', rotulo: 'Critério de aceite (meta)', tipo: 'textarea', largura: '14%' },
+    { campo: 'metodoVerificacao', rotulo: 'Forma de avaliação', tipo: 'textarea' },
+    { campo: 'aspectosIndesejaveis', rotulo: 'Aspectos indesejáveis', tipo: 'textarea' },
+    { campo: 'valorMedido', rotulo: 'Medido', largura: '90px' },
+    { campo: 'status', rotulo: 'Situação', tipo: 'select', render: true, largura: '130px', opcoes: [['pendente', 'pendente'], ['conforme', 'conforme'], ['não conforme', 'não conforme']] },
   ], { novo: 'qualidade', botao: 'Adicionar requisito' })}</div>`;
     const nc = App.p.qualidade.map((q, i) => [q, i]).filter(([q]) => q.status === 'não conforme');
     if (nc.length) {
@@ -143,8 +208,135 @@ ${App.tabela('qualidade', [
       });
       h += '</div>';
     }
-    return h;
+    return h + App.dfxHtml();
   },
+};
+
+// ------------------------------------------------------------------ DfX (Pahl & Beitz)
+App.dfxHtml = function () {
+  const d = App.p.dfx;
+  const trl = App.an ? App.an.trl.sistema : null;
+  const condSug = dfxCondicaoPorTrl(trl);
+  const cond = d.condicaoTeste || '';
+  const nUsar = d.itens.filter((i) => i.decisao === 'usar').length, nNeg = d.itens.filter((i) => i.decisao === 'negligenciar').length;
+  let h = `<div class="cartao"><h3 style="margin-top:0">Design for X (DfX) — diretrizes de Pahl &amp; Beitz</h3>
+  <p class="muted">Marque o que <b>será usado</b> ou <b>negligenciado</b> nesta fase, conforme o TRL e a condição de teste. Em cada diretriz, marque as recomendações que serão aplicadas. Tudo fica salvo no JSON.
+  Referência: Pahl, Beitz, Feldhusen e Grote, <i>Engineering Design: A Systematic Approach</i>, 3. ed., Springer, 2007.</p>
+  <div class="grade-campos">
+    <label class="campo">TRL atual do sistema<input disabled value="${trl ?? 'não avaliado'}"></label>
+    ${App.campo('dfx.condicaoTeste', 'Condição de teste atual', { tipo: 'select', render: true, opcoes: [['', condSug ? '— sugerida pelo TRL: ' + DFX_CONDICOES.find(([v]) => v === condSug)[1] + ' —' : '—']].concat(DFX_CONDICOES) })}
+  </div>
+  <div class="barra"><button class="btn" data-acao="dfx-sugerir">Aplicar sugestões às diretrizes ainda não decididas</button>
+    <button class="btn" data-acao="dfx-add">+ DfX personalizado</button>
+    <span class="muted">${nUsar} a usar · ${nNeg} negligenciada(s) · ${d.itens.length - nUsar - nNeg} pendente(s)</span></div>`;
+  d.itens.forEach((it, i) => {
+    const sug = dfxSugestao(it, trl, cond || condSug);
+    const b = `dfx.itens.${i}`;
+    const cls = it.decisao === 'usar' ? 'dfx-usar' : it.decisao === 'negligenciar' ? 'dfx-neg' : '';
+    h += `<div class="dfx-card ${cls}">
+      <div class="dfx-topo">
+        <div class="dfx-nome">${it.personalizado ? App.campo(b + '.nome', '', { ph: 'Nome do DfX' }) : '<b>' + esc(it.nome) + '</b>'}
+          <div class="muted">${esc(it.ref)} · exigida a partir do TRL ${esc(it.trlMin)} · teste mínimo: ${esc((DFX_CONDICOES[it.condicaoMin] || DFX_CONDICOES[0])[1])}</div></div>
+        <div class="dfx-decisao">
+          <label class="chk ${it.decisao === 'usar' ? 'on' : ''}"><input type="checkbox" data-acao="dfx-decidir" data-i="${i}" data-d="usar" ${it.decisao === 'usar' ? 'checked' : ''}> Usar</label>
+          <label class="chk neg ${it.decisao === 'negligenciar' ? 'on' : ''}"><input type="checkbox" data-acao="dfx-decidir" data-i="${i}" data-d="negligenciar" ${it.decisao === 'negligenciar' ? 'checked' : ''}> Negligenciar</label>
+          <span class="muted">sugestão: <b>${esc(sug.decisao || '—')}</b> (${esc(sug.motivo)})</span>
+          ${it.personalizado ? `<button class="btn pequeno perigo" data-acao="rem-linha" data-lista="dfx.itens" data-i="${i}">✕</button>` : ''}
+        </div>
+      </div>
+      <div class="dfx-recs">${it.recomendacoes.map((r, k) => it.personalizado
+        ? `<div class="barra" style="margin:2px 0">${App.campo(`${b}.recomendacoes.${k}.marcado`, '', { tipo: 'checkbox' })}${App.campo(`${b}.recomendacoes.${k}.texto`, '', { ph: 'Recomendação' })}<button class="btn pequeno perigo" data-acao="rem-linha" data-lista="${b}.recomendacoes" data-i="${k}">✕</button></div>`
+        : App.campo(`${b}.recomendacoes.${k}.marcado`, r.texto, { tipo: 'checkbox', classe: 'rec' })).join('')}
+        ${it.personalizado ? `<button class="btn pequeno" data-acao="add-linha" data-lista="${b}.recomendacoes" data-novo="recDfx">+ recomendação</button>` : ''}
+      </div>
+      ${it.personalizado ? `<div class="grade-campos">${App.campo(b + '.trlMin', 'Exigida a partir do TRL', { tipo: 'select', opcoes: App.opcoesTrl })}${App.campo(b + '.condicaoMin', 'Teste mínimo', { tipo: 'select', opcoes: DFX_CONDICOES.map(([, r], k) => [k, r]) })}</div>` : ''}
+      ${App.campo(b + '.justificativa', it.decisao === 'negligenciar' ? 'Justificativa para negligenciar (TRL / condição de teste)' : 'Observações / justificativa', { tipo: 'textarea', linhas: 2 })}
+    </div>`;
+  });
+  return h + '</div>';
+};
+
+App.abas.qualidade.depois = function () {
+  const inp = $('#arqQfd');
+  if (inp) inp.addEventListener('change', (ev) => { const f = ev.target.files[0]; if (f) App.importarQfd(f); ev.target.value = ''; });
+};
+
+/** Abre o sistema QFD em outra aba; ao voltar para esta, pede o backup JSON. */
+App.qfdAguardando = false;
+App.pedirJsonQfd = function () {
+  App.modal(`<h2>Importar o JSON do QFD</h2>
+    <p>Terminou o QFD? Exporte o <b>backup completo (JSON)</b> no sistema QFD (botão “Backup”) e selecione o arquivo aqui.
+    As especificações passam a ser os critérios de qualidade deste projeto.</p>
+    <div class="barra"><label class="btn primario">Selecionar JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdVolta"></label>
+    <button class="btn" data-acao="qfd-abrir">↗ Voltar ao sistema QFD</button>
+    <button class="btn" data-acao="qfd-depois">Importar depois</button></div>`);
+  $('#arqQfdVolta').addEventListener('change', (ev) => { const f = ev.target.files[0]; if (f) { App.qfdAguardando = false; App.importarQfd(f); } });
+};
+App.acoes['qfd-abrir'] = () => {
+  const w = window.open(CONFIG.urlQfd, '_blank');
+  App.qfdAguardando = true;
+  if (!w) { App.toast(`O navegador bloqueou a nova aba. Abra: <a href="${esc(CONFIG.urlQfd)}" target="_blank" rel="noopener">${esc(CONFIG.urlQfd)}</a>`, 'aviso', 15000); }
+  App.pedirJsonQfd();
+};
+App.acoes['qfd-depois'] = () => { App.qfdAguardando = false; App.fecharModal(); App.toast('Quando tiver o backup do QFD, importe-o na aba Qualidade / DfX.', 'aviso', 7000); };
+// ao voltar da aba do QFD, reapresenta o pedido do JSON
+const qfdVoltou = () => { if (App.qfdAguardando && document.visibilityState === 'visible' && App.p && !$('#arqQfdVolta')) App.pedirJsonQfd(); };
+document.addEventListener('visibilitychange', qfdVoltou);
+window.addEventListener('focus', qfdVoltou);
+
+App.importarQfd = async function (arquivo) {
+  try {
+    let texto;
+    if (/\.zip$/i.test(arquivo.name)) {
+      const z = await JSZip.loadAsync(arquivo);
+      const cands = Object.keys(z.files).filter((n) => /\.json$/i.test(n) && !z.files[n].dir);
+      let achou = null;
+      for (const n of cands) { const t = await z.file(n).async('string'); try { const d = JSON.parse(t); if (d && Array.isArray(d.requisitosProjeto)) { achou = t; break; } } catch (e) { /* ignora */ } }
+      if (!achou) throw new Error('O ZIP não contém o backup JSON do QFD.');
+      texto = achou;
+    } else texto = await arquivo.text();
+    let dados;
+    try { dados = JSON.parse(texto.replace(/^\uFEFF/, '')); } catch (e) { throw new Error('O arquivo não é um JSON válido.'); }
+    const r = Nucleo.importarQfd(dados);
+    const m = Nucleo.mesclarQfd(App.p.qualidade, r.itens);
+    const quando = Nucleo.agoraIso();
+    const arqGuardado = `qfd/qfd_${quando.replace('T', '_').replace(/:/g, '')}.json`;
+    await App.arm.gravarArquivo(arqGuardado, new Blob([texto], { type: 'application/json' }));
+    App.p.qualidade = m.itens;
+    if (App.p.produto) { const inf = App.p.produto.etapas.informacional; if (r.clientes.length) inf.necessidades = r.clientes.map((c) => Object.assign(c, { peso: Math.round(c.peso * 1e4) / 1e4, origem: 'QFD' })); inf.recomendacoes.inf_qfd = true; if (inf.status === 'não iniciada') inf.status = 'em andamento'; }
+    App.p.qfdOrigem = { arquivo: arquivo.name, guardadoEm: arqGuardado, importadoEm: quando, requisitosProjeto: r.meta.requisitosProjeto, requisitosCliente: r.meta.requisitosCliente, schemaVersion: r.meta.schemaVersion };
+    App.p.log.push({ dataHora: quando, acao: `QFD importado (${arquivo.name}): ${r.itens.length} requisito(s) de projeto`, usuario: App.cfg.usuario || '' });
+    App.qfdAguardando = false;
+    App.fecharModal(); App.marcarSujo(true); App.render(); App.agendarAnalise();
+    App.toast(`QFD importado: ${r.itens.length} requisito(s) de projeto${m.removidos ? `, ${m.removidos} não existe(m) mais no QFD (mantidos e marcados)` : ''}${m.manuais ? `, ${m.manuais} manual(is) mantido(s)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
+    if (r.avisos.length) App.toast(r.avisos.map(esc).join('<br>'), 'aviso', 10000);
+  } catch (e) { App.toast('QFD: ' + esc(e.message), 'erro', 9000); }
+};
+
+App.novos.recDfx = () => ({ texto: '', marcado: true });
+App.acoes['dfx-decidir'] = (el, ev) => {
+  const it = App.p.dfx.itens[+el.dataset.i];
+  it.decisao = it.decisao === el.dataset.d ? '' : el.dataset.d;
+  App.marcarSujo(true); App.render(); App.agendarAnalise();
+};
+App.acoes['dfx-sugerir'] = () => {
+  const trl = App.an ? App.an.trl.sistema : null;
+  const cond = App.p.dfx.condicaoTeste || dfxCondicaoPorTrl(trl);
+  let n = 0;
+  App.p.dfx.itens.forEach((it) => {
+    if (it.decisao) return;
+    const s = dfxSugestao(it, trl, cond);
+    if (!s.decisao) return;
+    it.decisao = s.decisao; n++;
+    if (!it.justificativa) it.justificativa = 'Sugestão automática: ' + s.motivo + '.';
+    if (s.decisao === 'usar') it.recomendacoes.forEach((r) => { r.marcado = true; });
+  });
+  App.marcarSujo(true); App.render(); App.agendarAnalise();
+  App.toast(n ? `${n} diretriz(es) decididas pela sugestão. Revise antes de salvar.` : 'Nenhuma diretriz pendente com sugestão (importe o TRL para ter sugestões).');
+};
+App.acoes['dfx-add'] = () => {
+  App.p.dfx.itens.push({ id: Nucleo.uid('dfx'), nome: '', ref: 'Definido pela equipe', trlMin: 4, condicaoMin: 0, decisao: '', justificativa: '', personalizado: true, recomendacoes: [{ texto: '', marcado: true }] });
+  App.marcarSujo(true); App.render();
 };
 
 // ------------------------------------------------------------------ LIÇÕES APRENDIDAS

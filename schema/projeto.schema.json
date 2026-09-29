@@ -115,6 +115,44 @@
           "items": {
             "$ref": "#/$defs/noTrl"
           }
+        },
+        "avaliacao": {
+          "type": "object",
+          "description": "Avaliação interna por critérios (NASA NPR 7123.1 / ISO 16290)",
+          "properties": {
+            "origem": {
+              "enum": [
+                "interno",
+                "importado"
+              ]
+            },
+            "atualizado": {
+              "type": "string"
+            },
+            "criterios": {
+              "type": "object",
+              "description": "chave = id do critério (1a, 1b, 2a…)",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "r": {
+                    "enum": [
+                      "",
+                      "sim",
+                      "nao",
+                      "na"
+                    ]
+                  },
+                  "ev": {
+                    "type": "string"
+                  },
+                  "fig": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -200,6 +238,43 @@
         },
         "trlEsperadoFinal": {
           "$ref": "#/$defs/trl"
+        },
+        "aditivos": {
+          "type": "array",
+          "description": "Termos aditivos (+) e subtrativos (−) de prazo, aplicados em ordem ao término original",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "tipo": {
+                "enum": [
+                  "aditivo",
+                  "subtrativo"
+                ]
+              },
+              "quantidade": {
+                "type": "number",
+                "minimum": 0
+              },
+              "unidade": {
+                "enum": [
+                  "meses",
+                  "dias"
+                ]
+              },
+              "numero": {
+                "type": "string"
+              },
+              "dataTermo": {
+                "$ref": "#/$defs/data"
+              },
+              "justificativa": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },
@@ -217,6 +292,13 @@
           },
           "papel": {
             "type": "string"
+          },
+          "grupos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ids de gruposEmail; quem está num grupo de gestão recebe apenas como gestão"
           }
         }
       }
@@ -546,6 +628,62 @@
                 "type": "string"
               }
             }
+          },
+          "aspectosIndesejaveis": {
+            "type": "string"
+          },
+          "valorMedido": {
+            "type": "string"
+          },
+          "qfd": {
+            "type": "object",
+            "description": "Origem no QFD (quando importado)",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "numero": {
+                "type": "integer"
+              },
+              "rank": {
+                "type": "integer"
+              },
+              "sentido": {
+                "enum": [
+                  "up",
+                  "down",
+                  "none"
+                ]
+              },
+              "meta": {
+                "type": "string"
+              },
+              "unidade": {
+                "type": "string"
+              },
+              "importanciaAbsoluta": {
+                "type": "number"
+              },
+              "pesoRelativo": {
+                "type": "number"
+              },
+              "dificuldadeTecnica": {},
+              "estado": {
+                "enum": [
+                  "atingida",
+                  "nao-atingida",
+                  "sem-medicao",
+                  "sem-meta"
+                ]
+              },
+              "removidoDoQfd": {
+                "type": "boolean"
+              }
+            }
+          },
+          "id": {
+            "type": "string",
+            "description": "identificador estável (qfd_<id do QFD> ou q_…)"
           }
         }
       }
@@ -585,6 +723,28 @@
           "items": {
             "$ref": "#/$defs/noTrl"
           }
+        },
+        "historico": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dataHora": {
+                "type": "string"
+              },
+              "chave": {
+                "type": "string"
+              },
+              "titulo": {
+                "type": "string"
+              },
+              "de": {},
+              "para": {},
+              "usuario": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },
@@ -593,6 +753,40 @@
       "properties": {
         "incluirAndamentoNaMacro": {
           "type": "boolean"
+        },
+        "baixarAoSalvar": {
+          "enum": [
+            "auto",
+            "sempre",
+            "nunca"
+          ]
+        },
+        "email": {
+          "type": "object",
+          "properties": {
+            "modo": {
+              "enum": [
+                "mailto",
+                "emailjs",
+                "nenhum"
+              ]
+            },
+            "emailjsServico": {
+              "type": "string"
+            },
+            "emailjsModelo": {
+              "type": "string"
+            },
+            "emailjsChave": {
+              "type": "string"
+            },
+            "limiteAnexoKb": {
+              "type": "number"
+            },
+            "gerarPdfsAoSalvar": {
+              "type": "boolean"
+            }
+          }
         }
       }
     },
@@ -616,6 +810,1199 @@
     "id": {
       "type": "string",
       "description": "identificador do projeto (usado quando guardado no navegador)"
+    },
+    "gruposEmail": {
+      "type": "array",
+      "description": "Grupos de destinatários; gestao=true recebe o ZIP completo, os demais recebem PDFs + JSON",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "gestao"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "gestao": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "dfx": {
+      "type": "object",
+      "description": "Design for X (Pahl & Beitz): decisões de uso/negligência por TRL e condição de teste",
+      "properties": {
+        "condicaoTeste": {
+          "enum": [
+            "",
+            "bancada",
+            "laboratorio",
+            "relevante",
+            "operacional"
+          ]
+        },
+        "itens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "nome",
+              "decisao",
+              "recomendacoes"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "nome": {
+                "type": "string"
+              },
+              "ref": {
+                "type": "string"
+              },
+              "trlMin": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9
+              },
+              "condicaoMin": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3
+              },
+              "decisao": {
+                "enum": [
+                  "",
+                  "usar",
+                  "negligenciar"
+                ]
+              },
+              "justificativa": {
+                "type": "string"
+              },
+              "personalizado": {
+                "type": "boolean"
+              },
+              "recomendacoes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "texto": {
+                      "type": "string"
+                    },
+                    "marcado": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "qfdOrigem": {
+      "type": "object",
+      "description": "Último backup do sistema QFD importado (original guardado em qfd/)",
+      "properties": {
+        "arquivo": {
+          "type": "string"
+        },
+        "guardadoEm": {
+          "type": "string"
+        },
+        "importadoEm": {
+          "type": "string"
+        },
+        "requisitosProjeto": {
+          "type": "integer"
+        },
+        "requisitosCliente": {
+          "type": "integer"
+        },
+        "schemaVersion": {}
+      }
+    },
+    "produto": {
+      "type": "object",
+      "description": "Projeto de produto/serviço pelo modelo NeDIP (Back et al., 2008): planejamento, projetação e implementação. Tudo opcional.",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "produto",
+            "serviço"
+          ]
+        },
+        "fases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "description": "fases usadas no projeto"
+        },
+        "etapas": {
+          "type": "object",
+          "properties": {
+            "planejamento": {
+              "type": "object",
+              "description": "Planejamento do projeto → plano do projeto",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "escopo": {
+                  "type": "string"
+                },
+                "premissas": {
+                  "type": "string"
+                },
+                "orcamento": {
+                  "type": "string"
+                },
+                "comunicacao": {
+                  "type": "string"
+                }
+              }
+            },
+            "informacional": {
+              "type": "object",
+              "description": "Projeto informacional → especificações (manuais ou do QFD, em qualidade[])",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "cicloVida": {
+                  "type": "string"
+                },
+                "concorrentes": {
+                  "type": "string"
+                },
+                "normas": {
+                  "type": "string"
+                },
+                "questionarios": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "publico": {
+                        "type": "string"
+                      },
+                      "meio": {
+                        "type": "string"
+                      },
+                      "respondentes": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "observacao": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "consolidacao": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "necessidade": {
+                        "type": "string"
+                      },
+                      "fase": {
+                        "type": "string"
+                      },
+                      "citacoes": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "importancia": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "necessidades": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "peso": {
+                        "type": "number",
+                        "description": "0–1"
+                      },
+                      "origem": {
+                        "type": "string",
+                        "description": "manual, questionários ou QFD"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "conceitual": {
+              "type": "object",
+              "description": "Projeto conceitual → concepção",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "funcaoGlobal": {
+                  "type": "object",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "entradas": {
+                      "type": "string"
+                    },
+                    "saidas": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "funcoes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      },
+                      "subfuncoes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "nome": {
+                              "type": "string"
+                            },
+                            "principios": {
+                              "type": "string",
+                              "description": "um princípio de solução por linha"
+                            },
+                            "escolhido": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "desdobramento": {
+                  "type": "object",
+                  "description": "id da especificação (qualidade[].id) → funções que a atendem",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "funcoes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "obs": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "concepcoes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "nome": {
+                        "type": "string"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "avaliacao": {
+                        "type": "string"
+                      },
+                      "selecionada": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "decisao": {
+                  "type": "object",
+                  "properties": {
+                    "criterios": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nome": {
+                            "type": "string"
+                          },
+                          "peso": {
+                            "type": "number"
+                          },
+                          "notas": {
+                            "type": "object",
+                            "description": "id da concepção → nota 1–5",
+                            "additionalProperties": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "trlExportadoEm": {
+                  "type": "string"
+                }
+              }
+            },
+            "preliminar": {
+              "type": "object",
+              "description": "Projeto preliminar → leiaute; FMEA; análise de qualidade",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "leiaute": {
+                  "type": "string"
+                },
+                "viabilidade": {
+                  "type": "string"
+                },
+                "prototipos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "nome": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "resultado": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "fmea": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "item": {
+                        "type": "string"
+                      },
+                      "modo": {
+                        "type": "string"
+                      },
+                      "efeito": {
+                        "type": "string"
+                      },
+                      "causa": {
+                        "type": "string"
+                      },
+                      "s": {
+                        "type": "number"
+                      },
+                      "o": {
+                        "type": "number"
+                      },
+                      "d": {
+                        "type": "number"
+                      },
+                      "acao": {
+                        "type": "string"
+                      },
+                      "responsavel": {
+                        "type": "string"
+                      },
+                      "riscoId": {
+                        "type": "string",
+                        "description": "risco criado na aba Riscos"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "detalhado": {
+              "type": "object",
+              "description": "Projeto detalhado → documentação e manuais",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "bom": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "item": {
+                        "type": "string"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "quantidade": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "unidade": {
+                        "type": "string"
+                      },
+                      "material": {
+                        "type": "string"
+                      },
+                      "origem": {
+                        "type": "string",
+                        "enum": [
+                          "fabricado",
+                          "comprado",
+                          "terceirizado"
+                        ]
+                      },
+                      "fornecedor": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "manualUso": {
+                  "type": "object",
+                  "properties": {
+                    "descricao": {
+                      "type": "string"
+                    },
+                    "seguranca": {
+                      "type": "string"
+                    },
+                    "instalacao": {
+                      "type": "string"
+                    },
+                    "operacao": {
+                      "type": "string"
+                    },
+                    "manutencao": {
+                      "type": "string"
+                    },
+                    "problemas": {
+                      "type": "string"
+                    },
+                    "descarte": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "manuais": {
+                  "type": "object",
+                  "properties": {
+                    "projeto": {
+                      "type": "string"
+                    },
+                    "uso": {
+                      "type": "string"
+                    },
+                    "geradoEm": {
+                      "type": "string"
+                    },
+                    "projetoAnexo": {
+                      "type": "string",
+                      "description": "manual próprio (documento importado)"
+                    },
+                    "usoAnexo": {
+                      "type": "string",
+                      "description": "manual próprio (documento importado)"
+                    }
+                  }
+                }
+              }
+            },
+            "producao": {
+              "type": "object",
+              "description": "Preparação da produção → liberação",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "processos": {
+                  "type": "string"
+                },
+                "fornecedores": {
+                  "type": "string"
+                },
+                "lotePiloto": {
+                  "type": "string"
+                },
+                "liberacao": {
+                  "type": "string"
+                }
+              }
+            },
+            "lancamento": {
+              "type": "object",
+              "description": "Lançamento",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "plano": {
+                  "type": "string"
+                },
+                "canais": {
+                  "type": "string"
+                },
+                "treinamento": {
+                  "type": "string"
+                },
+                "certificacoes": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "string"
+                }
+              }
+            },
+            "validacao": {
+              "type": "object",
+              "description": "Validação e encerramento",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "não iniciada",
+                    "em andamento",
+                    "concluída",
+                    "não se aplica"
+                  ]
+                },
+                "macros": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "uid das macroentregas desta fase"
+                },
+                "app": {
+                  "type": "object",
+                  "description": "aplicativo externo usado como entrada da fase (opcional)",
+                  "properties": {
+                    "nome": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "ferramentas": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "ferramentas internas ligadas (todas opcionais)"
+                },
+                "recomendacoes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "description": "id da recomendação → aplicada"
+                },
+                "registro": {
+                  "type": "string",
+                  "description": "texto livre da fase"
+                },
+                "anexos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arquivo": {
+                        "type": "string",
+                        "description": "caminho relativo ao JSON: produto/<fase>/<arquivo>"
+                      },
+                      "nome": {
+                        "type": "string",
+                        "description": "nome original"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "tamanho": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "campo": {
+                  "type": "string"
+                },
+                "satisfacao": {
+                  "type": "string"
+                },
+                "melhorias": {
+                  "type": "string"
+                },
+                "encerramento": {
+                  "type": "string"
+                },
+                "questionarios": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "publico": {
+                        "type": "string"
+                      },
+                      "meio": {
+                        "type": "string"
+                      },
+                      "respondentes": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "data": {
+                        "type": "string"
+                      },
+                      "observacao": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

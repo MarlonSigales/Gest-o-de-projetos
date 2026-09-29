@@ -138,8 +138,17 @@ Pdf.fontes = () => ({ Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medi
 // ------------------------------------------------------------------ elementos do template
 const T = () => window.TEMPLATES;
 
+function textoVigencia(p) {
+  const v = Nucleo.vigencia(p);
+  if (!v.inicio && !v.fimVigente) return '';
+  let t = `Vigência: ${Nucleo.dataBR(v.inicio) || '—'} a ${Nucleo.dataBR(v.fimVigente) || '—'}`;
+  if (v.termos.length) t += ` (término original ${Nucleo.dataBR(v.fimOriginal)}; ${v.nAditivos} aditivo(s), ${v.nSubtrativos} subtrativo(s))`;
+  return t;
+}
+
 function capa(p, linha1, linha2, extra) {
   const pj = p.projeto, u = CONFIG.unidade;
+  const vig = textoVigencia(p);
   return [
     { image: T().fundoCapa, width: 330, absolutePosition: { x: 0, y: 0 } },
     { image: T().logo, width: 120, absolutePosition: { x: 12 * MM, y: 10 * MM } },
@@ -149,7 +158,8 @@ function capa(p, linha1, linha2, extra) {
     { text: linha2, fontSize: 26, color: COR.escuro, absolutePosition: { x: 50 * MM, y: 110 * MM } },
     { text: String(pj.ano || ''), fontSize: 20, alignment: 'center', absolutePosition: { x: 0, y: 150 * MM } },
     { text: `${u.sigla} – ${pj.codigo} – ${pj.nome}`, fontSize: 9, color: COR.escuro, alignment: 'center', absolutePosition: { x: 20 * MM, y: 163 * MM }, width: 170 * MM },
-    ...(extra ? [{ text: extra, fontSize: 10, alignment: 'center', absolutePosition: { x: 20 * MM, y: 175 * MM }, width: 170 * MM }] : []),
+    ...(vig ? [{ table: { widths: [170 * MM], body: [[{ text: vig, fontSize: 9.5, bold: true, color: COR.escuro, alignment: 'center' }]] }, layout: 'noBorders', absolutePosition: { x: 20 * MM, y: 170 * MM } }] : []),
+    ...(extra ? [{ table: { widths: [170 * MM], body: [[{ text: extra, fontSize: 10, alignment: 'center' }]] }, layout: 'noBorders', absolutePosition: { x: 20 * MM, y: 178 * MM } }] : []),
     { text: pj.empresaParceira || 'Parceiro', fontSize: 16, absolutePosition: { x: 20 * MM, y: 200 * MM } },
     { table: { widths: [62 * MM], body: [[{ text: 'Endereço:\n' + String(pj.endereco || '').replace(/, /g, ',\n'), fontSize: 9.5, alignment: 'right', lineHeight: 1.5 }]] }, layout: 'noBorders', absolutePosition: { x: 118 * MM, y: 245 * MM } },
     { canvas: [{ type: 'rect', x: 0, y: 0, w: 23 * MM, h: 80 * MM, color: COR.teal }], absolutePosition: { x: 187 * MM, y: 190 * MM } },
@@ -338,7 +348,7 @@ Pdf.andamento = async function (p, armazem) {
   c.push(Pdf.kpi([
     ['Projeto', pj.nome], ['Código', pj.codigo], ['Unidade EMBRAPII', pj.unidadeEmbrapii], ['Empresa parceira', pj.empresaParceira],
     ['Coordenação', `${pj.coordenador.nome || ''} ${pj.coordenador.email ? '<' + pj.coordenador.email + '>' : ''}`],
-    ['Vigência', `${Nucleo.dataBR(pj.dataInicio)} a ${Nucleo.dataBR(pj.dataFimPrevista)}`],
+    ['Vigência', (() => { const v = an.vigencia; return `${Nucleo.dataBR(v.inicio)} a ${Nucleo.dataBR(v.fimVigente)}` + (v.termos.length ? ` (original: ${Nucleo.dataBR(v.fimOriginal)})` : '') + (v.restamDias !== null ? (v.restamDias >= 0 ? ` · restam ${v.restamDias} dias` : ' · encerrada') : ''); })()],
     ['Percentual geral', { text: [{ text: an.percentualGeral + '%', bold: true }, ' (média das macroentregas)'], fontSize: 9 }],
     ['TRL atual do sistema', an.trl.sistema === null ? '—' : 'TRL ' + an.trl.sistema],
     ['TRL esperado', `etapa atual: ${an.trl.esperadoEtapa ?? '—'} · final: ${an.trl.esperadoFinal ?? '—'}`],
@@ -346,6 +356,11 @@ Pdf.andamento = async function (p, armazem) {
   ]));
   an.alertas.forEach((a) => c.push(caixa(a)));
   if (!an.alertas.length) c.push(caixa('Nenhum alerta de prazo ou dependência.', 'ok'));
+  if (an.vigencia.termos.length) {
+    c.push(h2('Termos aditivos e subtrativos de prazo'), Pdf.grade(['Termo', 'Tipo', 'Prazo', 'Data', 'Término resultante', 'Justificativa'],
+      an.vigencia.termos.map((t) => [t.numero || '—', t.tipo === 'subtrativo' ? 'Subtrativo' : 'Aditivo', `${t.tipo === 'subtrativo' ? '−' : '+'}${t.quantidade} ${t.unidade}`, Nucleo.dataBR(t.dataTermo), Nucleo.dataBR(t.fimDepois), t.justificativa]),
+      [50, 55, 55, 55, 65, '*']));
+  }
 
   // 2
   c.push(...h1('Quadro das macroentregas'));
@@ -376,8 +391,9 @@ Pdf.andamento = async function (p, armazem) {
     if (g) c.push({ svg: g, width: 450, alignment: 'center', margin: [0, 0, 0, 8] });
     c.push(h2('Pontos de verificação (TRL mais baixo)'));
     an.trl.pontosVerificacao.forEach((pv) => c.push(caixa([{ text: [{ text: pv.nome, bold: true }, ` — TRL atual ${pv.trlAtual}${pv.trlEsperado ? ' (esperado ' + pv.trlEsperado + ')' : ''}`] }, { text: [{ text: 'Cobrar: ', bold: true }, pessoas(pv.cobrar)] }])));
-    c.push({ text: 'Itens da estrutura com menor TRL', style: 'h3' }, Pdf.grade(['Item', 'Tipo', 'TRL', 'Área', 'Cobrar'],
-      an.trl.nosMaisBaixos.map((nn) => [`${nn.titulo} (${nn.chave})`, nn.tipo, trlTxt(nn.trl), nn.area || '—', pessoas(nn.cobrar)]), ['*', 60, 40, 70, 150]));
+    c.push({ text: 'Itens da estrutura com menor TRL', style: 'h3' }, Pdf.grade(['Item', 'Tipo', 'TRL', 'Área', 'Cobrar', 'Falta para o próximo nível'],
+      an.trl.nosMaisBaixos.map((nn) => [`${nn.titulo} (${nn.chave})`, nn.tipo, trlTxt(nn.trl), nn.area || '—', pessoas(nn.cobrar),
+        nn.falta && nn.falta.nivel ? `TRL ${nn.falta.nivel}: ` + nn.falta.faltam.map((f) => f.id + ' ' + f.texto).join('; ') : '—']), ['*', 50, 36, 60, 95, 120]));
     if (an.trl.divergentes.length) c.push({ text: 'Divergências de avaliação', style: 'h3' }, Pdf.grade(['Item', 'TRL informado', 'Menor TRL dos subelementos'], an.trl.divergentes.map((d) => [d.titulo, String(d.informado), String(d.minFilhos)])));
     const linhasArv = [];
     const rec = (nos, nivel) => nos.forEach((nn) => {
@@ -387,6 +403,26 @@ Pdf.andamento = async function (p, armazem) {
     });
     rec(an.trl.arvore, 0);
     c.push({ text: 'Estrutura avaliada', style: 'h3' }, Pdf.grade(['Estrutura', 'Tipo', 'TRL', 'Observação'], linhasArv, ['*', 70, 44, 130]));
+    // evidências da avaliação interna por critérios
+    const evid = [];
+    const recEv = (nos) => nos.forEach((nn) => {
+      const av = nn.avaliacao;
+      if (av && av.origem === 'interno') {
+        const trlC = trlPorCriterios(av) || 0, falta = trlFaltaProximo(av);
+        const itens = [];
+        TRL_NIVEIS.filter((lv) => lv.n <= trlC).forEach((lv) => lv.criterios.forEach(([id]) => {
+          const cr = av.criterios[id];
+          if (cr && (cr.ev || cr.fig)) itens.push(`${id}${cr.r === 'na' ? ' (N.A.)' : ''}: ${cr.ev || ''}${cr.fig && num.fig[cr.fig] ? ` (Figura ${num.fig[cr.fig]})` : ''}`);
+        }));
+        const nao = TRL_NIVEIS.flatMap((lv) => lv.criterios).filter(([id]) => av.criterios[id] && av.criterios[id].r === 'nao').map(([id]) => `${id}: ${av.criterios[id].ev || 'não atendido'}`);
+        evid.push([nn.titulo, trlTxt(trlC || null), { ul: itens.length ? itens : ['—'], fontSize: 7.8 },
+          { stack: [falta.nivel ? `TRL ${falta.nivel}: ${falta.faltam.map((f) => f.id).join(', ')}` : '—', ...(nao.length ? [{ text: nao.join('; '), color: '#c0392b' }] : [])], fontSize: 7.8 }]);
+      }
+      recEv(nn.filhos || []);
+    });
+    recEv(p.trl.arvore || []);
+    if (evid.length) c.push({ text: 'Evidências da avaliação por critérios', style: 'h3' }, Pdf.grade(['Item', 'TRL', 'Evidências dos critérios atendidos', 'Falta / não atendido'], evid, [85, 38, '*', 110]),
+      { text: TRL_FONTE + '. O TRL de cada item é o maior nível com todos os critérios dos níveis anteriores atendidos.', style: 'muted', margin: [0, 0, 0, 6] });
   }
 
   // 5
@@ -396,13 +432,42 @@ Pdf.andamento = async function (p, armazem) {
     an.riscosAltos.map((r) => [r.id, r.descricao, `${r.nivel} (${r.rotulo})`, r.resposta, r.planoAcao, r.responsavel]), [22, '*', 50, 48, '*', 70]));
   else c.push(caixa('Nenhum risco alto ou crítico em aberto.', 'ok'));
 
+  // projeto de produto/serviço (NeDIP)
+  if (p.produto && p.produto.etapas && p.produto.etapas.informacional) {
+    c.push(...h1(`Projeto de ${p.produto.tipo === 'serviço' ? 'serviço' : 'produto'} (fases NeDIP)`));
+    c.push(Pdf.grade(['Fase', 'Situação', 'Recomendações aplicadas', 'Macroentrega(s)', 'Documentos', 'Saída esperada'],
+      nedipResumo(p).map((r) => [r.nome, { text: r.status, bold: true, color: r.status === 'concluída' ? COR.teal : r.status === 'em andamento' ? '#b7791f' : COR.suave },
+        `${r.feitas} de ${r.total}`, r.macros.join(', ') || '—', String(r.anexos), r.saida]), [85, 60, 60, 55, 50, '*']));
+    const cc = p.produto.etapas.conceitual, conc = cc.concepcoes.find((x) => x.selecionada);
+    if (cc.funcaoGlobal.nome || conc) c.push({ text: [cc.funcaoGlobal.nome ? { text: 'Função global: ', bold: true } : '', cc.funcaoGlobal.nome || '', cc.funcaoGlobal.nome && conc ? ' · ' : '',
+      conc ? { text: 'Concepção selecionada: ', bold: true } : '', conc ? conc.nome : ''], style: 'corpo', margin: [0, 0, 0, 6] });
+    c.push({ text: 'Referência: ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 8] });
+  }
+
   // 6
-  c.push(...h1('Qualidade e lições aprendidas'));
+  c.push(...h1('Qualidade, DfX e lições aprendidas'));
   if (p.qualidade.length) {
-    c.push(h2('Requisitos de qualidade'), Pdf.grade(['Requisito', 'Critério de aceite', 'Verificação', 'Situação'], p.qualidade.map((q) => [q.requisito, q.criterioAceite, q.metodoVerificacao, q.status]), ['*', '*', '*', 60]));
+    const o = p.qfdOrigem || {};
+    c.push(h2('Requisitos de qualidade (especificações de projeto)'));
+    if (o.importadoEm) c.push({ text: `Origem: QFD – ${o.arquivo} (importado em ${Nucleo.dataBR(o.importadoEm.slice(0, 10))}), requisitos na ordem de importância.`, style: 'muted', margin: [0, 0, 0, 4] });
+    c.push(Pdf.grade(['Requisito', 'Critério de aceite', 'Forma de avaliação', 'Medido', 'Situação'], p.qualidade.map((q) => [
+      { stack: [q.requisito, ...(q.aspectosIndesejaveis ? [{ text: 'Aspectos indesejáveis: ' + q.aspectosIndesejaveis, style: 'muted' }] : [])], fontSize: 8.8 },
+      q.criterioAceite, q.metodoVerificacao, q.valorMedido || '—',
+      { text: q.status, bold: q.status === 'não conforme', color: q.status === 'não conforme' ? '#c0392b' : (q.status === 'conforme' ? COR.teal : COR.texto) }]), ['*', 70, '*', 50, 55]));
     p.qualidade.filter((q) => q.status === 'não conforme').forEach((q) => c.push(caixa([{ text: 'Não conformidade: ' + q.requisito, bold: true },
       `Planejar: ${q.pdca.planejar}`, `Executar: ${q.pdca.executar}`, `Verificar: ${q.pdca.verificar}`, `Agir: ${q.pdca.agir}`])));
   } else c.push({ text: 'Nenhum requisito de qualidade cadastrado.', style: 'muted' });
+  const dfxI = (p.dfx && p.dfx.itens) || [];
+  if (dfxI.some((i) => i.decisao)) {
+    const condRot = (DFX_CONDICOES.find(([v]) => v === p.dfx.condicaoTeste) || [, 'não informada'])[1];
+    c.push(h2('Design for X (DfX) — Pahl & Beitz'), { text: `Condição de teste atual: ${condRot} · TRL do sistema: ${an.trl.sistema ?? 'não avaliado'}`, style: 'muted', margin: [0, 0, 0, 4] });
+    c.push(Pdf.grade(['Diretriz', 'Decisão', 'Recomendações aplicadas', 'Justificativa'],
+      dfxI.filter((i) => i.decisao).map((i) => [i.nome, { text: i.decisao === 'usar' ? 'Usar' : 'Negligenciar', bold: true, color: i.decisao === 'usar' ? COR.teal : '#777777' },
+        i.decisao === 'usar' ? { ul: i.recomendacoes.filter((r) => r.marcado).map((r) => r.texto), fontSize: 8 } : '—', i.justificativa]), [110, 55, '*', 120]));
+    const pend = dfxI.filter((i) => !i.decisao);
+    if (pend.length) c.push({ text: 'Diretrizes ainda não decididas: ' + pend.map((i) => i.nome).join('; ') + '.', style: 'muted', margin: [0, 0, 0, 6] });
+    c.push({ text: 'Referência: PAHL, G.; BEITZ, W.; FELDHUSEN, J.; GROTE, K.-H. Engineering Design: A Systematic Approach. 3. ed. London: Springer, 2007.', style: 'muted', margin: [0, 0, 0, 8] });
+  }
   if (p.licoesAprendidas.length) {
     const numMacro = (uid) => { const i = p.macroentregas.findIndex((m) => m.uid === uid); return i >= 0 ? String(i + 1) : '—'; };
     c.push(h2('Lições aprendidas'), Pdf.grade(['Data', 'Macro', 'Lição', 'Recomendação'], p.licoesAprendidas.map((l) => [Nucleo.dataBR(l.data), numMacro(l.macroUid), l.descricao, l.recomendacao]), [52, 32, '*', '*']));
@@ -491,6 +556,210 @@ Pdf.matrizRiscos = function (riscos) {
     { text: 'Impacto →', fontSize: 8.5, bold: true, alignment: 'center', margin: [0, 2, 0, 2] },
     { text: 'Nível = P × I · verde ≤ 4 · amarelo 5–9 · laranja 10–14 · vermelho ≥ 15 (riscos fechados não aparecem)', style: 'muted', alignment: 'center', margin: [0, 0, 0, 8] },
   ], unbreakable: true };
+};
+
+// ------------------------------------------------------------------ PROJETO DE PRODUTO/SERVIÇO (NeDIP)
+/** Documento com capa do template, cabeçalho e rodapé. */
+Pdf.documento = function (p, linha1, linha2, rotulo, content, extra) {
+  const pj = p.projeto, u = CONFIG.unidade;
+  return {
+    pageSize: 'A4', pageMargins: [25 * MM, 30 * MM, 20 * MM, 25 * MM],
+    info: { title: `${rotulo} – ${pj.nome}`, author: pj.coordenador.nome || '', creator: 'Gestão de Projetos (navegador)' },
+    defaultStyle: { font: 'Roboto', fontSize: 10, color: COR.texto }, styles: estilos,
+    content: [...capa(p, linha1, linha2, extra), { text: ' ' }, ...content, { text: ' ', pageBreak: 'before' }, ...contracapa()],
+    header: (pg, total) => (pg === 1 || pg === total) ? null : {
+      margin: [25 * MM, 10 * MM, 14 * MM, 0],
+      stack: [{ columns: [{ text: [{ text: rotulo.toUpperCase(), bold: true }, ' – ' + pj.nome], fontSize: 8, color: COR.escuro, margin: [0, 10, 0, 0] }, { image: T().logo, width: 62, alignment: 'right' }] },
+        { canvas: [{ type: 'line', x1: 0, y1: 2, x2: A4.w - 39 * MM, y2: 2, lineWidth: 1.2, lineColor: COR.lima }] }],
+    },
+    footer: (pg, total) => (pg === 1 || pg === total) ? null : {
+      columns: [{ text: `${u.sigla} ${pj.codigo} – emitido em ${new Date().toLocaleString('pt-BR').slice(0, 17)}`, fontSize: 7.5, bold: true, color: COR.escuro }, { text: String(pg), fontSize: 7.5, bold: true, color: COR.escuro, alignment: 'right', width: 40 }],
+      margin: [25 * MM, 25, 20 * MM, 0],
+    },
+  };
+};
+const secoesNumeradas = () => {
+  let s = 0, ss = 0;
+  return {
+    h1: (t, quebra) => { s++; ss = 0; return [{ text: `${s} ${t.toUpperCase()}`, style: 'h1', tocItem: 'sum', tocStyle: { bold: true, fontSize: 10 }, tocMargin: [0, 4, 0, 0], margin: [0, 14, 0, 2], pageBreak: quebra ? 'before' : undefined },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 470, y2: 0, lineWidth: 2, lineColor: COR.lima }], margin: [0, 0, 0, 8] }]; },
+    h2: (t) => { ss++; return { text: `${s}.${ss} ${t}`, style: 'h2', tocItem: 'sum', tocStyle: { fontSize: 9.5 }, tocMargin: [14, 2, 0, 0] }; },
+  };
+};
+const recsAplicadas = (p, et) => { const e = p.produto.etapas[et.id]; return et.recomendacoes.filter(([id]) => e.recomendacoes[id]).map(([, t]) => t); };
+
+Pdf.manualProjeto = async function (p, armazem) {
+  const pj = p.projeto, pr = p.produto, E = pr.etapas, an = Nucleo.analisar(p);
+  const num = Nucleo.numerarAbnt(p.macroentregas);
+  const imgs = await Pdf.carregarFiguras(p, armazem);
+  const { h1, h2 } = secoesNumeradas();
+  const nomeMacro = (u) => { const i = p.macroentregas.findIndex((m) => m.uid === u); return i >= 0 ? `${i + 1} – ${p.macroentregas[i].titulo}` : ''; };
+  const txt = (rot, v) => (String(v || '').trim() ? [h2(rot), ...Pdf.texto(v, num)] : []);
+  const c = [];
+  c.push({ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' });
+  c.push(...h1('Identificação', true));
+  c.push(Pdf.kpi([['Projeto', pj.nome], ['Código', pj.codigo], ['Tipo', pr.tipo === 'serviço' ? 'Serviço' : 'Produto'], ['Empresa parceira', pj.empresaParceira],
+    ['Coordenação', `${pj.coordenador.nome || ''} ${pj.coordenador.email ? '<' + pj.coordenador.email + '>' : ''}`],
+    ['Vigência', `${Nucleo.dataBR(an.vigencia.inicio)} a ${Nucleo.dataBR(an.vigencia.fimVigente)}`],
+    ['TRL atual do sistema', an.trl.sistema === null ? 'não avaliado' : 'TRL ' + an.trl.sistema], ['Objetivo geral', pj.objetivoGeral || '—']]));
+  c.push(Pdf.grade(['Macrofase', 'Fase', 'Situação', 'Recomendações', 'Macroentrega(s)', 'Saída'], nedipResumo(p).map((r) => [(NEDIP_MACROFASES.find(([m]) => m === r.macro) || [, ''])[1], r.nome, r.status, `${r.feitas} de ${r.total}`, r.macros.join(', ') || '—', r.saida]), [62, 80, 55, 55, 55, '*']));
+  c.push({ text: 'Fases conforme o modelo do NeDIP/UFSC. ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 6] });
+
+  const especificos = {
+    planejamento: (e) => { c.push(...txt('Escopo', e.escopo), ...txt('Premissas e restrições', e.premissas), ...txt('Orçamento e recursos', e.orcamento), ...txt('Plano de comunicação', e.comunicacao));
+      c.push(h2('Estrutura do projeto'), Pdf.grade(['Macroentrega', 'Início', 'Prevista', 'Situação'], p.macroentregas.map((m, i) => [`${i + 1} – ${m.titulo}`, Nucleo.dataBR(m.dataInicio), Nucleo.dataBR(m.dataPrevista), m.status]), ['*', 55, 55, 65])); },
+    informacional: (e) => {
+      c.push(...txt('Ciclo de vida e clientes', e.cicloVida));
+      if (e.questionarios.length) c.push(h2('Questionários aplicados'), Pdf.grade(['Público', 'Meio', 'Resp.', 'Data', 'Principais achados'], e.questionarios.map((q) => [q.publico, q.meio, q.respondentes ?? '—', Nucleo.dataBR(q.data), q.observacao]), [90, 70, 35, 50, '*']));
+      if (e.consolidacao.length) c.push(h2('Consolidação das respostas'), Pdf.grade(['Necessidade', 'Fase', 'Citações', 'Importância média'], e.consolidacao.map((q) => [q.necessidade, q.fase || '—', q.citacoes ?? '—', q.importancia ?? '—']), ['*', 90, 50, 60]));
+      if (e.necessidades.length) c.push(h2('Requisitos de cliente'), Pdf.grade(['Requisito de cliente', 'Peso relativo', 'Origem'], e.necessidades.map((n) => [n.descricao, ((+n.peso || 0) * 100).toFixed(1).replace('.', ',') + ' %', n.origem || '—']), ['*', 70, 80]));
+      if (p.qualidade.length) {
+        const o = p.qfdOrigem || {};
+        c.push(h2('Especificações de projeto'));
+        if (o.importadoEm) c.push({ text: `Linhas do QFD: ${o.arquivo} (${Nucleo.dataBR(o.importadoEm.slice(0, 10))}), na ordem de importância; demais linhas cadastradas manualmente.`, style: 'muted', margin: [0, 0, 0, 4] });
+        c.push(Pdf.grade(['Requisito de projeto', 'Valor-meta', 'Forma de avaliação', 'Aspectos indesejáveis'], p.qualidade.map((q) => [q.requisito, q.criterioAceite, q.metodoVerificacao, q.aspectosIndesejaveis || '—']), ['*', 70, '*', '*']));
+      }
+      c.push(...txt('Concorrentes, similares e patentes', e.concorrentes), ...txt('Normas, legislação e restrições', e.normas));
+    },
+    conceitual: (e) => {
+      if (e.funcaoGlobal.nome) c.push(h2('Função global'), Pdf.kpi([['Função global', e.funcaoGlobal.nome], ['Entradas', e.funcaoGlobal.entradas || '—'], ['Saídas', e.funcaoGlobal.saidas || '—']]));
+      if (e.funcoes.length) c.push(h2('Estrutura de funções e princípios de solução'), Pdf.grade(['Função parcial', 'Subfunção', 'Princípios considerados', 'Escolhido'],
+        e.funcoes.flatMap((f) => (f.subfuncoes.length ? f.subfuncoes : [{ nome: '—', principios: '', escolhido: '' }]).map((sf, k) => [k ? '' : { text: f.nome, bold: true }, sf.nome, nedipPrincipios(sf).join('; ') || '—', { text: sf.escolhido || '—', bold: !!sf.escolhido }])), [90, 90, '*', 90]));
+      const nomeF = {}; e.funcoes.forEach((f) => { nomeF[f.id] = f.nome; f.subfuncoes.forEach((s) => { nomeF[s.id] = s.nome; }); });
+      const desd = p.qualidade.map((q) => [q, e.desdobramento[nedipIdEspec(q)]]).filter(([, d]) => d && (d.funcoes.length || d.obs));
+      if (desd.length) c.push(h2('Desdobramento das especificações em funções'), Pdf.grade(['Especificação', 'Funções que atendem', 'Como'], desd.map(([q, d]) => [q.requisito, d.funcoes.map((id) => nomeF[id] || id).join('; ') || '—', d.obs || '—']), ['*', '*', '*']));
+      if (e.concepcoes.length) c.push(h2('Concepções alternativas'), Pdf.grade(['Concepção', 'Descrição', 'Avaliação', 'Sel.'],
+        e.concepcoes.map((x) => [{ text: x.nome, bold: x.selecionada }, x.descricao, x.avaliacao, x.selecionada ? { text: 'sim', bold: true, color: COR.teal } : '']), [80, '*', '*', 25]));
+      if (e.decisao.criterios.length && e.concepcoes.length) {
+        const pont = nedipPontuacao(e);
+        c.push(h2('Matriz de decisão ponderada'), Pdf.grade(['Critério', 'Peso', ...e.concepcoes.map((x) => x.nome)],
+          [...e.decisao.criterios.map((k) => [k.nome, String(k.peso), ...e.concepcoes.map((x) => String(k.notas[x.id] ?? '—'))]),
+            [{ text: 'Pontuação ponderada', bold: true }, '', ...pont.map((x) => ({ text: x.nota === null ? '—' : x.nota.toFixed(2).replace('.', ','), bold: true }))]],
+          ['*', 35, ...e.concepcoes.map(() => 55)]));
+        c.push({ text: 'Notas de 1 a 5; pontuação = Σ(peso × nota) ÷ Σ(peso).', style: 'muted', margin: [0, 0, 0, 6] });
+      }
+    },
+    preliminar: (e) => {
+      c.push(...txt('Leiaute', e.leiaute));
+      if (e.prototipos.length) c.push(h2('Modelos, protótipos e ensaios'), Pdf.grade(['Protótipo', 'Data', 'Descrição e ensaios', 'Resultado'], e.prototipos.map((x) => [x.nome, Nucleo.dataBR(x.data), x.descricao, x.resultado]), [70, 50, '*', '*']));
+      if (e.fmea.length) c.push(h2('FMEA'), Pdf.grade(['Item', 'Modo de falha', 'Efeito', 'Causa', 'S', 'O', 'D', 'RPN', 'Ação'],
+        e.fmea.map((x) => { const r = nedipRpn(x), crit = r >= NEDIP_FMEA_LIMITE || +x.s >= 9; return [x.item, x.modo, x.efeito, x.causa, String(x.s), String(x.o), String(x.d), { text: String(r), bold: true, color: crit ? '#c0392b' : COR.texto }, x.acao + (x.riscoId ? ` (${x.riscoId})` : '')]; }),
+        [55, '*', '*', '*', 14, 14, 14, 24, '*']));
+      if (p.qualidade.length) {
+        c.push(h2('Análise de qualidade'), Pdf.grade(['Especificação', 'Meta', 'Medido', 'Situação'], p.qualidade.map((q) => [q.requisito, q.criterioAceite, q.valorMedido || '—',
+          { text: q.status, bold: q.status === 'não conforme', color: q.status === 'não conforme' ? '#c0392b' : (q.status === 'conforme' ? COR.teal : COR.texto) }]), ['*', 80, 60, 60]));
+        p.qualidade.filter((q) => q.status === 'não conforme').forEach((q) => c.push(caixa([{ text: 'Não conformidade: ' + q.requisito, bold: true },
+          `Planejar: ${q.pdca.planejar}`, `Executar: ${q.pdca.executar}`, `Verificar: ${q.pdca.verificar}`, `Agir: ${q.pdca.agir}`])));
+      }
+      const dfxU = ((p.dfx && p.dfx.itens) || []).filter((i) => i.decisao);
+      if (dfxU.length) c.push(h2('Design for X (Pahl & Beitz)'), Pdf.grade(['Diretriz', 'Decisão', 'Justificativa'], dfxU.map((i) => [i.nome, i.decisao === 'usar' ? 'Usar' : 'Negligenciar', i.justificativa]), [120, 60, '*']));
+      c.push(...txt('Viabilidade técnica e econômica', e.viabilidade));
+    },
+    detalhado: (e) => {
+      if (e.bom.length) c.push(h2(pr.tipo === 'serviço' ? 'Lista de materiais e recursos' : 'Lista de materiais'), Pdf.grade(['Item', 'Descrição', 'Qtd.', 'Material / especificação', 'Origem', 'Fornecedor'],
+        e.bom.map((x) => [x.item, x.descricao, `${x.quantidade ?? ''} ${x.unidade || ''}`.trim(), x.material, x.origem, x.fornecedor]), [30, '*', 40, '*', 55, 70]));
+      if (e.manuais.usoAnexo || e.manuais.projetoAnexo) c.push(h2('Manuais próprios'), { ul: [e.manuais.projetoAnexo && 'Manual de projeto: ' + e.manuais.projetoAnexo, e.manuais.usoAnexo && 'Manual de uso: ' + e.manuais.usoAnexo].filter(Boolean), style: 'corpo' });
+    },
+    producao: (e) => { c.push(...txt('Processos, recursos e controle de qualidade', e.processos), ...txt('Fornecedores homologados', e.fornecedores), ...txt('Lote piloto', e.lotePiloto));
+      if (e.liberacao) c.push({ text: [{ text: 'Liberação da produção: ', bold: true }, Nucleo.dataBR(e.liberacao)], style: 'corpo' }); },
+    lancamento: (e) => { c.push(...txt('Plano de lançamento', e.plano), ...txt('Canais', e.canais), ...txt('Treinamentos', e.treinamento), ...txt('Registros e certificações', e.certificacoes));
+      if (e.data) c.push({ text: [{ text: 'Lançamento: ', bold: true }, Nucleo.dataBR(e.data)], style: 'corpo' }); },
+    validacao: (e) => {
+      if (e.questionarios.length) c.push(h2('Questionários de satisfação'), Pdf.grade(['Público', 'Meio', 'Resp.', 'Data', 'Principais achados'], e.questionarios.map((q) => [q.publico, q.meio, q.respondentes ?? '—', Nucleo.dataBR(q.data), q.observacao]), [90, 70, 35, 50, '*']));
+      c.push(...txt('Satisfação dos clientes', e.satisfacao), ...txt('Desempenho em campo', e.campo), ...txt('Melhorias e próxima versão', e.melhorias), ...txt('Encerramento', e.encerramento));
+    },
+  };
+  nedipEtapasAtivas(p).forEach((et) => {
+    const e = E[et.id];
+    c.push(...h1(et.nome, true));
+    c.push({ text: [{ text: 'Objetivo: ', bold: true }, et.objetivo, ' ', { text: 'Situação: ', bold: true }, e.status + '. ',
+      ...(e.macros.length ? [{ text: 'Macroentrega(s): ', bold: true }, e.macros.map(nomeMacro).filter(Boolean).join('; ') + '. '] : []),
+      ...(e.app && e.app.nome ? [{ text: 'Aplicativo da fase: ', bold: true }, e.app.nome + (e.app.url ? ` (${e.app.url})` : '') + '.'] : [])], style: 'corpo', margin: [0, 0, 0, 6] });
+    const r = et.recomendacoes.filter(([id]) => e.recomendacoes[id]).map(([, t]) => t);
+    c.push(h2('Recomendações aplicadas'), r.length ? { ul: r, style: 'corpo', margin: [0, 0, 0, 6] } : { text: 'Nenhuma recomendação marcada.', style: 'muted' });
+    especificos[et.id](e);
+    c.push(...txt('Registro da fase', e.registro));
+    if (e.anexos.length) c.push(h2('Documentos da fase'), Pdf.grade(['Arquivo', 'Descrição', 'Data'], e.anexos.map((a) => [a.arquivo, a.descricao || '—', Nucleo.dataBR(a.data)]), ['*', '*', 55]));
+  });
+
+  c.push(...h1('Maturidade tecnológica (TRL)', true));
+  const linhas = [];
+  const rec = (nos, nv) => nos.forEach((n) => { linhas.push([{ text: n.titulo, margin: [nv * 10, 0, 0, 0] }, App.nomeTipo ? (App.nomeTipo[n.tipo] || n.tipo) : n.tipo, trlTxt(n.trlInformado)]); rec(n.filhos || [], nv + 1); });
+  rec(p.trl.arvore, 0);
+  c.push(linhas.length ? Pdf.grade(['Item', 'Tipo', 'TRL'], linhas, ['*', 80, 50]) : { text: 'Árvore TRL vazia.', style: 'muted' });
+  c.push({ text: `TRL do sistema: ${an.trl.sistema ?? 'não avaliado'} · esperado ao final: ${an.trl.esperadoFinal ?? '—'}. ${TRL_FONTE}.`, style: 'muted' });
+
+  const figs = p.macroentregas.flatMap((m) => (m.figuras || []).map((f) => ({ f, n: num.fig[f.id] }))).filter((x) => x.n).sort((a, b) => a.n - b.n);
+  const tabs = p.macroentregas.flatMap((m) => (m.tabelas || []).map((t) => ({ t, n: num.tab[t.id] }))).filter((x) => x.n).sort((a, b) => a.n - b.n);
+  if (figs.length || tabs.length) {
+    c.push(...h1('Figuras e tabelas do projeto', true));
+    figs.forEach((x) => c.push(Pdf.figura(x.f, x.n, imgs)));
+    tabs.forEach((x) => c.push(Pdf.tabela(x.t, x.n)));
+  }
+  c.push(...h1('Referências'), { ul: [NEDIP_REF, PAHL_REF], style: 'corpo' });
+  return Pdf.documento(p, 'MANUAL DE', 'PROJETO', 'Manual de projeto', c, `Documentação técnica · modelo NeDIP · ${new Date().toLocaleDateString('pt-BR')}`);
+};
+
+Pdf.questionarioConsolidado = function (p) {
+  const pj = p.projeto, e = p.produto.etapas.informacional, c = [];
+  const { h1 } = secoesNumeradas();
+  c.push(...h1('Questionários aplicados', true));
+  c.push(e.questionarios.length ? Pdf.grade(['Público', 'Meio', 'Respondentes', 'Data', 'Principais achados'], e.questionarios.map((q) => [q.publico, q.meio, q.respondentes ?? '—', Nucleo.dataBR(q.data), q.observacao]), [90, 70, 50, 50, '*'])
+    : { text: 'Nenhum questionário registrado.', style: 'muted' });
+  const total = e.questionarios.reduce((s, q) => s + (+q.respondentes || 0), 0);
+  if (total) c.push({ text: `Total de respondentes: ${total}.`, style: 'corpo', margin: [0, 0, 0, 6] });
+  const cons = e.consolidacao.filter((x) => String(x.necessidade).trim());
+  c.push(...h1('Respostas consolidadas'));
+  if (cons.length) {
+    const nec = nedipNecessidadesDaConsolidacao(cons);
+    const maxP = Math.max(...nec.map((n) => n.peso)) || 1;
+    const porNome = Object.fromEntries(cons.map((x) => [x.necessidade.trim(), x]));
+    c.push(Pdf.grade(['Necessidade', 'Fase', 'Citações', 'Importância (1–5)', 'Peso relativo', ''], nec.map((n) => {
+      const x = porNome[n.descricao] || {};
+      return [n.descricao, x.fase || '—', x.citacoes ?? '—', x.importancia ?? '—', (n.peso * 100).toFixed(1).replace('.', ',') + ' %',
+        { canvas: [{ type: 'rect', x: 0, y: 2, w: Math.max(2, 70 * n.peso / maxP), h: 7, color: COR.teal }] }];
+    }), ['*', 70, 40, 50, 45, 75]));
+    c.push({ text: 'Peso relativo = (importância média × citações) ÷ soma de todas as necessidades. É uma hierarquização simples; a comparação aos pares no QFD é uma alternativa mais rigorosa.', style: 'muted', margin: [0, 0, 0, 8] });
+  } else c.push({ text: 'Nenhuma resposta consolidada.', style: 'muted' });
+  if (e.necessidades.length) c.push(...h1('Requisitos de cliente adotados'), Pdf.grade(['Requisito de cliente', 'Peso', 'Origem'], e.necessidades.map((n) => [n.descricao, ((+n.peso || 0) * 100).toFixed(1).replace('.', ',') + ' %', n.origem || '—']), ['*', 60, 90]));
+  c.push(...h1('Roteiro utilizado (modelo)'));
+  NEDIP_QUESTIONARIO.forEach(([fase, perg]) => c.push({ text: fase, style: 'h3' }, { ul: perg, style: 'corpo', margin: [0, 0, 0, 4] }));
+  c.push({ text: NEDIP_REF, style: 'muted', margin: [0, 8, 0, 0] });
+  return Pdf.documento(p, 'QUESTIONÁRIO', 'CONSOLIDADO', 'Questionário – respostas consolidadas', c, `Projeto informacional · ${pj.nome}`);
+};
+
+Pdf.manualUso = async function (p) {
+  const pj = p.projeto, e = p.produto.etapas.detalhado, mu = e.manualUso;
+  const { h1 } = secoesNumeradas();
+  const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
+  const num = Nucleo.numerarAbnt(p.macroentregas);
+  let primeira = true;
+  NEDIP_MANUAL_USO.forEach(([k, rot]) => {
+    if (!String(mu[k] || '').trim()) return;
+    c.push(...h1(rot, primeira), ...Pdf.texto(mu[k], num)); primeira = false;
+    if (k === 'descricao' && p.qualidade.length) {
+      c.push(...h1('Especificações técnicas'), Pdf.grade(['Característica', 'Especificação', 'Valor verificado'], p.qualidade.map((q) => [q.requisito.replace(/^RP\d+\.\s*/, ''), q.criterioAceite, q.valorMedido || '—']), ['*', 90, 80]));
+    }
+  });
+  if (primeira) c.push(...h1('Conteúdo', true), { text: 'O conteúdo do manual de uso ainda não foi preenchido (projeto detalhado).', style: 'muted' });
+  c.push(...h1('Contato'), { text: `${pj.coordenador.nome || ''}${pj.coordenador.email ? ' – ' + pj.coordenador.email : ''}${pj.empresaParceira ? '\n' + pj.empresaParceira : ''}`, style: 'corpo' });
+  return Pdf.documento(p, 'MANUAL DE', 'USO', 'Manual de uso', c, `${p.produto.tipo === 'serviço' ? 'Serviço' : 'Produto'}: ${pj.nome}`);
+};
+
+Pdf.roteiroQuestionario = function (p) {
+  const pj = p.projeto, c = [];
+  c.push({ text: 'Roteiro de questionário – necessidades dos clientes', style: 'h1', pageBreak: 'before' });
+  c.push({ text: `Projeto: ${pj.nome}. Modelo para o projeto informacional: adapte as perguntas ao produto/serviço, aplique a cada grupo de clientes do ciclo de vida e registre data, meio e número de respondentes no sistema.`, style: 'corpo', margin: [0, 0, 0, 8] });
+  c.push(Pdf.kpi([['Respondente (perfil)', ' '], ['Fase do ciclo de vida', ' '], ['Data / meio', ' ']]));
+  NEDIP_QUESTIONARIO.forEach(([fase, perguntas]) => {
+    c.push({ text: fase, style: 'h2', margin: [0, 8, 0, 4] });
+    perguntas.forEach((q) => c.push({ text: q, style: 'corpo', margin: [0, 2, 0, 2] }, { canvas: [0, 1, 2].map((i) => ({ type: 'line', x1: 0, y1: 14 + i * 16, x2: 470, y2: 14 + i * 16, lineWidth: 0.4, lineColor: COR.grade })), margin: [0, 0, 0, 6] }));
+  });
+  c.push({ text: 'Importância dos atributos (1 = sem importância … 5 = essencial)', style: 'h2', margin: [0, 10, 0, 4] });
+  c.push(Pdf.grade(['Atributo (preencha)', '1', '2', '3', '4', '5'], Array.from({ length: 8 }, () => [' ', '( )', '( )', '( )', '( )', '( )']), ['*', 22, 22, 22, 22, 22]));
+  c.push({ text: 'Base: levantamento de necessidades por fase do ciclo de vida no projeto informacional. ' + NEDIP_REF, style: 'muted', margin: [0, 8, 0, 0] });
+  const d = Pdf.documento(p, 'ROTEIRO DE', 'QUESTIONÁRIO', 'Roteiro de questionário', c, 'Projeto informacional');
+  return d;
 };
 
 /** Gera o PDF e devolve um Blob. */

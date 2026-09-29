@@ -234,7 +234,7 @@ const Zip = {
   async exportar(armazem) {
     const z = new JSZip();
     for (const f of await armazem.listarTodos()) {
-      if (/(^|\/)_/.test(f.caminho)) continue;
+      if (/(^|\/)_/.test(f.caminho) || f.caminho.startsWith('envio/')) continue;
       z.file(f.caminho, await f.obter());
     }
     return z.generateAsync({ type: 'blob', compression: 'DEFLATE' });
@@ -255,7 +255,7 @@ const Zip = {
     for (const n of nomes) {
       if (n === principal || (base && !n.startsWith(base))) continue;
       const rel = n.slice(base.length);
-      if (!caminhoValido(rel) || !/\.(json|png|jpe?g|svg|pdf)$/i.test(rel)) continue;
+      if (!caminhoValido(rel) || !(rel.startsWith('produto/') || /\.(json|png|jpe?g|svg|pdf)$/i.test(rel))) continue; // documentos das fases (produto/) aceitam qualquer tipo
       arquivos.push({ caminho: rel, blob: await z.file(n).async('blob') });
     }
     return { projeto, arquivos };

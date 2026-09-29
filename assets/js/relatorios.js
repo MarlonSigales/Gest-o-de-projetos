@@ -61,14 +61,15 @@ App.acoes['pdf-geral'] = async (el) => {
 App.acoes['email-previa'] = () => {
   const an = Nucleo.analisar(App.p);
   const { html } = Email.corpo(App.p, an, App.cfg.usuario);
-  const dest = Email.destinatarios(App.p).join(', ') || '(nenhum interessado)';
-  App.modal(`<h2>Prévia do e-mail</h2><p><b>Para:</b> ${esc(dest)}<br><b>Assunto:</b> ${esc(Email.assunto(App.p))}<br><b>Anexo:</b> ${esc(Nucleo.nomeArquivo(App.p))}<br><b>Modo:</b> ${esc(App.descricaoModoEmail())}</p><div class="email-previa">${html}</div>`);
+  const d = Nucleo.destinatarios(App.p);
+  const l = (x) => x.map((r) => r.email).join(', ') || '(ninguém)';
+  App.modal(`<h2>Prévia do e-mail</h2><p><b>Assunto:</b> ${esc(Email.assunto(App.p))}<br><b>Gestão</b> (ZIP completo): ${esc(l(d.gestao))}<br><b>Demais</b> (PDFs + JSON): ${esc(l(d.demais))}<br><b>Modo:</b> ${esc(App.descricaoModoEmail())}</p><div class="email-previa">${html}</div>`);
 };
 App.acoes['email-reenviar'] = async () => {
-  const texto = JSON.stringify(App.p, null, 2);
-  if (App.cfg.emailModo === 'mailto') App.baixarBlob(new Blob([texto], { type: 'application/json' }), Nucleo.nomeArquivo(App.p));
-  const r = await Email.enviar(App.p, Nucleo.analisar(App.p), texto, App.cfg);
-  App.toast((r.enviado ? '✉ ' : '⚠ ') + esc(r.mensagem), r.enviado ? 'ok' : 'aviso', 9000);
+  try {
+    const r = await App.dispararEmails(JSON.stringify(App.p, null, 2), Nucleo.nomeArquivo(App.p));
+    App.toast(esc(r.mensagem), r.manual ? 'aviso' : 'ok', 8000);
+  } catch (e) { App.fecharModal(); App.toast('E-mail: ' + esc(e.message), 'erro'); }
 };
 
 App.acoes['exp-json'] = () => App.baixarBlob(new Blob([JSON.stringify(App.p, null, 2)], { type: 'application/json' }), Nucleo.nomeArquivo(App.p));

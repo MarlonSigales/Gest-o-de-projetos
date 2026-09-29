@@ -1,0 +1,628 @@
+{
+  "requisitosCliente": [
+    {
+      "id": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "descricao": "Roda leve",
+      "observacao": "",
+      "importancia": 24,
+      "peso": 0.3380281690140845,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "descricao": "Suportar o peso do ciclista e impactos",
+      "observacao": "",
+      "importancia": 19,
+      "peso": 0.2676056338028169,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "77d608fb-5129-444d-832c-a621d9839962",
+      "descricao": "Rodar alinhada (sem oscilar)",
+      "observacao": "",
+      "importancia": 14,
+      "peso": 0.19718309859154928,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "descricao": "Durar muitos quilômetros sem manutenção",
+      "observacao": "",
+      "importancia": 9,
+      "peso": 0.1267605633802817,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "descricao": "Fácil de manter (centrar, trocar raio)",
+      "observacao": "",
+      "importancia": 4,
+      "peso": 0.056338028169014086,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "descricao": "Preço acessível",
+      "observacao": "",
+      "importancia": 1,
+      "peso": 0.014084507042253521,
+      "created": "2026-09-29T07:06:01.581Z"
+    },
+    {
+      "id": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "descricao": "Aceitar pneus e câmaras comuns",
+      "observacao": "",
+      "importancia": 0,
+      "peso": 0,
+      "created": "2026-09-29T07:06:01.581Z"
+    }
+  ],
+  "requisitosProjeto": [
+    {
+      "id": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "descricao": "Massa da roda montada sem pneu",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 4,
+      "importanciaAbsoluta": 273,
+      "importanciaRelativa": 2,
+      "pesoRelativo": 0.19444444444444445,
+      "created": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "id": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+      "descricao": "Carga radial estática suportada sem deformação permanente",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "up",
+      "dificuldadeTecnica": 3,
+      "importanciaAbsoluta": 171,
+      "importanciaRelativa": 4,
+      "pesoRelativo": 0.12179487179487179,
+      "created": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "id": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "descricao": "Vida em fadiga radial sem falha",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "up",
+      "dificuldadeTecnica": 4,
+      "importanciaAbsoluta": 324,
+      "importanciaRelativa": 1,
+      "pesoRelativo": 0.23076923076923078,
+      "created": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "id": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "descricao": "Desvio radial (batimento)",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 3,
+      "importanciaAbsoluta": 135,
+      "importanciaRelativa": 5,
+      "pesoRelativo": 0.09615384615384616,
+      "created": "2026-09-29T07:06:01.586Z"
+    },
+    {
+      "id": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+      "descricao": "Desvio lateral (empeno)",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 3,
+      "importanciaAbsoluta": 126,
+      "importanciaRelativa": 6,
+      "pesoRelativo": 0.08974358974358974,
+      "created": "2026-09-29T07:06:01.586Z"
+    },
+    {
+      "id": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "descricao": "Variação da tensão dos raios em relação à média",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 3,
+      "importanciaAbsoluta": 222,
+      "importanciaRelativa": 3,
+      "pesoRelativo": 0.1581196581196581,
+      "created": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "id": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "descricao": "Custo de produção (materiais e montagem)",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 3,
+      "importanciaAbsoluta": 33,
+      "importanciaRelativa": 9,
+      "pesoRelativo": 0.023504273504273504,
+      "created": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "id": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+      "descricao": "Tempo de centragem por roda",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "down",
+      "dificuldadeTecnica": 2,
+      "importanciaAbsoluta": 39,
+      "importanciaRelativa": 8,
+      "pesoRelativo": 0.027777777777777776,
+      "created": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "id": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+      "descricao": "Largura interna do aro",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "none",
+      "dificuldadeTecnica": 2,
+      "importanciaAbsoluta": 0,
+      "importanciaRelativa": 10,
+      "pesoRelativo": 0,
+      "created": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "id": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+      "descricao": "Resistência à corrosão em névoa salina",
+      "observacao": "Exemplo didático — roda de bicicleta genérica 700c",
+      "sentidoMelhoria": "up",
+      "dificuldadeTecnica": 2,
+      "importanciaAbsoluta": 81,
+      "importanciaRelativa": 7,
+      "pesoRelativo": 0.057692307692307696,
+      "created": "2026-09-29T07:06:01.587Z"
+    }
+  ],
+  "comparacaoCliente": [
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "77d608fb-5129-444d-832c-a621d9839962",
+      "valor": 3,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.582Z"
+    },
+    {
+      "requisito1": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisito2": "77d608fb-5129-444d-832c-a621d9839962",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisito2": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "valor": 3,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisito2": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisito2": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisito2": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisito2": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "valor": 3,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisito2": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.583Z"
+    },
+    {
+      "requisito1": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisito2": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisito2": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "valor": 3,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 5,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "requisito2": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 3,
+      "created": "2026-09-29T07:06:01.584Z"
+    },
+    {
+      "requisito1": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "requisito2": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "valor": 1,
+      "created": "2026-09-29T07:06:01.585Z"
+    }
+  ],
+  "correlacaoProjeto": [
+    {
+      "requisito1": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "requisito2": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+      "correlacao": "-",
+      "created": "2026-09-29T07:06:01.598Z"
+    },
+    {
+      "requisito1": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "requisito2": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "correlacao": "-",
+      "created": "2026-09-29T07:06:01.598Z"
+    },
+    {
+      "requisito1": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "requisito2": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "correlacao": "-",
+      "created": "2026-09-29T07:06:01.599Z"
+    },
+    {
+      "requisito1": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "requisito2": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+      "correlacao": "+",
+      "created": "2026-09-29T07:06:01.599Z"
+    },
+    {
+      "requisito1": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "requisito2": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "correlacao": "++",
+      "created": "2026-09-29T07:06:01.599Z"
+    },
+    {
+      "requisito1": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+      "requisito2": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "correlacao": "++",
+      "created": "2026-09-29T07:06:01.599Z"
+    },
+    {
+      "requisito1": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "requisito2": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+      "correlacao": "-",
+      "created": "2026-09-29T07:06:01.600Z"
+    },
+    {
+      "requisito1": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "requisito2": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+      "correlacao": "-",
+      "created": "2026-09-29T07:06:01.600Z"
+    },
+    {
+      "requisito1": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+      "requisito2": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "correlacao": "+",
+      "created": "2026-09-29T07:06:01.601Z"
+    }
+  ],
+  "matrizQFD": [
+    {
+      "requisitoCliente": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisitoProjeto": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.588Z"
+    },
+    {
+      "requisitoCliente": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisitoProjeto": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "influencia": 1,
+      "created": "2026-09-29T07:06:01.589Z"
+    },
+    {
+      "requisitoCliente": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisitoProjeto": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.589Z"
+    },
+    {
+      "requisitoCliente": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisitoProjeto": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.590Z"
+    },
+    {
+      "requisitoCliente": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisitoProjeto": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.590Z"
+    },
+    {
+      "requisitoCliente": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisitoProjeto": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.591Z"
+    },
+    {
+      "requisitoCliente": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisitoProjeto": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.591Z"
+    },
+    {
+      "requisitoCliente": "77d608fb-5129-444d-832c-a621d9839962",
+      "requisitoProjeto": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.592Z"
+    },
+    {
+      "requisitoCliente": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisitoProjeto": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.592Z"
+    },
+    {
+      "requisitoCliente": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisitoProjeto": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.593Z"
+    },
+    {
+      "requisitoCliente": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisitoProjeto": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.593Z"
+    },
+    {
+      "requisitoCliente": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+      "requisitoProjeto": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "influencia": 1,
+      "created": "2026-09-29T07:06:01.594Z"
+    },
+    {
+      "requisitoCliente": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "requisitoProjeto": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.594Z"
+    },
+    {
+      "requisitoCliente": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+      "requisitoProjeto": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.595Z"
+    },
+    {
+      "requisitoCliente": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "requisitoProjeto": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.595Z"
+    },
+    {
+      "requisitoCliente": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+      "requisitoProjeto": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.596Z"
+    },
+    {
+      "requisitoCliente": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+      "requisitoProjeto": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+      "influencia": 9,
+      "created": "2026-09-29T07:06:01.596Z"
+    },
+    {
+      "requisitoCliente": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+      "requisitoProjeto": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.597Z"
+    },
+    {
+      "requisitoCliente": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+      "requisitoProjeto": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "influencia": 3,
+      "created": "2026-09-29T07:06:01.597Z"
+    }
+  ],
+  "especificacoesProjeto": [
+    {
+      "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+      "unidadeMedida": "g",
+      "valorUnitario": "1100",
+      "observacao": "Pesagem em balança 0,1 g (roda completa com cubo, sem pneu, câmara e blocagem)",
+      "aspectosIndesejaveis": "Reduzir espessura do aro e compromete a fadiga",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+      "unidadeMedida": "N",
+      "valorUnitario": "1500",
+      "observacao": "Ensaio de carga estática radial, deformação residual ≤ 0,5 mm após 1 min (referência: ISO 4210-7)",
+      "aspectosIndesejaveis": "Aumentar massa e custo",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+      "unidadeMedida": "ciclos",
+      "valorUnitario": "200000",
+      "observacao": "Bancada de tambor com 1000 N a 25 km/h; inspeção de trincas a cada 50 000 ciclos",
+      "aspectosIndesejaveis": "Aumentar massa (raios mais grossos, aro mais pesado)",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.585Z"
+    },
+    {
+      "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+      "unidadeMedida": "mm",
+      "valorUnitario": "0,5",
+      "observacao": "Relógio comparador 0,01 mm na pista do aro, roda em cavalete de centragem",
+      "aspectosIndesejaveis": "Aumentar tempo de centragem e custo",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.586Z"
+    },
+    {
+      "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+      "unidadeMedida": "mm",
+      "valorUnitario": "0,5",
+      "observacao": "Relógio comparador 0,01 mm no flanco do aro",
+      "aspectosIndesejaveis": "Aumentar tempo de centragem e custo",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.586Z"
+    },
+    {
+      "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+      "unidadeMedida": "%",
+      "valorUnitario": "10",
+      "observacao": "Tensiômetro de raios em todos os 32 raios; maior desvio em relação à média ÷ média",
+      "aspectosIndesejaveis": "Aumentar tempo de centragem",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+      "unidadeMedida": "R$",
+      "valorUnitario": "350",
+      "observacao": "Soma de custos de componentes e mão de obra de montagem",
+      "aspectosIndesejaveis": "Usar materiais de menor qualidade",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+      "unidadeMedida": "min",
+      "valorUnitario": "15",
+      "observacao": "Cronometragem com montador treinado",
+      "aspectosIndesejaveis": "Tolerâncias de desvio mais frouxas",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+      "unidadeMedida": "mm",
+      "valorUnitario": "19",
+      "observacao": "Paquímetro 0,02 mm em 4 pontos",
+      "aspectosIndesejaveis": "Incompatibilidade com pneus 28–42 mm",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.587Z"
+    },
+    {
+      "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+      "unidadeMedida": "h",
+      "valorUnitario": "96",
+      "observacao": "Ensaio de névoa salina neutra (ISO 9227) em cubo, raios e niples",
+      "aspectosIndesejaveis": "Custo de tratamento superficial",
+      "aspectosAutoGerado": false,
+      "updated": "2026-09-29T07:06:01.587Z"
+    }
+  ],
+  "avaliacaoCompetitiva": {
+    "produtos": [
+      {
+        "id": "nosso",
+        "nome": "Nosso produto",
+        "tipo": "nosso"
+      }
+    ],
+    "notasCliente": [],
+    "metasCliente": [],
+    "valoresTecnicos": [
+      {
+        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+        "produtoId": "nosso",
+        "valor": "1070"
+      },
+      {
+        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+        "produtoId": "nosso",
+        "valor": "1800"
+      },
+      {
+        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+        "produtoId": "nosso",
+        "valor": "200000"
+      },
+      {
+        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+        "produtoId": "nosso",
+        "valor": "0,26"
+      },
+      {
+        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+        "produtoId": "nosso",
+        "valor": "0,29"
+      },
+      {
+        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+        "produtoId": "nosso",
+        "valor": "10,4"
+      },
+      {
+        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+        "produtoId": "nosso",
+        "valor": "338"
+      },
+      {
+        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+        "produtoId": "nosso",
+        "valor": "12"
+      },
+      {
+        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+        "produtoId": "nosso",
+        "valor": "19"
+      }
+    ]
+  },
+  "metadata": {
+    "created": "2026-09-29T07:06:01.581Z",
+    "lastModified": "2026-09-29T07:06:01.605Z",
+    "schemaVersion": 3,
+    "projeto": "Roda de bicicleta genérica 700c (exemplo)"
+  }
+}

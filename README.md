@@ -54,50 +54,106 @@ Use **Exportar ZIP** (JSON + figuras + histórico) e, na outra máquina, **📂 
 
 ---
 
-## 3. E-mail de andamento (⚙ Configurações)
+## 3. E-mail de andamento (⚙ Configurações — salvas no JSON)
 
-Sem servidor, o navegador **não consegue enviar e-mail sozinho**. Por isso há três modos:
+### Grupos e anexos
+Na aba **Equipe e Interessados**, cada e-mail pode estar em um ou mais grupos. Os grupos marcados como **gestão** (★) têm tratamento diferente:
 
-| Modo | O que acontece ao salvar |
+| Grupo | Recebe |
 |---|---|
-| **Abrir meu programa de e-mail** (padrão) | Abre o programa de e-mail padrão (Outlook, Thunderbird, Mail…) com destinatários, assunto `andamento projeto <nome>` e resumo prontos. O JSON é baixado e **você anexa e clica em Enviar**. Por limitação técnica do `mailto:`, não é possível anexar automaticamente. |
-| **Automático pelo EmailJS** | Envia sozinho, com o JSON anexado, pelo serviço gratuito [EmailJS](https://www.emailjs.com) (requer internet). |
+| **Gestão** | o **ZIP completo** do projeto: JSON, figuras, TRL, relatórios PDF e histórico |
+| **Demais** (equipe, empresa…) | **os PDFs** (relatório geral + um por macroentrega) **e o JSON** |
+
+Um e-mail que está na gestão e também em outro grupo **recebe só como gestão**, uma única vez. E-mails repetidos são unificados, sem diferenciar maiúsculas de minúsculas.
+
+A cada **Salvar**, o sistema gera os PDFs, grava-os em `relatorios/`, monta o ZIP e prepara o envio por grupo. Quando o projeto está numa pasta do computador, os anexos também ficam em `envio/<data>/gestao/` e `envio/<data>/demais/`, prontos para anexar. A pasta `envio/` não entra no ZIP.
+
+### Modos de envio
+| Modo | O que acontece |
+|---|---|
+| **Programa de e-mail** (padrão) | Abre uma tela com um bloco por grupo: **1. Baixar anexos → 2. Abrir e-mail** (destinatários, assunto `andamento projeto <nome>` e resumo prontos) **→ 3. anexar e enviar**. Por limitação técnica, o navegador não consegue anexar arquivos sozinho. |
+| **Automático pelo EmailJS** | Envia um e-mail por grupo. O EmailJS aceita um anexo por mensagem, então a gestão recebe o ZIP completo e os demais recebem um ZIP com os PDFs e o JSON. **Atenção:** cada PDF tem cerca de 1 MB. Se o anexo passar do limite do plano (campo "Limite de anexo"), o e-mail sai sem anexo e a tela de envio manual é aberta. |
 | **Não enviar** | Só salva. |
 
-Em todos os modos o corpo do e-mail traz, em lista: percentual geral, TRL atual e esperado do sistema, **TRL por área com os responsáveis**, **pontos de verificação (TRL mais baixo) com quem cobrar**, macroentregas atrasadas e riscos altos.
+Para envio **totalmente automático com anexos grandes** é preciso um servidor: a versão PHP, via SMTP.
 
-### Configurar o EmailJS (uma vez só)
-1. Crie uma conta em https://www.emailjs.com.
-2. Em **Email Services**, conecte o seu e-mail (Gmail, Outlook etc.) e anote o **Service ID**.
-3. Em **Email Templates**, crie um modelo:
-   - **To Email:** `{{to_email}}`
-   - **Subject:** `{{subject}}`
-   - **Content:** mude para HTML e use `{{{message_html}}}` (três chaves). Em texto puro, use `{{message}}`.
-   - **Attachments → Add Attachment → Variable Attachment:** *Parameter Name* `json_anexo`, *Filename* `{{nome_anexo}}`, *Content Type* JSON.
-   - Anote o **Template ID**.
-4. Em **Account → General**, copie a **Public Key**.
-5. No sistema, abra **⚙ Configurações**, escolha *Automático pelo EmailJS* e cole os três códigos.
-
-Os limites dependem do plano do EmailJS. No gratuito, o total da mensagem é pequeno (cerca de 50 KB). Se o JSON passar de ~45 KB (valor ajustável em `assets/js/config.js`), o e-mail sai **sem o anexo** e o sistema avisa. As configurações de e-mail ficam guardadas só naquele navegador (localStorage) e nunca vão para o JSON do projeto.
-
----
+**Configurar o EmailJS:** crie um modelo com To = `{{to_email}}`, Subject = `{{subject}}`, conteúdo HTML `{{{message_html}}}` e um *Variable Attachment* com parâmetro `anexo` e nome de arquivo `{{nome_anexo}}`. Depois cole o Service ID, o Template ID e a Public Key em ⚙ Configurações.
 
 ## 4. Uso
 
+**Primeira abertura:** o sistema exige **nome** (registrado no log) e **e-mail**. Esse e-mail entra automaticamente no **grupo de gestão** de qualquer projeto aberto ou criado que ainda não tenha ninguém na gestão (quando o projeto já tem gestão, nada muda). Para trocar, use ⚙.
+
+**Exemplo:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício completo — roda dianteira 700c, 5 macroentregas (concluídas, em andamento e planejada), 8 figuras, 5 tabelas, cronograma, riscos, TRL por critérios, DfX, lições, qualidade importada do QFD com PDCA e as **quatro fases NeDIP** preenchidas (questionários, estrutura de funções, concepções, protótipos, lista de materiais e conteúdo do manual de uso — gere os manuais no projeto detalhado). Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável) e o backup do QFD em `exemplos/qfd-roda-bicicleta.json` (importável no sistema QFD).
+
 | Aba | Conteúdo |
 |---|---|
-| **Projeto** | Painel (percentual, TRL, alertas, ponto de verificação); identificação, coordenação, introdução e objetivo geral |
-| **Equipe e Interessados** | Equipe (página "Equipe" dos PDFs) e **e-mails que recebem o andamento** |
+| **Projeto** (primeira página) | **Vigência: data de início, término original, termos aditivos (+) e subtrativos (−) de prazo e término vigente calculado**; painel com percentual, TRL, alertas e ponto de verificação; identificação, coordenação, introdução e objetivo geral |
+| **Equipe e Interessados** | Equipe (página "Equipe" dos PDFs), **grupos de e-mail** (gestão ★ e demais) e **interessados**, com o resumo de quem recebe o quê |
 | **Áreas / Responsáveis** | Áreas técnicas ligadas a itens da árvore TRL, com **um ou mais responsáveis** (quem cobrar) e TRL esperado |
 | **Macroentregas** | Uma sub-aba por macroentrega, com **+ Macroentrega / – Remover** (a numeração é refeita). Textos do template, figuras, tabelas, atividades, termo de aceite e **PDF da macroentrega** |
+| **Projeto de produto/serviço** | Modelo **NeDIP** (planejamento, projetação e implementação), tudo opcional: aplicativo externo por fase (QFD no informacional), especificações manuais, desdobramento em funções, matriz de decisão, FMEA → Riscos, manuais de projeto e de uso, documentos no ZIP |
 | **Cronograma** | EAP, Gantt, caminho crítico (CPM) e atividades atrasadas |
 | **Riscos** | Registro e matriz 5×5 (P × I) |
-| **Qualidade** | Requisitos, critérios de aceite, verificação e PDCA das não conformidades |
-| **TRL** | Importação da avaliação oficial (https://imatec.aeb.gov.br), árvore, pontos de verificação, gráfico atual × esperado |
+| **Qualidade / DfX** | Especificações vindas do QFD (feito no projeto informacional); requisitos, critérios de aceite, verificação e PDCA das não conformidades; **Design for X (Pahl & Beitz)** |
+| **TRL** | Avaliação por critérios dentro do sistema, árvore, pontos de verificação, gráfico atual × esperado |
 | **Lições aprendidas** | Registro por macroentrega |
 | **Relatórios e Exportação** | PDFs, prévia e envio do e-mail, JSON, ZIP, histórico e exclusão |
 
-**Salvar:** botão no topo ou **Ctrl+S**.
+**Salvar:** botão no topo ou **Ctrl+S**. **Tudo o que é preenchido vai para o JSON**, inclusive grupos de e-mail, vigência/aditivos, DfX e configurações de envio. As exceções são o seu nome e e-mail, que ficam neste navegador.
+
+**Menu lateral → Inserir:** **+ Figura** abre direto a caixa para importar a imagem; depois você escolhe macroentrega, seção, título e fonte. **+ Tabela** cria uma tabela ABNT, em branco ou colada do Excel, na macroentrega e seção escolhidas.
+
+### Projeto de produto/serviço (modelo NeDIP)
+Macrofases e fases do modelo do NeDIP/UFSC (BACK, N. et al. *Projeto integrado de produtos*. Manole, 2008): **planejamento** → **projetação** (informacional, conceitual, preliminar, detalhado) → **implementação** (preparação da produção, lançamento, validação).
+
+**Tudo é opcional.** Em cada projeto você escolhe as fases usadas; em cada fase:
+- **Entrada da fase:** um aplicativo próprio (nome e URL). O botão abre o aplicativo e, na volta, o sistema pede o resultado, que fica nos documentos da fase. No projeto informacional o padrão é o sistema QFD (https://marlonsigales.github.io/QFD/index.html): o backup JSON atualiza requisitos de cliente e especificações. Nenhuma janela obriga a usar o aplicativo.
+- **Ferramentas internas** ligáveis/desligáveis; todas as listas aceitam **linhas manuais**.
+- Situação (incluindo "não se aplica"), macroentregas, **recomendações clicáveis**, registro livre e **documentos da fase** (`produto/<fase>/`, vão no ZIP).
+
+| Fase | Saída | Ferramentas (opcionais) |
+|---|---|---|
+| Planejamento | Plano do projeto | Escopo, premissas, orçamento e comunicação; atalhos para Equipe, Macroentregas, Cronograma e Riscos |
+| Informacional | Especificações | Roteiro de questionário (PDF), questionários aplicados, **consolidação das respostas** (digitada ou CSV `necessidade; citações; importância; fase`) → requisitos de cliente, **PDF do questionário com respostas consolidadas**; requisitos de cliente manuais ou do QFD; **especificações manuais** ao lado das do QFD; ciclo de vida, concorrentes e normas |
+| Conceitual | Concepção | Roteiro "do problema à concepção" (abstração, função global, estrutura de funções, desdobramento, princípios, matriz morfológica, concepções, avaliação); **desdobramento das especificações em funções** (aponta especificação sem função); estrutura de funções e matriz morfológica; concepções; **matriz de decisão ponderada** (critérios das especificações com peso do QFD, ou manuais; notas 1–5); exportação das funções para a árvore TRL |
+| Preliminar | Leiaute e viabilidade | Leiaute e viabilidade; protótipos e ensaios; **FMEA** (S×O×D; críticos com RPN ≥ 100 ou S ≥ 9 vão para a aba Riscos, sem duplicar); **análise de qualidade** com situação e medido editáveis |
+| Detalhado | Documentação | Lista de materiais; conteúdo do manual de uso; **manuais gerados** (projeto e uso) **ou próprios** (documento importado); importação de documentos para o ZIP |
+| Preparação da produção | Liberação | Processos, fornecedores, lote piloto, data de liberação |
+| Lançamento | Produto lançado | Plano, canais, treinamentos, certificações, data |
+| Validação | Validado e encerrado | Questionários de satisfação, desempenho em campo, melhorias, encerramento; atalho para Lições aprendidas |
+
+O **manual de projeto** compila as fases usadas; o relatório de andamento traz o resumo das fases.
+
+### Qualidade: especificações vindas do QFD
+Os critérios de qualidade são as **especificações de projeto**. No **projeto informacional**, o botão da entrada da fase **abre o sistema QFD** (https://marlonsigales.github.io/QFD/index.html, abre em outra aba; endereço em `CONFIG.urlQfd`). Ao voltar para a aba do sistema, ele **pede o backup JSON do QFD**; o JSON também pode ser importado a qualquer momento pelo botão "Importar resultado do aplicativo" ou na aba Qualidade. **O QFD é opcional**: as especificações podem ser cadastradas à mão no projeto informacional, ao lado das que vierem do QFD. O JSON é o backup completo exportado pelo botão "Backup" do painel do QFD. Também aceita um ZIP que contenha esse JSON.
+
+Cada requisito de projeto vira uma linha, na **ordem de importância** do QFD:
+
+| Campo do sistema | Vem do QFD |
+|---|---|
+| Requisito | `RPn. descrição` |
+| Critério de aceite | valor-meta com o sentido de melhoria: ≥ (crescente), ≤ (decrescente) ou = ±5% (nominal) |
+| Forma de avaliação | texto explicativo da especificação |
+| Aspectos indesejáveis | da especificação |
+| Medido | valor do "nosso produto" na avaliação competitiva |
+| Situação | atingida ⇒ conforme · não atingida ⇒ não conforme · sem medição/meta ⇒ pendente |
+
+O JSON original fica guardado em `qfd/`. Na **reimportação**, os requisitos são atualizados pelo identificador do QFD. Continuam como estavam:
+- o PDCA;
+- os requisitos cadastrados à mão;
+- a situação, quando o QFD não traz medição.
+
+Requisitos que saíram do QFD são mantidos e marcados. Só a exportação de especificações do QFD **não basta**, porque não traz a descrição dos requisitos: use o backup completo.
+
+### Design for X (aba Qualidade / DfX)
+São 15 diretrizes de Pahl, Beitz, Feldhusen e Grote (*Engineering Design*, 3. ed., Springer, 2007): regras básicas, qualidade, custo mínimo, risco mínimo, normas, dilatação, fluência, corrosão, desgaste, ergonomia, estética, fabricação (DFM), montagem (DFA), manutenção e reciclagem. Também é possível criar diretrizes próprias.
+
+Para cada diretriz:
+- **Usar** ou **Negligenciar**, com caixas clicáveis;
+- recomendações de P&B que podem ser marcadas uma a uma;
+- justificativa.
+
+O sistema **sugere** a decisão a partir do TRL atual e da **condição de teste** (bancada, laboratório, ambiente relevante ou operacional), porque cada diretriz tem um TRL e uma condição de teste mínimos para ser verificada. O botão "Aplicar sugestões" preenche só as diretrizes ainda não decididas. As decisões aparecem no relatório geral. Os capítulos citados são os da edição inglesa de 2007; confira a numeração na sua edição.
 
 ### Figuras e tabelas (ABNT)
 - **Figuras** (PNG/JPG/SVG) vão para `figuras/`. A legenda fica **acima** ("Figura N – Título") e a fonte **abaixo**.
@@ -105,10 +161,17 @@ Os limites dependem do plano do EmailJS. No gratuito, o total da mensagem é peq
 - A numeração é automática, na ordem das seções do relatório. Para citar no texto, use `{{fig:fig_001}}` ou `{{tab:tab_001}}`.
 - O relatório geral traz **lista de figuras**, **lista de tabelas** e **sumário**, todos com número de página.
 
-### TRL
-- Cada item da árvore recebe uma chave própria pelo caminho (`P1/S1/A1/C1`), porque o arquivo da ferramenta repete `id` e `stringId`. A árvore pode ter qualquer profundidade e vários produtos.
-- O TRL do sistema é o **menor TRL entre os subelementos**. Quando o valor informado num item difere do mínimo dos filhos, o sistema mostra os dois.
-- Na reimportação, o sistema mostra as diferenças (itens novos, removidos, TRL que subiu ou caiu) e mantém o vínculo das áreas pelo título do item.
+### TRL: avaliação dentro do sistema
+Na aba **TRL** você monta a **estrutura do produto** (+ Produto e, em cada item, + Subsistema, + Montagem ou + Componente) e **avalia cada item por critérios**:
+- **Critérios de cada nível (1 a 9):** cada um recebe **Sim**, **Não** ou **Não se aplica**, com uma **evidência** em texto e, se quiser, uma **figura do projeto** como prova.
+- **TRL do item:** é o **maior nível em que todos os critérios dos níveis anteriores estão atendidos**. O sistema mostra o que **falta para o próximo nível**.
+- **TRL do sistema:** é o **menor TRL entre as partes**. Os pontos de verificação, os responsáveis a cobrar, o e-mail e os PDFs usam esse cálculo. O relatório geral traz a tabela de **evidências por critério**, citando as figuras pelo número.
+- **Histórico:** cada mudança de TRL fica registrada (item, de → para, data e usuário) e salva no JSON.
+- **Origem dos critérios:** a redação é própria, baseada nas definições públicas de TRL da NASA (NPR 7123.1) e nos níveis da ISO 16290:2013. O questionário da ferramenta IMATEC/AEB não é reproduzido.
+
+A **avaliação oficial da AEB** continua possível: **Exportar JSON compatível** gera o arquivo no formato do iMATEC (https://imatec.aeb.gov.br), e **Importar JSON** traz de volta uma avaliação feita lá. Itens importados aparecem como "importado". O botão **Avaliar por critérios** converte um item importado, pré-marcando os critérios até o nível declarado para você confirmar as evidências.
+
+Chaves dos itens: o arquivo do iMATEC repete `id` e `stringId`, então cada item recebe uma chave pelo caminho na árvore (`P1/S1/A1/C1`). Incluir, remover ou mover itens recalcula as chaves e atualiza o vínculo das áreas.
 
 ---
 
@@ -136,8 +199,11 @@ assets/js/armazenamento.js pasta do computador (File System Access) e IndexedDB;
 assets/js/pdf.js           relatórios (pdfmake)
 assets/js/email.js         e-mail (mailto / EmailJS)
 assets/js/app.js           núcleo da interface
+assets/js/nedip.js          fases NeDIP: recomendações, roteiro de questionário, funções → TRL
+assets/js/produto.js        aba Projeto de produto/serviço (anexos e manuais)
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
-assets/js/exemplo.js       projeto de exemplo
+assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD
+exemplos/                  roda-bicicleta-generica.zip e qfd-roda-bicicleta.json
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```

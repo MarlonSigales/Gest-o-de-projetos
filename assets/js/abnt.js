@@ -167,3 +167,87 @@ document.addEventListener('change', async (ev) => {
   inp.value = '';
   App.render();
 });
+
+// ------------------------------------------------------------------ menu lateral: + Figura / + Tabela
+App.destinoPadrao = () => Math.min(App.macroSel || 0, Math.max(0, App.p.macroentregas.length - 1));
+App.seletorDestino = (prefixo) => `<div class="grade-campos">
+  <label class="campo">Macroentrega<select id="${prefixo}Macro">${App.opcoes(App.p.macroentregas.map((m, i) => [i, `${i + 1} · ${m.titulo || '(sem título)'}`]), App.destinoPadrao())}</select></label>
+  <label class="campo">Seção do relatório<select id="${prefixo}Secao">${App.opcoes(App.SECOES, 'resultados')}</select></label></div>`;
+
+/** "+ Figura": abre direto a caixa para importar a imagem; depois pede título, fonte, macroentrega e seção. */
+App.acoes['nova-figura'] = () => {
+  if (!App.p) { App.toast('Abra um projeto primeiro.'); return; }
+  if (!App.p.macroentregas.length) App.p.macroentregas.push(Nucleo.novaMacro(1));
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml';
+  inp.onchange = () => {
+    const arq = inp.files[0];
+    if (!arq) return;
+    App._novaFig = arq;
+    const url = URL.createObjectURL(arq);
+    App.modal(`<h2>Nova figura</h2>
+      <div class="prev-abnt"><div class="leg" id="nfLeg">Figura – ${esc(arq.name.replace(/\.[^.]+$/, ''))}</div><img src="${url}" style="max-width:100%;max-height:300px"></div>
+      ${App.seletorDestino('nf')}
+      <div class="grade-campos"><label class="campo largo">Título (acima da figura)<input id="nfTitulo" value="${esc(arq.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '))}"></label>
+      <label class="campo largo">Fonte (abaixo da figura)<input id="nfFonte" value="Elaborado pelos autores (${new Date().getFullYear()})"></label></div>
+      <div class="barra"><button class="btn primario" data-acao="nova-figura-ok">Inserir figura</button><button class="btn" data-acao="nova-figura">Escolher outra imagem</button></div>`);
+    $('#nfTitulo').addEventListener('input', (e) => { $('#nfLeg').textContent = 'Figura – ' + e.target.value; });
+  };
+  inp.click();
+};
+App.acoes['nova-figura-ok'] = async () => {
+  const arq = App._novaFig;
+  if (!arq) return;
+  const mi = +$('#nfMacro').value, secao = $('#nfSecao').value, titulo = $('#nfTitulo').value.trim(), fonte = $('#nfFonte').value.trim();
+  const ext = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/svg+xml': 'svg' }[arq.type] || ((arq.name.match(/\.(png|jpe?g|svg)$/i) || [])[1] || '').toLowerCase().replace('jpeg', 'jpg');
+  if (!ext) { App.toast('Use PNG, JPG ou SVG.', 'erro'); return; }
+  if (arq.size > CONFIG.uploadMaxMb * 1048576) { App.toast('Arquivo maior que ' + CONFIG.uploadMaxMb + ' MB.', 'erro'); return; }
+  try {
+    const { id, arquivo } = await App.proximoArquivoFigura(ext);
+    await App.arm.gravarArquivo(arquivo, arq);
+    App.p.macroentregas[mi].figuras.push({ id, arquivo, titulo, fonte, secao });
+    App._novaFig = null;
+    App.marcarSujo(true); App.fecharModal();
+    App.aba = 'macros'; App.macroSel = mi; App.render();
+    const card = $$('.fig-card').pop(); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    App.toast(`Figura inserida na macroentrega ${mi + 1}. Cite no texto com {{fig:${id}}}.`, 'ok', 7000);
+  } catch (e) { App.toast('Figura: ' + esc(e.message), 'erro'); }
+};
+
+/** "+ Tabela": pergunta destino, título, fonte e tamanho; cria e leva ao editor. */
+App.acoes['nova-tabela'] = () => {
+  if (!App.p) { App.toast('Abra um projeto primeiro.'); return; }
+  if (!App.p.macroentregas.length) App.p.macroentregas.push(Nucleo.novaMacro(1));
+  App.modal(`<h2>Nova tabela</h2>${App.seletorDestino('nt')}
+    <div class="grade-campos"><label class="campo largo">Título (acima da tabela)<input id="ntTitulo"></label>
+    <label class="campo largo">Fonte (abaixo da tabela)<input id="ntFonte" value="Elaborado pelos autores (${new Date().getFullYear()})"></label>
+    <label class="campo">Colunas<input id="ntCols" type="number" min="1" max="20" value="3"></label>
+    <label class="campo">Linhas (sem o cabeçalho)<input id="ntLins" type="number" min="1" max="200" value="3"></label>
+    <label class="campo largo">…ou cole do Excel/CSV (1ª linha = cabeçalho)<textarea id="ntColar" rows="4" style="font-family:monospace"></textarea></label></div>
+    <div class="barra"><button class="btn primario" data-acao="nova-tabela-ok">Criar tabela</button></div>`);
+  setTimeout(() => { const e = $('#ntTitulo'); if (e) e.focus(); }, 50);
+};
+App.acoes['nova-tabela-ok'] = () => {
+  const mi = +$('#ntMacro').value;
+  let n = 0;
+  App.p.macroentregas.forEach((x) => x.tabelas.forEach((t) => { const k = String(t.id).match(/(\d+)$/); if (k) n = Math.max(n, +k[1]); }));
+  const t = { id: 'tab_' + String(n + 1).padStart(3, '0'), titulo: $('#ntTitulo').value.trim(), fonte: $('#ntFonte').value.trim(), secao: $('#ntSecao').value, cabecalho: [], linhas: [] };
+  const colado = $('#ntColar').value.replace(/\r/g, '').trim();
+  if (colado) {
+    const ls = colado.split('\n'), sep = ls[0].includes('\t') ? '\t' : (ls[0].includes(';') ? ';' : ',');
+    const d = ls.map((l) => l.split(sep).map((c) => c.trim()));
+    const nc = Math.max(...d.map((x) => x.length));
+    t.cabecalho = Array.from({ length: nc }, (_, k) => d[0][k] ?? '');
+    t.linhas = d.slice(1).map((x) => Array.from({ length: nc }, (_, k) => x[k] ?? ''));
+  } else {
+    const nc = Math.max(1, +$('#ntCols').value || 3), nl = Math.max(1, +$('#ntLins').value || 3);
+    t.cabecalho = Array.from({ length: nc }, (_, k) => 'Coluna ' + (k + 1));
+    t.linhas = Array.from({ length: nl }, () => Array(nc).fill(''));
+  }
+  if (!t.linhas.length) t.linhas = [t.cabecalho.map(() => '')];
+  App.p.macroentregas[mi].tabelas.push(t);
+  App.marcarSujo(true); App.fecharModal();
+  App.aba = 'macros'; App.macroSel = mi; App.render();
+  const card = $$('.tab-card').pop(); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  App.toast(`Tabela criada na macroentrega ${mi + 1}. Cite no texto com {{tab:${t.id}}}.`, 'ok', 7000);
+};

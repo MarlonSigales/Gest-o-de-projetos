@@ -23,14 +23,27 @@ Nucleo.novo = function (nome = '') {
       endereco: 'Av. Eliseu Maciel, Capão do Leão – RS', ano: new Date().getFullYear(), dataInicio: '', dataFimPrevista: '',
       coordenador: { nome: '', email: '' }, coordenadorAdjunto: { nome: '', email: '' }, equipe: [],
       introducao: '', objetivoGeral: '', trlEsperadoFinal: 6,
+      aditivos: [],            // termos aditivos/subtrativos de prazo
     },
+    gruposEmail: Nucleo.gruposPadrao(),
     interessados: [], areas: [], macroentregas: [Nucleo.novaMacro(1)],
-    riscos: [], qualidade: [], licoesAprendidas: [],
-    trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [] },
-    config: { incluirAndamentoNaMacro: true },
+    riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null }, dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
+    trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
+    produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
+    config: {
+      incluirAndamentoNaMacro: true,
+      baixarAoSalvar: 'auto',
+      email: { modo: 'mailto', emailjsServico: '', emailjsModelo: '', emailjsChave: '', limiteAnexoKb: 45, gerarPdfsAoSalvar: true },
+    },
     log: [],
   };
 };
+
+Nucleo.gruposPadrao = () => [
+  { id: 'gestao', nome: 'Gestão', gestao: true },
+  { id: 'equipe', nome: 'Equipe técnica', gestao: false },
+  { id: 'empresa', nome: 'Empresa parceira', gestao: false },
+];
 
 Nucleo.novaMacro = function (numero) {
   return {
@@ -58,9 +71,20 @@ Nucleo.normalizar = function (p) {
     m = mesclar(Nucleo.novaMacro(i + 1), m || {});
     m.numero = i + 1;
     m.atividades = m.atividades.map((a) => mesclar({ id: Nucleo.uid('at'), nome: '', responsavel: '', inicio: '', fim: '', dependeDe: [], percentual: 0, area: '' }, a || {}));
+    // seção desconhecida faria a figura/tabela sumir do PDF: cai em "Resultados"
+    const secOk = (x) => { if (!Nucleo.SECOES.some(([s]) => s === x.secao)) x.secao = 'resultados'; return x; };
+    m.figuras = m.figuras.map(secOk); m.tabelas = m.tabelas.map(secOk);
     return m;
   });
-  p.qualidade = p.qualidade.map((q) => { q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });
+  if (!p.gruposEmail.some((g) => g.gestao)) p.gruposEmail.unshift({ id: 'gestao', nome: 'Gestão', gestao: true });
+  const idsGrupo = new Set(p.gruposEmail.map((g) => g.id));
+  p.interessados = p.interessados.map((i) => Object.assign({ nome: '', email: '', papel: '', grupos: [] }, i, { grupos: (Array.isArray(i.grupos) ? i.grupos : []).filter((g) => idsGrupo.has(g)) }));
+  p.projeto.aditivos = (p.projeto.aditivos || []).map((a) => Object.assign({ id: Nucleo.uid('ad'), tipo: 'aditivo', quantidade: 0, unidade: 'meses', numero: '', dataTermo: '', justificativa: '' }, a));
+  if (window.dfxNormalizar) p.dfx = window.dfxNormalizar(p.dfx);
+  if (window.nedipNormalizar) p.produto = window.nedipNormalizar(p.produto);
+  p.trl.arvore = Nucleo.normalizarArvore(p.trl.arvore || []);
+  p.trl.historico = Array.isArray(p.trl.historico) ? p.trl.historico : [];
+  p.qualidade = p.qualidade.map((q) => { q.id = q.id || (q.qfd && q.qfd.id ? 'qfd_' + q.qfd.id : Nucleo.uid('q')); q.aspectosIndesejaveis = q.aspectosIndesejaveis || ''; q.valorMedido = q.valorMedido || ''; q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });
   p.schemaVersion = '1.0';
   return p;
 };
@@ -80,6 +104,48 @@ Nucleo.validar = function (p) {
   p.areas.forEach((a) => (a.responsaveis || []).forEach((r) => outros.push(r.email)));
   outros.forEach((em) => { em = String(em || '').trim(); if (em && !Nucleo.emailValido(em)) e.push(`E-mail inválido: "${em}".`); });
   return [...new Set(e)];
+};
+
+// ================================================================== vigência (aditivos / subtrativos)
+const somarPrazo = (iso, qtd, unidade, sinal) => {
+  if (!iso || isNaN(Date.parse(iso))) return iso;
+  const d = new Date(iso + 'T12:00:00');
+  const q = sinal * (Math.abs(+qtd) || 0);
+  if (unidade === 'dias') d.setDate(d.getDate() + q); else d.setMonth(d.getMonth() + q);
+  return d.toISOString().slice(0, 10);
+};
+/** Término vigente = término original ± termos aditivos/subtrativos, na ordem cadastrada. */
+Nucleo.vigencia = function (p) {
+  const pj = p.projeto;
+  let fim = pj.dataFimPrevista || '';
+  const termos = (pj.aditivos || []).map((a) => {
+    const antes = fim;
+    fim = somarPrazo(fim, a.quantidade, a.unidade, a.tipo === 'subtrativo' ? -1 : 1);
+    return Object.assign({}, a, { fimAntes: antes, fimDepois: fim });
+  });
+  const dias = (a, b) => (a && b && !isNaN(Date.parse(a)) && !isNaN(Date.parse(b))) ? Math.round((Date.parse(b) - Date.parse(a)) / 86400000) : null;
+  return {
+    inicio: pj.dataInicio || '', fimOriginal: pj.dataFimPrevista || '', fimVigente: fim, termos,
+    nAditivos: termos.filter((t) => t.tipo !== 'subtrativo').length, nSubtrativos: termos.filter((t) => t.tipo === 'subtrativo').length,
+    variacaoDias: dias(pj.dataFimPrevista, fim), duracaoDias: dias(pj.dataInicio, fim), restamDias: dias(Nucleo.hoje(), fim),
+  };
+};
+
+// ================================================================== destinatários por grupo
+/** Um e-mail que está no grupo de gestão recebe SOMENTE como gestão (sem duplicar). */
+Nucleo.destinatarios = function (p) {
+  const gest = new Set((p.gruposEmail || []).filter((g) => g.gestao).map((g) => g.id));
+  const mapa = new Map();
+  (p.interessados || []).forEach((i) => {
+    const em = String(i.email || '').trim().toLowerCase();
+    if (!Nucleo.emailValido(em)) return;
+    const r = mapa.get(em) || { email: em, nome: i.nome || '', gestao: false, grupos: new Set() };
+    (i.grupos || []).forEach((g) => { r.grupos.add(g); if (gest.has(g)) r.gestao = true; });
+    if (!r.nome && i.nome) r.nome = i.nome;
+    mapa.set(em, r);
+  });
+  const todos = [...mapa.values()].map((r) => Object.assign(r, { grupos: [...r.grupos] }));
+  return { gestao: todos.filter((r) => r.gestao), demais: todos.filter((r) => !r.gestao) };
 };
 
 // ================================================================== TRL
@@ -119,6 +185,43 @@ Nucleo.importarTrl = function (bruto) {
     arvore.push(conv(no, '', i + 1, 0));
   });
   return { arvore, alertas };
+};
+
+// ------------------------------------------------------------------ avaliação interna (critérios)
+Nucleo.normalizarArvore = function (arvore) {
+  const rec = (nos) => (nos || []).map((n) => {
+    n = Object.assign({ chave: '', idOriginal: null, stringId: '', titulo: '', tipo: 'component', nivel: 0, visivel: true, keyTechItems: '', justification: '',
+      implementationMethod: '', supplier: '', trlInformado: null, filhos: [] }, n);
+    n.avaliacao = Object.assign({ origem: n.avaliacao ? 'interno' : 'importado', criterios: {}, atualizado: '' }, n.avaliacao || {});
+    if (n.avaliacao.origem === 'interno' && window.trlPorCriterios) n.trlInformado = window.trlPorCriterios(n.avaliacao);
+    n.filhos = rec(n.filhos);
+    return n;
+  });
+  return rec(arvore);
+};
+
+/** Recalcula as chaves pelo caminho (após incluir/remover/mover itens). Devolve {velha: nova}. */
+Nucleo.rechavear = function (arvore) {
+  const mapa = {};
+  const rec = (nos, pai, nivel) => nos.forEach((n, i) => {
+    const nova = (pai ? pai + '/' : '') + (PREFIXO_TIPO[n.tipo] || 'N') + (i + 1);
+    if (n.chave && n.chave !== nova) mapa[n.chave] = nova;
+    n.chave = nova; n.nivel = nivel;
+    rec(n.filhos || [], nova, nivel + 1);
+  });
+  rec(arvore || [], '', 0);
+  return mapa;
+};
+
+/** Exporta a árvore no formato do JSON do iMATEC (para a avaliação oficial, quando exigida). */
+Nucleo.exportarImatec = function (arvore) {
+  let seq = 0;
+  const rec = (nos) => nos.map((n) => ({
+    id: ++seq, visibility: n.visivel === false ? 'false' : 'true', stringId: n.stringId || n.chave, title: n.titulo, type: n.tipo,
+    keyTechItems: n.keyTechItems || 'Nenhum', justification: n.justification || 'Nenhuma', implementationMethod: n.implementationMethod || 'Indefinido',
+    supplier: n.supplier || 'Não Aplicável', nodes: rec(n.filhos || []), imatec: n.trlInformado ?? 1,
+  }));
+  return rec(arvore || []);
 };
 
 /** TRL efetivo = min(TRL informado, TRL efetivo dos filhos): o elemento menos maduro limita o conjunto. */
@@ -272,7 +375,8 @@ Nucleo.analisar = function (p) {
     .filter((n) => !comNo.some((o) => o.chave.startsWith(n.chave + '/') && o.trlInformado === minNo)) // só a origem do gargalo
     .map((n) => {
       const a = areaDoNo(n.chave);
-      return { chave: n.chave, titulo: n.titulo, tipo: Nucleo.NOME_TIPO[n.tipo] || n.tipo, trl: n.trlInformado, area: a ? a.nome : null,
+      const falta = (n.avaliacao && n.avaliacao.origem === 'interno' && window.trlFaltaProximo) ? window.trlFaltaProximo(n.avaliacao) : null;
+      return { chave: n.chave, titulo: n.titulo, tipo: Nucleo.NOME_TIPO[n.tipo] || n.tipo, trl: n.trlInformado, area: a ? a.nome : null, falta,
         responsaveis: a ? a.responsaveis : [],
         cobrar: (a && a.responsaveis.length) ? a.responsaveis : [Object.assign({}, coord, { observacao: 'sem área vinculada — cobrar coordenação' })] };
     });
@@ -284,6 +388,14 @@ Nucleo.analisar = function (p) {
   const riscosAltos = riscos.filter((r) => r.nivel >= 10 && (r.status || 'aberto') !== 'fechado').sort((a, b) => b.nivel - a.nivel);
 
   macros.forEach((m) => { if (m.atrasada) alertas.push(`Macroentrega ${m.numero} atrasada (prevista para ${Nucleo.dataBR(m.dataPrevista)}).`); });
+  const vig = Nucleo.vigencia(p);
+  if (vig.fimVigente) {
+    macros.forEach((m) => { if (m.dataPrevista && m.dataPrevista > vig.fimVigente) alertas.push(`Macroentrega ${m.numero} prevista para ${Nucleo.dataBR(m.dataPrevista)}, depois do fim da vigência (${Nucleo.dataBR(vig.fimVigente)}).`); });
+    if (vig.restamDias !== null && vig.restamDias < 0) alertas.push(`Vigência do projeto encerrada em ${Nucleo.dataBR(vig.fimVigente)}.`);
+  }
+  const dfxItens = (p.dfx && p.dfx.itens) || [];
+  const dfx = { usar: dfxItens.filter((i) => i.decisao === 'usar').length, negligenciar: dfxItens.filter((i) => i.decisao === 'negligenciar').length,
+    pendentes: dfxItens.filter((i) => !i.decisao).length, condicao: (p.dfx && p.dfx.condicaoTeste) || '' };
   const nAtr = Object.values(ativs).filter((a) => a.atrasada).length;
   if (nAtr) alertas.push(`${nAtr} atividade(s) atrasada(s) no cronograma.`);
 
@@ -296,7 +408,7 @@ Nucleo.analisar = function (p) {
       divergentes: Object.values(flat).filter((n) => n.divergente).map((n) => ({ chave: n.chave, titulo: n.titulo, informado: n.trlInformado, minFilhos: n.trlMinFilhos })),
       temDados: Object.keys(flat).length > 0,
     },
-    riscos, riscosAltos, alertas,
+    riscos, riscosAltos, alertas, vigencia: vig, dfx,
   };
 };
 
@@ -358,4 +470,79 @@ Nucleo.figurasReferenciadas = (p) => {
   const out = [];
   p.macroentregas.forEach((m) => (m.figuras || []).forEach((f) => out.push({ macro: m.numero, arquivo: f.arquivo, titulo: f.titulo })));
   return out;
+};
+
+// ================================================================== QFD → requisitos de qualidade
+// Lê o backup completo exportado pelo sistema QFD (Psykozis/QFD, "Backup"/exportData):
+// requisitosProjeto + especificacoesProjeto (+ valor medido do "nosso produto" na avaliação competitiva).
+const QFD_TOLERANCIA = 0.05; // mesma tolerância nominal do sistema QFD
+Nucleo.parseNumero = function (t) {
+  const m = String(t == null ? '' : t).match(/-?\d[\d.,]*/);
+  if (!m) return null;
+  let s = m[0].replace(/[.,]$/, '');
+  const c = s.lastIndexOf(','), d = s.lastIndexOf('.');
+  if (c !== -1 && d !== -1) s = c > d ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+  else if (c !== -1) s = s.replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+};
+Nucleo.SENTIDO_QFD = { up: '≥', down: '≤', none: '=' };
+Nucleo.importarQfd = function (dados) {
+  if (!dados || typeof dados !== 'object' || Array.isArray(dados)) throw new Error('Arquivo inválido: esperado o backup JSON do sistema QFD.');
+  if (!Array.isArray(dados.requisitosProjeto)) {
+    if (Array.isArray(dados.especificacoesProjeto)) throw new Error('Este arquivo contém só as especificações. Exporte o backup completo do projeto no sistema QFD (botão “Backup”).');
+    throw new Error('O arquivo não é um backup de projeto QFD (faltam os requisitos de projeto).');
+  }
+  const esp = dados.especificacoesProjeto || [];
+  const vals = ((dados.avaliacaoCompetitiva || {}).valoresTecnicos || []).filter((v) => v.produtoId === 'nosso');
+  const sentidos = { crescente: 'up', decrescente: 'down', nominal: 'none' };
+  const rps = dados.requisitosProjeto.map((r, i) => Object.assign({ _i: i }, r));
+  const ordem = [...rps].sort((a, b) => (b.importanciaAbsoluta || 0) - (a.importanciaAbsoluta || 0) || a._i - b._i);
+  const avisos = [];
+  const itens = ordem.map((r, k) => {
+    const e = esp.find((x) => x.requisitoProjetoId === r.id) || {};
+    const sentido = sentidos[String(r.sentidoMelhoria || '').toLowerCase()] || (['up', 'down', 'none'].includes(r.sentidoMelhoria) ? r.sentidoMelhoria : 'none');
+    const metaTxt = String(e.valorUnitario || '').trim(), un = String(e.unidadeMedida || '').trim();
+    const meta = Nucleo.parseNumero(metaTxt);
+    const medTxt = String((vals.find((v) => v.requisitoProjetoId === r.id) || {}).valor || '').trim();
+    const med = Nucleo.parseNumero(medTxt);
+    let estado = 'sem-meta';
+    if (meta !== null) {
+      if (med === null) estado = 'sem-medicao';
+      else {
+        const ok = sentido === 'up' ? med >= meta : sentido === 'down' ? med <= meta : (meta === 0 ? med === 0 : Math.abs(med - meta) <= Math.abs(meta) * QFD_TOLERANCIA);
+        estado = ok ? 'atingida' : 'nao-atingida';
+      }
+    }
+    if (!metaTxt) avisos.push(`RP${r._i + 1} "${r.descricao}" está sem valor-meta nas especificações do QFD.`);
+    const moeda = /^(R\$|US\$|\$|€)$/.test(un);
+    const valUn = (v) => (moeda ? `${un} ${v}` : `${v} ${un}`).trim();
+    const criterio = metaTxt ? `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}` + (sentido === 'none' ? ' (±5%)' : '') : '';
+    return {
+      id: 'qfd_' + r.id, requisito: `RP${r._i + 1}. ${r.descricao}`, criterioAceite: criterio,
+      metodoVerificacao: String(e.observacao || r.observacao || '').trim(),
+      status: estado === 'atingida' ? 'conforme' : estado === 'nao-atingida' ? 'não conforme' : 'pendente',
+      pdca: { planejar: '', executar: '', verificar: '', agir: '' },
+      aspectosIndesejaveis: String(e.aspectosIndesejaveis || '').trim(),
+      valorMedido: medTxt ? valUn(medTxt) : '',
+      qfd: { id: r.id, numero: r._i + 1, rank: k + 1, sentido, meta: metaTxt, unidade: un, importanciaAbsoluta: r.importanciaAbsoluta || 0,
+        pesoRelativo: r.pesoRelativo || 0, dificuldadeTecnica: r.dificuldadeTecnica ?? null, estado },
+    };
+  });
+  const clientes = (dados.requisitosCliente || []).map((c) => ({ descricao: String(c.descricao || '').trim(), peso: +c.peso || 0 })).sort((a, b) => b.peso - a.peso);
+  return { itens, avisos, clientes, meta: { schemaVersion: (dados.metadata || {}).schemaVersion ?? null, requisitosCliente: (dados.requisitosCliente || []).length, requisitosProjeto: itens.length } };
+};
+/** Mescla: itens do QFD são atualizados pelo id do requisito; situação só muda quando o QFD tem medição; PDCA e itens manuais são mantidos. */
+Nucleo.mesclarQfd = function (atual, novos) {
+  const porId = new Map((atual || []).filter((q) => q.qfd && q.qfd.id).map((q) => [q.qfd.id, q]));
+  const saida = novos.map((n) => {
+    const a = porId.get(n.qfd.id);
+    if (!a) return n;
+    porId.delete(n.qfd.id);
+    const temMedicao = ['atingida', 'nao-atingida'].includes(n.qfd.estado);
+    return Object.assign({}, a, n, { status: temMedicao ? n.status : (a.status || n.status), pdca: a.pdca || n.pdca, metodoVerificacao: a.metodoVerificacao || n.metodoVerificacao });
+  });
+  const removidos = [...porId.values()].map((q) => Object.assign({}, q, { qfd: Object.assign({}, q.qfd, { removidoDoQfd: true }) }));
+  const manuais = (atual || []).filter((q) => !q.qfd || !q.qfd.id);
+  return { itens: saida.concat(removidos, manuais), removidos: removidos.length, manuais: manuais.length };
 };

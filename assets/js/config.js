@@ -18,6 +18,9 @@ window.CONFIG = {
     rodapeAceite: ['Unidade Embrapii InovaAgro UFPEL', 'Faculdade de Agronomia Eliseu Maciel', 'Campus do Capão do Leão, Pelotas, RS'],
   },
   urlMaturidade: 'https://imatec.aeb.gov.br',
+  // Sistema QFD: aberto na etapa de qualidade; ao voltar, o sistema pede o backup JSON exportado lá
+  anexoMaxMb: 50,        // documentos das fases do projeto de produto (produto/<fase>/)
+  urlQfd: 'https://marlonsigales.github.io/QFD/index.html',
   uploadMaxMb: 10,
   // Limite de anexo do EmailJS (plano gratuito). Acima disso o e-mail vai sem o JSON anexado, com aviso.
   emailjsLimiteAnexoKb: 45,

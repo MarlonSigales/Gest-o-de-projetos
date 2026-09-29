@@ -56,48 +56,63 @@ Email.corpo = function (p, an, usuario) {
   return { texto, html };
 };
 
-Email.destinatarios = (p) => [...new Set((p.interessados || []).map((i) => String(i.email || '').trim()).filter(Nucleo.emailValido))];
+Email.destinatarios = (p) => { const d = Nucleo.destinatarios(p); return d.gestao.concat(d.demais).map((r) => r.email); };
 
-/** @returns {Promise<{enviado:boolean, mensagem:string, modo:string}>} */
-Email.enviar = async function (p, an, jsonTexto, cfg) {
-  const dest = Email.destinatarios(p);
-  if (!dest.length) return { enviado: false, modo: cfg.emailModo, mensagem: 'Nenhum interessado com e-mail válido.' };
-  const { texto, html } = Email.corpo(p, an, cfg.usuario);
-  const nomeArq = Nucleo.nomeArquivo(p);
+const paraBase64 = (blob) => new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = falha; r.readAsDataURL(blob); });
 
-  if (cfg.emailModo === 'emailjs') {
-    if (!cfg.emailjsServico || !cfg.emailjsModelo || !cfg.emailjsChave) {
-      return { enviado: false, modo: 'emailjs', mensagem: 'EmailJS não configurado (⚙ Configurações).' };
+/** Link mailto: com assunto e corpo (o anexo é feito pelo usuário: mailto não permite anexar). */
+Email.mailto = function (p, texto, emails, anexos) {
+  let corpo = texto + '\n\nAnexar: ' + anexos.map((a) => a.nome).join('; ');
+  if (corpo.length > 1800) corpo = corpo.slice(0, 1750) + '\n…(resumo truncado; detalhes nos anexos)';
+  return `mailto:${emails.map(encodeURIComponent).join(',')}?subject=${encodeURIComponent(Email.assunto(p))}&body=${encodeURIComponent(corpo)}`;
+};
+
+/**
+ * Envia por grupo. anexos = {gestao:[{nome,blob}], demais:[{nome,blob}]}; dest = Nucleo.destinatarios(p).
+ * @returns {Promise<{grupos:Array<{grupo,emails,enviado,mensagem,anexos}>, manual:boolean}>}
+ */
+Email.enviar = async function (p, an, anexos, cfgEmail, usuario) {
+  const dest = Nucleo.destinatarios(p);
+  const { texto, html } = Email.corpo(p, an, usuario);
+  const grupos = [
+    { grupo: 'gestao', rotulo: 'Gestão', emails: dest.gestao.map((r) => r.email), anexos: anexos.gestao || [] },
+    { grupo: 'demais', rotulo: 'Demais', emails: dest.demais.map((r) => r.email), anexos: anexos.demais || [] },
+  ].filter((g) => g.emails.length);
+  if (!grupos.length) return { grupos: [], manual: false, mensagem: 'Nenhum interessado com e-mail válido.' };
+  const modo = cfgEmail.modo || 'mailto';
+  if (modo === 'nenhum') return { grupos: grupos.map((g) => Object.assign(g, { enviado: false, mensagem: 'envio desativado' })), manual: false, mensagem: 'Envio de e-mail desativado (⚙ Configurações).' };
+
+  if (modo === 'emailjs') {
+    if (!cfgEmail.emailjsServico || !cfgEmail.emailjsModelo || !cfgEmail.emailjsChave) {
+      return { grupos: grupos.map((g) => Object.assign(g, { enviado: false, mensagem: 'EmailJS não configurado' })), manual: true, mensagem: 'EmailJS não configurado (⚙ Configurações).' };
     }
-    const kb = new Blob([jsonTexto]).size / 1024;
-    const anexar = kb <= (CONFIG.emailjsLimiteAnexoKb || 45);
-    const b64 = anexar ? btoa(unescape(encodeURIComponent(jsonTexto))) : '';
-    const corpo = {
-      service_id: cfg.emailjsServico, template_id: cfg.emailjsModelo, user_id: cfg.emailjsChave,
-      template_params: {
-        to_email: dest.join(','), subject: Email.assunto(p), message: texto, message_html: html,
-        nome_projeto: p.projeto.nome, nome_anexo: nomeArq,
-        json_anexo: anexar ? 'data:application/json;base64,' + b64 : '',
-      },
-    };
-    try {
-      const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
-      const t = await r.text();
-      if (!r.ok) return { enviado: false, modo: 'emailjs', mensagem: `Falha no EmailJS (HTTP ${r.status}): ${t}` };
-      return { enviado: true, modo: 'emailjs', mensagem: `E-mail enviado para ${dest.length} destinatário(s)` + (anexar ? ' com o JSON anexado.' : ` SEM anexo: o JSON tem ${Math.round(kb)} KB, acima do limite do EmailJS.`) };
-    } catch (e) {
-      return { enviado: false, modo: 'emailjs', mensagem: 'Sem conexão com o EmailJS: ' + e.message };
+    let manual = false;
+    for (const g of grupos) {
+      // EmailJS aceita um anexo por variável: para "demais", PDFs + JSON seguem num único ZIP
+      let anexo = g.anexos[0] || null;
+      if (g.grupo === 'demais' && g.anexos.length > 1) {
+        const z = new JSZip();
+        g.anexos.forEach((a) => z.file(a.nome, a.blob));
+        anexo = { nome: 'PDFs e JSON - ' + Nucleo.nomeSeguro(p.projeto.nome) + '.zip', blob: await z.generateAsync({ type: 'blob', compression: 'DEFLATE' }) };
+      }
+      const kb = anexo ? anexo.blob.size / 1024 : 0;
+      const cabe = anexo && kb <= (+cfgEmail.limiteAnexoKb || 45);
+      const corpo = { service_id: cfgEmail.emailjsServico, template_id: cfgEmail.emailjsModelo, user_id: cfgEmail.emailjsChave,
+        template_params: { to_email: g.emails.join(','), subject: Email.assunto(p), message: texto, message_html: html, nome_projeto: p.projeto.nome,
+          grupo: g.rotulo, nome_anexo: cabe ? anexo.nome : '', anexo: cabe ? await paraBase64(anexo.blob) : '' } };
+      try {
+        const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+        const t = await r.text();
+        if (!r.ok) { g.enviado = false; g.mensagem = `falha no EmailJS (HTTP ${r.status}): ${t}`; manual = true; continue; }
+        g.enviado = true;
+        g.mensagem = cabe ? `enviado com ${anexo.nome}` : `enviado SEM anexo (${Math.round(kb)} KB acima do limite de ${cfgEmail.limiteAnexoKb || 45} KB) — envie os anexos manualmente`;
+        if (!cabe) manual = true;
+      } catch (e) { g.enviado = false; g.mensagem = 'sem conexão com o EmailJS: ' + e.message; manual = true; }
     }
+    return { grupos, manual, mensagem: grupos.map((g) => `${g.rotulo}: ${g.mensagem}`).join(' · ') };
   }
 
-  if (cfg.emailModo === 'mailto') {
-    let corpoTxt = texto + '\n\n(Anexe a este e-mail o arquivo "' + nomeArq + '".)';
-    if (corpoTxt.length > 1800) corpoTxt = corpoTxt.slice(0, 1750) + '\n…(resumo truncado; detalhes no JSON anexo)';
-    const url = `mailto:${dest.map(encodeURIComponent).join(',')}?subject=${encodeURIComponent(Email.assunto(p))}&body=${encodeURIComponent(corpoTxt)}`;
-    const a = document.createElement('a');
-    a.href = url; document.body.appendChild(a); a.click(); a.remove();
-    return { enviado: true, modo: 'mailto', mensagem: `Programa de e-mail aberto para ${dest.length} destinatário(s). Anexe o arquivo "${nomeArq}" antes de enviar.` };
-  }
-
-  return { enviado: false, modo: 'nenhum', mensagem: 'Envio de e-mail desativado (⚙ Configurações).' };
+  // mailto: prepara os rascunhos; o usuário anexa os arquivos
+  grupos.forEach((g) => { g.enviado = false; g.mensagem = 'rascunho preparado (anexar manualmente)'; g.link = Email.mailto(p, texto, g.emails, g.anexos); });
+  return { grupos, manual: true, mensagem: 'E-mails preparados por grupo: anexe os arquivos e envie.' };
 };
