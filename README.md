@@ -48,6 +48,7 @@ MinhaPasta/
 - O projeto fica no armazenamento interno do navegador (IndexedDB), **só naquele navegador e computador**.
 - Limpar os dados do navegador apaga os projetos. **Exporte o ZIP com frequência** (aba Relatórios e Exportação).
 - O histórico guarda as 50 últimas versões.
+- **Safari (e Firefox):** os arquivos (figuras, documentos) são guardados como bytes, porque o Safari pode perder arquivos guardados de outro jeito ao recarregar a página. A cada salvamento o sistema **relê o que gravou** e avisa se o navegador não confirmou. Ele também pede ao navegador que **não apague** os dados do site. Mesmo assim, o Safari pode apagar dados de sites sem uso por 7 dias: em ⚙ Configurações, escolha **baixar o ZIP completo a cada salvamento**.
 
 ### Levar para outra máquina
 Use **Exportar ZIP** (JSON + figuras + histórico) e, na outra máquina, **📂 Projetos → Importar**. Também dá para importar o JSON junto com as imagens selecionadas.
@@ -83,7 +84,7 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 
 **Primeira abertura:** o sistema exige **nome** (registrado no log) e **e-mail**. Esse e-mail entra automaticamente no **grupo de gestão** de qualquer projeto aberto ou criado que ainda não tenha ninguém na gestão (quando o projeto já tem gestão, nada muda). Para trocar, use ⚙.
 
-**Exemplo:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício completo — roda dianteira 700c, 5 macroentregas (concluídas, em andamento e planejada), 8 figuras, 5 tabelas, cronograma, riscos, TRL por critérios, DfX, lições, qualidade importada do QFD com PDCA e as **quatro fases NeDIP** preenchidas (questionários, estrutura de funções, concepções, protótipos, lista de materiais e conteúdo do manual de uso — gere os manuais no projeto detalhado). Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável) e o backup do QFD em `exemplos/qfd-roda-bicicleta.json` (importável no sistema QFD).
+**Exemplo:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício completo — roda dianteira 700c, 5 macroentregas (concluídas, em andamento e planejada), 8 figuras, 5 tabelas, cronograma, riscos, TRL por critérios, DfX, lições, qualidade importada do QFD com PDCA e as **quatro fases NeDIP** preenchidas (questionários, estrutura de funções, concepções, protótipos, lista de materiais e conteúdo do manual de uso — gere os manuais no projeto detalhado). Ele também traz o **questionário do Google Forms** com 24 respostas e, na macroentrega 1, o **desenvolvimento em blocos** com o documento do questionário e a **análise QFD**. Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). O backup do QFD está em `exemplos/qfd-roda-bicicleta.json` (importável no sistema QFD) e o CSV do Forms em `exemplos/questionario-roda-google-forms.csv`.
 
 | Aba | Conteúdo |
 |---|---|
@@ -114,7 +115,7 @@ Macrofases e fases do modelo do NeDIP/UFSC (BACK, N. et al. *Projeto integrado d
 | Fase | Saída | Ferramentas (opcionais) |
 |---|---|---|
 | Planejamento | Plano do projeto | Escopo, premissas, orçamento e comunicação; atalhos para Equipe, Macroentregas, Cronograma e Riscos |
-| Informacional | Especificações | Roteiro de questionário (PDF), questionários aplicados, **consolidação das respostas** (digitada ou CSV `necessidade; citações; importância; fase`) → requisitos de cliente, **PDF do questionário com respostas consolidadas**; requisitos de cliente manuais ou do QFD; **especificações manuais** ao lado das do QFD; ciclo de vida, concorrentes e normas |
+| Informacional | Especificações | **Questionário do Google Forms** (CSV importado/exportado, editável, documento em PDF, anexável a uma macroentrega); **relatório do QFD nas macroentregas** (caixas de seleção); roteiro de questionário (PDF), questionários aplicados, **consolidação das respostas** (digitada ou CSV `necessidade; citações; importância; fase`) → requisitos de cliente, **PDF do questionário com respostas consolidadas**; requisitos de cliente manuais ou do QFD; **especificações manuais** ao lado das do QFD; ciclo de vida, concorrentes e normas |
 | Conceitual | Concepção | Roteiro "do problema à concepção" (abstração, função global, estrutura de funções, desdobramento, princípios, matriz morfológica, concepções, avaliação); **desdobramento das especificações em funções** (aponta especificação sem função); estrutura de funções e matriz morfológica; concepções; **matriz de decisão ponderada** (critérios das especificações com peso do QFD, ou manuais; notas 1–5); exportação das funções para a árvore TRL |
 | Preliminar | Leiaute e viabilidade | Leiaute e viabilidade; protótipos e ensaios; **FMEA** (S×O×D; críticos com RPN ≥ 100 ou S ≥ 9 vão para a aba Riscos, sem duplicar); **análise de qualidade** com situação e medido editáveis |
 | Detalhado | Documentação | Lista de materiais; conteúdo do manual de uso; **manuais gerados** (projeto e uso) **ou próprios** (documento importado); importação de documentos para o ZIP |
@@ -123,6 +124,51 @@ Macrofases e fases do modelo do NeDIP/UFSC (BACK, N. et al. *Projeto integrado d
 | Validação | Validado e encerrado | Questionários de satisfação, desempenho em campo, melhorias, encerramento; atalho para Lições aprendidas |
 
 O **manual de projeto** compila as fases usadas; o relatório de andamento traz o resumo das fases.
+
+### Pré-projeto informacional: questionário do Google Forms
+No projeto informacional, cartão **Questionários aos clientes**:
+1. **⬇ CSV em branco (base para o Forms):** só o cabeçalho, no formato do Google Forms, com as perguntas do projeto. Se ainda não houver perguntas, vêm as do roteiro-modelo NeDIP; para ajustá-las antes, use **Começar pelo roteiro-modelo**.
+2. Monte e aplique o formulário. No Forms: **Respostas → ⋮ → Baixar respostas (.csv)**.
+3. **⬆ Importar CSV do Google Forms.** O sistema reconhece:
+   - a data de cada resposta;
+   - perguntas em **grade** (`Pergunta [item]`) e as escalas (`1 - Muito importante`, inclusive quando 1 é o mais importante);
+   - múltipla escolha e **caixas de seleção** (respostas "A) …, C) …");
+   - escalas lineares e respostas abertas;
+   - **dados de identificação** (nome, cargo, contato…), que nunca entram no documento.
+
+Depois de importar:
+- **Perguntas e respondentes podem ser editados:** texto, tipo, alternativas, itens, fase do ciclo de vida, "analisar" e cada resposta; também dá para incluir e excluir.
+- Uma nova importação pode **acrescentar** respostas (as perguntas são casadas pelo texto) ou **substituir** o questionário.
+- O CSV entra nos documentos da fase e o quadro "Questionários aplicados" é atualizado.
+- **Documento do questionário (PDF):** no padrão do roteiro, com identificação da pesquisa, roteiro aplicado, resultados por pergunta (tabelas com barras, média e importância de 1 a 5) e necessidades consolidadas. O botão "Roteiro de questionário" passa a imprimir as perguntas do projeto, com campos para marcar.
+- **Anexar a uma macroentrega:** escolha a macroentrega, e o documento entra como bloco no desenvolvimento dela.
+- **→ Gerar a consolidação:** itens de grade e escalas viram necessidades com citações e importância, que alimentam os requisitos de cliente.
+
+### Relatório do QFD nas macroentregas e no relatório geral
+A importação do backup do QFD guarda o arquivo completo no projeto. No projeto informacional, o cartão **Relatório do QFD nas macroentregas** tem uma caixa de seleção por informação (linha) e por macroentrega (coluna), mais o relatório geral. As informações são:
+- dicionário de requisitos;
+- requisitos do cliente;
+- diagrama de Mudge;
+- requisitos de projeto em terços;
+- matriz QFD;
+- telhado de correlações;
+- especificações;
+- avaliação competitiva (notas, gráfico, valores técnicos e metas abaixo do melhor concorrente);
+- atendimento aos requisitos do cliente;
+- ranking;
+- indicadores.
+
+Na primeira importação, as macroentregas ligadas ao projeto informacional já recebem tudo o que o QFD tem. Informação que falta no QFD aparece desativada, com o botão **↗ completar no QFD**. O conteúdo sai com a identidade visual dos relatórios: **tabelas largas viram a folha (paisagem)** e, se ainda assim não couberem, são divididas em partes que repetem a primeira coluna. Também há o PDF avulso **Análise QFD**.
+
+### Macroentregas: desenvolvimento em blocos
+No cartão **Resultados — desenvolvimento em blocos**, monte o texto como num caderno (Google Colab).
+- Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Questionário e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
+- Cada bloco tem **✎ Editar / ✓ Concluir**, **🗑 Excluir** e **↑ ↓** para mover.
+- O texto aceita negrito, listas e citações de figuras e tabelas (botões e seletor).
+- Figura e tabela (importar CSV ou colar do Excel) ficam no próprio bloco, com numeração ABNT.
+- Sem QFD ou sem questionário, o bloco avisa e leva à página de preenchimento.
+
+No PDF, os blocos entram em **3. Resultados**, depois do texto de resultados, com capítulos numerados (3.1, 3.1.1 …). No relatório geral, entram no desenvolvimento de cada macroentrega. Os campos e as figuras e tabelas soltas por seção continuam funcionando como antes.
 
 ### Qualidade: especificações vindas do QFD
 Os critérios de qualidade são as **especificações de projeto**. No **projeto informacional**, o botão da entrada da fase **abre o sistema QFD** (https://marlonsigales.github.io/QFD/index.html, abre em outra aba; endereço em `CONFIG.urlQfd`). Ao voltar para a aba do sistema, ele **pede o backup JSON do QFD**; o JSON também pode ser importado a qualquer momento pelo botão "Importar resultado do aplicativo" ou na aba Qualidade. **O QFD é opcional**: as especificações podem ser cadastradas à mão no projeto informacional, ao lado das que vierem do QFD. O JSON é o backup completo exportado pelo botão "Backup" do painel do QFD. Também aceita um ZIP que contenha esse JSON.
@@ -201,9 +247,12 @@ assets/js/email.js         e-mail (mailto / EmailJS)
 assets/js/app.js           núcleo da interface
 assets/js/nedip.js          fases NeDIP: recomendações, roteiro de questionário, funções → TRL
 assets/js/produto.js        aba Projeto de produto/serviço (anexos e manuais)
+assets/js/formulario.js     questionário do Google Forms (CSV, edição, análise, PDF)
+assets/js/qfd.js            relatório da casa da qualidade a partir do backup do QFD; tabelas que viram a folha
+assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD
-exemplos/                  roda-bicicleta-generica.zip e qfd-roda-bicicleta.json
+exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json e questionario-roda-google-forms.csv
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```

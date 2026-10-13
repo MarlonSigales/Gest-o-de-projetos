@@ -79,10 +79,11 @@ Pdf.tabela = function (t, n, tocId) {
   };
 };
 
+/** Figuras e tabelas soltas de uma seção (as que estão em blocos saem no lugar do bloco). */
 Pdf.anexosSecao = function (m, secao, num, imgs, tocIds = {}) {
-  const itens = [];
-  (m.figuras || []).forEach((f) => { if ((f.secao || 'resultados') === secao) itens.push([0, num.fig[f.id], Pdf.figura(f, num.fig[f.id], imgs, tocIds.fig)]); });
-  (m.tabelas || []).forEach((t) => { if ((t.secao || 'resultados') === secao) itens.push([1, num.tab[t.id], Pdf.tabela(t, num.tab[t.id], tocIds.tab)]); });
+  const itens = [], refs = Nucleo.refsBlocos(m);
+  (m.figuras || []).forEach((f) => { if ((f.secao || 'resultados') === secao && !refs.fig.has(f.id)) itens.push([0, num.fig[f.id], Pdf.figura(f, num.fig[f.id], imgs, tocIds.fig)]); });
+  (m.tabelas || []).forEach((t) => { if ((t.secao || 'resultados') === secao && !refs.tab.has(t.id)) itens.push([1, num.tab[t.id], Pdf.tabela(t, num.tab[t.id], tocIds.tab)]); });
   return itens.sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
 };
 
@@ -107,7 +108,7 @@ const trlTxt = (v) => ({ text: (v === null || v === undefined) ? 'n/a' : 'TRL ' 
 Pdf.grade = function (cabecalho, linhas, widths) {
   return {
     table: { headerRows: 1, widths: widths || Array(cabecalho.length).fill('*'),
-      body: [cabecalho.map((c) => ({ text: c, style: 'th', fillColor: COR.teal })), ...linhas.map((l, i) => l.map((c) => {
+      body: [cabecalho.map((c) => (c && typeof c === 'object' && !Array.isArray(c) ? Object.assign({ style: 'th', fillColor: COR.teal }, c) : { text: c, style: 'th', fillColor: COR.teal })), ...linhas.map((l, i) => l.map((c) => {
         const cel = typeof c === 'object' && c !== null && !Array.isArray(c) ? Object.assign({}, c) : { text: c ?? '' };
         if (!cel.fillColor && i % 2 === 1) cel.fillColor = COR.zebra;
         cel.style = cel.style || 'td';
@@ -219,7 +220,7 @@ Pdf.macroentrega = async function (p, mi, armazem) {
         { text: '______________________________________________', alignment: 'center', margin: [0, 50, 0, 2] },
         { text: 'Assinatura do responsável pelo projeto na Empresa', alignment: 'center' },
         { text: `(${resp || 'nome do responsável'}\n${pj.empresaParceira || 'nome da empresa'})`, alignment: 'center' },
-        ...(ac.aceito ? [{ text: '☑ Aceite registrado no sistema', bold: true, color: COR.escuro, alignment: 'center', margin: [0, 6, 0, 0] }] : []),
+        ...(ac.aceito ? [{ text: '√ Aceite registrado no sistema', bold: true, color: COR.escuro, alignment: 'center', margin: [0, 6, 0, 0] }] : []),
       ], fontSize: 9 }],
     ] },
     layout: { hLineWidth: () => 0.7, vLineWidth: () => 0.7, paddingTop: () => 5, paddingBottom: () => 5, paddingLeft: () => 6, paddingRight: () => 6 },
@@ -239,7 +240,8 @@ Pdf.macroentrega = async function (p, mi, armazem) {
     ...(obj.length ? [{ ul: obj.map((o, i) => o + (i < obj.length - 1 ? ';' : '.')), style: 'corpo', margin: [0, 0, 0, 6] }] : []),
     ...Pdf.anexosSecao(m, 'objetivos', num, imgs)]));
   c.push(tituloSecao('secResultados', 'Resultados e conclusões do projeto'));
-  c.push(subitem('3. Resultados'), corpo([...Pdf.texto(m.resultados, num), ...Pdf.anexosSecao(m, 'resultados', num, imgs)]));
+  c.push(subitem('3. Resultados'), corpo([...Pdf.texto(m.resultados, num), ...Pdf.anexosSecao(m, 'resultados', num, imgs),
+    ...Pdf.blocos(p, m, num, imgs, { recuo: 22, base: '3' })]));
   c.push(subitem('4. Conclusão'), corpo([...Pdf.texto(m.conclusao, num), ...Pdf.anexosSecao(m, 'conclusao', num, imgs)]));
   c.push(tituloSecao('secProjecoes', 'Projeções e próximos passos'));
   c.push(subitem('5. Etapas Futuras'), corpo([...Pdf.texto(m.etapasFuturas, num), ...Pdf.anexosSecao(m, 'etapasFuturas', num, imgs)]));
@@ -306,10 +308,10 @@ Pdf.macroentrega = async function (p, mi, armazem) {
       return { columns: [{ text: rodTxt, fontSize: 7.5, bold: true, color: COR.escuro }, { text: String(pg), fontSize: 7.5, bold: true, color: COR.escuro, alignment: 'right', width: 40 }], margin: [25 * MM, 30, 20 * MM, 0] };
     },
     background: (pg, tam) => {
-      const total = Pdf._total || 0;
+      const W = (tam && tam.width) || A4.w, H = (tam && tam.height) || A4.h; // folhas deitadas (tabelas largas) têm outro tamanho
       const itens = [];
-      if (pg === 3) itens.push({ image: T().fundoLateral, width: 78 * MM, height: A4.h, opacity: 0.6, absolutePosition: { x: 0, y: 0 } });
-      if (pg >= 3) itens.push({ canvas: [{ type: 'rect', x: 0, y: 0, w: 12 * MM, h: 26 * MM, color: COR.escuro }], absolutePosition: { x: A4.w - 12 * MM, y: A4.h - 26 * MM } });
+      if (pg === 3) itens.push({ image: T().fundoLateral, width: 78 * MM, height: H, opacity: 0.6, absolutePosition: { x: 0, y: 0 } });
+      if (pg >= 3) itens.push({ canvas: [{ type: 'rect', x: 0, y: 0, w: 12 * MM, h: 26 * MM, color: COR.escuro }], absolutePosition: { x: W - 12 * MM, y: H - 26 * MM } });
       return itens;
     },
   };
@@ -372,7 +374,7 @@ Pdf.andamento = async function (p, armazem) {
   // 3
   c.push(...h1('Cronograma'));
   c.push({ svg: Nucleo.ganttSvg(an, 1000), width: 470 });
-  if (an.cpm.caminho.length) c.push({ text: [{ text: 'Caminho crítico', bold: true }, ` (${an.cpm.duracao} dias): ${an.cpm.caminho.join(' → ')}.`], style: 'corpo', margin: [0, 6, 0, 4] });
+  if (an.cpm.caminho.length) c.push({ text: [{ text: 'Caminho crítico', bold: true }, ` (${an.cpm.duracao} dias): ${an.cpm.caminho.join(' › ')}.`], style: 'corpo', margin: [0, 6, 0, 4] });
   const atras = an.atividades.filter((a) => a.atrasada);
   if (atras.length) c.push(h2('Atividades atrasadas'), Pdf.grade(['Cód.', 'Atividade', 'Responsável', 'Fim previsto', '%'], atras.map((a) => [a.codigo, a.nome, a.responsavel, Nucleo.dataBR(a.fim), String(a.percentual)]), [28, '*', 100, 60, 26]));
 
@@ -444,6 +446,15 @@ Pdf.andamento = async function (p, armazem) {
     c.push({ text: 'Referência: ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 8] });
   }
 
+  // análise QFD (seções escolhidas no projeto informacional ou na aba Relatórios)
+  const secQfd = (p.config && p.config.qfdRelatorio) || [];
+  let numSecQfd = null;
+  if (p.qfdDados && secQfd.length) {
+    c.push(...h1('Projeto informacional – análise QFD'));
+    numSecQfd = sec;
+    c.push(...Pdf.blocoQfd(p.qfdDados, secQfd, { h: h2, origem: Pdf.qfdOrigem(p) }));
+  }
+
   // 6
   c.push(...h1('Qualidade, DfX e lições aprendidas'));
   if (p.qualidade.length) {
@@ -483,7 +494,8 @@ Pdf.andamento = async function (p, armazem) {
     const obj = (m.objetivosEtapa || []).filter((o) => String(o).trim());
     if (obj.length) c.push({ text: 'Objetivos da etapa', style: 'h3' }, { ul: obj, style: 'corpo', margin: [0, 0, 0, 6] }, ...Pdf.anexosSecao(m, 'objetivos', num, imgs, toc));
     const res = Pdf.anexosSecao(m, 'resultados', num, imgs, toc);
-    if (String(m.resultados || '').trim() || res.length) c.push({ text: 'Resultados', style: 'h3' }, ...Pdf.texto(m.resultados, num), ...res);
+    const blc = Pdf.blocos(p, m, num, imgs, { recuo: 0, base: null, toc, qfdSecao: numSecQfd });
+    if (String(m.resultados || '').trim() || res.length || blc.length) c.push({ text: 'Resultados', style: 'h3' }, ...Pdf.texto(m.resultados, num), ...res, ...blc);
     const con = Pdf.anexosSecao(m, 'conclusao', num, imgs, toc);
     if (String(m.conclusao || '').trim() || con.length) c.push({ text: 'Conclusão', style: 'h3' }, ...Pdf.texto(m.conclusao, num), ...con);
     const fut = Pdf.anexosSecao(m, 'etapasFuturas', num, imgs, toc);
@@ -504,10 +516,10 @@ Pdf.andamento = async function (p, armazem) {
     defaultStyle: { font: 'Roboto', fontSize: 10, color: COR.texto },
     styles: estilos,
     content: c,
-    header: (pg, total) => (pg === 1 || pg === total) ? null : {
+    header: (pg, total, tam) => (pg === 1 || pg === total) ? null : {
       margin: [25 * MM, 10 * MM, 14 * MM, 0],
       stack: [{ columns: [{ text: [{ text: 'RELATÓRIO DE ANDAMENTO', bold: true }, ' – ' + pj.nome], fontSize: 8, color: COR.escuro, margin: [0, 10, 0, 0] }, { image: T().logo, width: 62, alignment: 'right' }] },
-        { canvas: [{ type: 'line', x1: 0, y1: 2, x2: A4.w - 39 * MM, y2: 2, lineWidth: 1.2, lineColor: COR.lima }] }],
+        { canvas: [{ type: 'line', x1: 0, y1: 2, x2: ((tam && tam.width) || A4.w) - 39 * MM, y2: 2, lineWidth: 1.2, lineColor: COR.lima }] }],
     },
     footer: (pg, total) => (pg === 1 || pg === total) ? null : {
       columns: [{ text: `${u.sigla} ${pj.codigo} – emitido em ${new Date().toLocaleString('pt-BR').slice(0, 17)}`, fontSize: 7.5, bold: true, color: COR.escuro }, { text: String(pg), fontSize: 7.5, bold: true, color: COR.escuro, alignment: 'right', width: 40 }],
@@ -551,9 +563,9 @@ Pdf.matrizRiscos = function (riscos) {
   }
   body.push(['', ...[1, 2, 3, 4, 5].map((i) => ({ text: String(i), bold: true, alignment: 'center' }))]);
   return { stack: [
-    { columns: [{ text: 'Probabilidade ↑', fontSize: 8.5, bold: true, width: 80, margin: [40, 60, 0, 0] },
+    { columns: [{ text: 'Probabilidade', fontSize: 8.5, bold: true, width: 80, margin: [40, 60, 0, 0] },
       { table: { widths: [18, 58, 58, 58, 58, 58], body }, layout: { hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => '#fff', vLineColor: () => '#fff' }, width: 'auto' }] },
-    { text: 'Impacto →', fontSize: 8.5, bold: true, alignment: 'center', margin: [0, 2, 0, 2] },
+    { text: 'Impacto', fontSize: 8.5, bold: true, alignment: 'center', margin: [0, 2, 0, 2] },
     { text: 'Nível = P × I · verde ≤ 4 · amarelo 5–9 · laranja 10–14 · vermelho ≥ 15 (riscos fechados não aparecem)', style: 'muted', alignment: 'center', margin: [0, 0, 0, 8] },
   ], unbreakable: true };
 };
@@ -567,10 +579,10 @@ Pdf.documento = function (p, linha1, linha2, rotulo, content, extra) {
     info: { title: `${rotulo} – ${pj.nome}`, author: pj.coordenador.nome || '', creator: 'Gestão de Projetos (navegador)' },
     defaultStyle: { font: 'Roboto', fontSize: 10, color: COR.texto }, styles: estilos,
     content: [...capa(p, linha1, linha2, extra), { text: ' ' }, ...content, { text: ' ', pageBreak: 'before' }, ...contracapa()],
-    header: (pg, total) => (pg === 1 || pg === total) ? null : {
+    header: (pg, total, tam) => (pg === 1 || pg === total) ? null : {
       margin: [25 * MM, 10 * MM, 14 * MM, 0],
       stack: [{ columns: [{ text: [{ text: rotulo.toUpperCase(), bold: true }, ' – ' + pj.nome], fontSize: 8, color: COR.escuro, margin: [0, 10, 0, 0] }, { image: T().logo, width: 62, alignment: 'right' }] },
-        { canvas: [{ type: 'line', x1: 0, y1: 2, x2: A4.w - 39 * MM, y2: 2, lineWidth: 1.2, lineColor: COR.lima }] }],
+        { canvas: [{ type: 'line', x1: 0, y1: 2, x2: ((tam && tam.width) || A4.w) - 39 * MM, y2: 2, lineWidth: 1.2, lineColor: COR.lima }] }],
     },
     footer: (pg, total) => (pg === 1 || pg === total) ? null : {
       columns: [{ text: `${u.sigla} ${pj.codigo} – emitido em ${new Date().toLocaleString('pt-BR').slice(0, 17)}`, fontSize: 7.5, bold: true, color: COR.escuro }, { text: String(pg), fontSize: 7.5, bold: true, color: COR.escuro, alignment: 'right', width: 40 }],
@@ -723,7 +735,7 @@ Pdf.questionarioConsolidado = function (p) {
   } else c.push({ text: 'Nenhuma resposta consolidada.', style: 'muted' });
   if (e.necessidades.length) c.push(...h1('Requisitos de cliente adotados'), Pdf.grade(['Requisito de cliente', 'Peso', 'Origem'], e.necessidades.map((n) => [n.descricao, ((+n.peso || 0) * 100).toFixed(1).replace('.', ',') + ' %', n.origem || '—']), ['*', 60, 90]));
   c.push(...h1('Roteiro utilizado (modelo)'));
-  NEDIP_QUESTIONARIO.forEach(([fase, perg]) => c.push({ text: fase, style: 'h3' }, { ul: perg, style: 'corpo', margin: [0, 0, 0, 4] }));
+  NEDIP_QUESTIONARIO.forEach(([fase, perg]) => c.push({ text: fase, style: 'h3' }, { ul: perg.slice(), style: 'corpo', margin: [0, 0, 0, 4] }));
   c.push({ text: NEDIP_REF, style: 'muted', margin: [0, 8, 0, 0] });
   return Pdf.documento(p, 'QUESTIONÁRIO', 'CONSOLIDADO', 'Questionário – respostas consolidadas', c, `Projeto informacional · ${pj.nome}`);
 };
@@ -747,6 +759,8 @@ Pdf.manualUso = async function (p) {
 };
 
 Pdf.roteiroQuestionario = function (p) {
+  const form = p.produto.etapas.informacional.formulario;
+  if (form && form.perguntas && form.perguntas.length && Pdf.roteiroFormulario) return Pdf.roteiroFormulario(p); // perguntas do questionário do projeto
   const pj = p.projeto, c = [];
   c.push({ text: 'Roteiro de questionário – necessidades dos clientes', style: 'h1', pageBreak: 'before' });
   c.push({ text: `Projeto: ${pj.nome}. Modelo para o projeto informacional: adapte as perguntas ao produto/serviço, aplique a cada grupo de clientes do ciclo de vida e registre data, meio e número de respondentes no sistema.`, style: 'corpo', margin: [0, 0, 0, 8] });
@@ -766,6 +780,7 @@ Pdf.roteiroQuestionario = function (p) {
 Pdf.gerar = function (doc) {
   return new Promise((ok, falha) => {
     try {
+      if (Array.isArray(doc.content)) Pdf.ajustarQuebras(doc.content);
       const gerador = pdfMake.createPdf(doc, null, Pdf.fontes());
       gerador.getBlob((b) => ok(b));
     } catch (e) { falha(e); }

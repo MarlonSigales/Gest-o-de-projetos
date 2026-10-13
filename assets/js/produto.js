@@ -68,6 +68,8 @@ App.abas.produto = {
     liga('#anexoEtapa', (fs) => App.nedipAnexar(fs, App.etapaSel));
     liga('#appResultado', (fs) => App.nedipImportarResultado(fs[0], App.etapaSel));
     liga('#csvConsol', (fs) => App.nedipImportarCsv(fs[0]));
+    liga('#arqQfdInf', (fs) => App.importarQfd(fs[0]));
+    if (App.etapaSel === 'informacional') App.formularioDepois();
     const d = $('.nedip-fases'); if (d) d.addEventListener('toggle', () => { App.nedipFasesAberto = d.open; });
   },
 };
@@ -151,7 +153,8 @@ App.nedipEspecifico = {
     <li>Separe os clientes por fase do ciclo de vida (quem compra, usa, instala, mantém e descarta) e aplique a cada grupo.</li>
     <li>Combine perguntas abertas (o que incomoda, o que esperam) com escala de importância de 1 a 5.</li>
     <li>Teste o roteiro com 2 ou 3 pessoas antes; registre data, meio e número de respondentes. Pode usar qualquer formulário (papel, Google Forms etc.).</li></ul>
-  <div class="barra"><button class="btn" data-acao="nedip-roteiro">📄 Roteiro de questionário (modelo)</button></div>
+  <div class="barra"><button class="btn" data-acao="nedip-roteiro">📄 Roteiro de questionário (${e.formulario.perguntas.length ? 'perguntas do questionário' : 'modelo'})</button></div>
+  ${App.formularioHtml(e, b)}
   <h4>Questionários aplicados</h4>
   ${App.tabela(b + '.questionarios', [
     { campo: 'publico', rotulo: 'Público / fase do ciclo de vida' }, { campo: 'meio', rotulo: 'Meio', largura: '16%' },
@@ -174,6 +177,7 @@ App.nedipEspecifico = {
   ${e.necessidades.length ? `<p class="muted">Soma dos pesos: ${pct(soma)}${Math.abs(soma - 1) > 0.01 ? ' — <button class="btn pequeno" data-acao="nedip-normalizar-pesos">normalizar para 100 %</button>' : ''}</p>` : ''}`);
     }
     if (ferr(e, 'especificacoes')) h += App.nedipEspecHtml();
+    h += App.qfdIntegracaoHtml();
     if (ferr(e, 'contexto')) h += cartao('Ciclo de vida, concorrentes e normas', `<div class="grade-campos">
   ${c(b + '.cicloVida', 'Ciclo de vida e clientes de cada fase', { tipo: 'textarea', classe: 'largo', linhas: 3 })}
   ${c(b + '.concorrentes', 'Concorrentes, similares e patentes analisados', { tipo: 'textarea', classe: 'largo', linhas: 3 })}

@@ -303,6 +303,16 @@ App.importarQfd = async function (arquivo) {
     const arqGuardado = `qfd/qfd_${quando.replace('T', '_').replace(/:/g, '')}.json`;
     await App.arm.gravarArquivo(arqGuardado, new Blob([texto], { type: 'application/json' }));
     App.p.qualidade = m.itens;
+    const primeiraVez = !App.p.qfdDados;
+    App.p.qfdDados = dados; // backup completo: relatório da casa da qualidade nas macroentregas e no relatório geral
+    let sugeridas = 0;
+    if (primeiraVez && window.Qfd) { // sugestão: as macroentregas do projeto informacional recebem tudo o que o QFD tem
+      const a = Qfd.analisar(dados), disp = Qfd.SECOES.map(([s]) => s).filter((s) => Qfd.disponivel(a, s).ok);
+      (App.p.produto ? App.p.produto.etapas.informacional.macros : []).forEach((uid) => {
+        const mm = App.p.macroentregas.find((x) => x.uid === uid);
+        if (mm && !App.qfdBlocoDaMacro(mm)) { disp.forEach((s) => App.qfdAlternar(uid, s, true)); sugeridas++; }
+      });
+    }
     if (App.p.produto) { const inf = App.p.produto.etapas.informacional; if (r.clientes.length) inf.necessidades = r.clientes.map((c) => Object.assign(c, { peso: Math.round(c.peso * 1e4) / 1e4, origem: 'QFD' })); inf.recomendacoes.inf_qfd = true; if (inf.status === 'não iniciada') inf.status = 'em andamento'; }
     App.p.qfdOrigem = { arquivo: arquivo.name, guardadoEm: arqGuardado, importadoEm: quando, requisitosProjeto: r.meta.requisitosProjeto, requisitosCliente: r.meta.requisitosCliente, schemaVersion: r.meta.schemaVersion };
     App.p.log.push({ dataHora: quando, acao: `QFD importado (${arquivo.name}): ${r.itens.length} requisito(s) de projeto`, usuario: App.cfg.usuario || '' });
@@ -310,6 +320,8 @@ App.importarQfd = async function (arquivo) {
     App.fecharModal(); App.marcarSujo(true); App.render(); App.agendarAnalise();
     App.toast(`QFD importado: ${r.itens.length} requisito(s) de projeto${m.removidos ? `, ${m.removidos} não existe(m) mais no QFD (mantidos e marcados)` : ''}${m.manuais ? `, ${m.manuais} manual(is) mantido(s)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
     if (r.avisos.length) App.toast(r.avisos.map(esc).join('<br>'), 'aviso', 10000);
+    App.toast(sugeridas ? `O relatório do QFD foi incluído na(s) ${sugeridas} macroentrega(s) do projeto informacional. Ajuste as seções no projeto informacional.`
+      : 'Escolha no projeto informacional (cartão “Relatório do QFD nas macroentregas”) o que do QFD entra em cada macroentrega.', 'aviso', 9000);
   } catch (e) { App.toast('QFD: ' + esc(e.message), 'erro', 9000); }
 };
 

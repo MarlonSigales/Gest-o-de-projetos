@@ -3,6 +3,8 @@
  *  - ArmazemPasta: uma PASTA do computador (File System Access API — Chrome/Edge). O JSON e a pasta figuras/
  *    ficam juntos, como no disco: gestão do projeto <nome>.json, figuras/, imatec/, relatorios/, historico/.
  *  - ArmazemNavegador: IndexedDB do navegador (qualquer navegador). Para levar a outra máquina, exporte o ZIP.
+ * Safari: arquivos são guardados como bytes (ArrayBuffer) — Blobs no IndexedDB do WebKit podem ficar ilegíveis
+ * depois de recarregar a página —, cada gravação do projeto é conferida e o armazenamento persistente é pedido.
  */
 'use strict';
 
@@ -10,10 +12,18 @@ const BD_NOME = 'gestao-projetos', BD_VERSAO = 1;
 const PREFIXO = 'gestão do projeto ';
 
 // ------------------------------------------------------------------ IndexedDB (promessas)
+/** Safari 14: o primeiro indexedDB.open pode ficar parado até o IndexedDB "acordar"; databases() o acorda. */
+const idbAcordar = () => {
+  if (!indexedDB.databases || !/Safari\//.test(navigator.userAgent) || /Chrom(e|ium)\//.test(navigator.userAgent)) return Promise.resolve();
+  let t;
+  return new Promise((ok) => { const tentar = () => indexedDB.databases().finally(ok); t = setInterval(tentar, 100); tentar(); }).finally(() => clearInterval(t));
+};
+
 const BD = {
   _db: null,
-  abrir() {
-    if (this._db) return Promise.resolve(this._db);
+  async abrir() {
+    if (this._db) return this._db;
+    await idbAcordar();
     return new Promise((ok, falha) => {
       const r = indexedDB.open(BD_NOME, BD_VERSAO);
       r.onupgradeneeded = () => {
@@ -23,14 +33,20 @@ const BD = {
         if (!db.objectStoreNames.contains('historico')) db.createObjectStore('historico', { keyPath: 'chave' }).createIndex('proj', 'projId');
         if (!db.objectStoreNames.contains('pastas')) db.createObjectStore('pastas', { keyPath: 'id' });
       };
-      r.onsuccess = () => { this._db = r.result; ok(r.result); };
+      r.onsuccess = () => {
+        this._db = r.result;
+        this._db.onversionchange = () => { this._db.close(); this._db = null; };
+        this._db.onclose = () => { this._db = null; }; // Safari fecha a conexão ao liberar memória: reabre na próxima operação
+        ok(r.result);
+      };
       r.onerror = () => falha(r.error);
+      r.onblocked = () => falha(new Error('O banco de dados do navegador está bloqueado por outra aba deste sistema. Feche as outras abas e tente de novo.'));
     });
   },
   async op(store, modo, fn) {
-    const db = await this.abrir();
+    let db = await this.abrir(), tx;
+    try { tx = db.transaction(store, modo); } catch (e) { this._db = null; db = await this.abrir(); tx = db.transaction(store, modo); } // conexão fechada pelo navegador
     return new Promise((ok, falha) => {
-      const tx = db.transaction(store, modo);
       const res = fn(tx.objectStore(store));
       tx.oncomplete = () => ok(res && 'result' in res ? res.result : res);
       tx.onerror = () => falha(tx.error);
@@ -45,6 +61,14 @@ const BD = {
 };
 
 const carimbo = () => Nucleo.agoraIso().replace('T', '_').replace(/:/g, '');
+const blobParaBytes = (b) => (b.arrayBuffer ? b.arrayBuffer() : new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => falha(r.error); r.readAsArrayBuffer(b); }));
+/** Registro de arquivo → Blob (registros antigos guardavam o Blob; os novos, os bytes). */
+const registroParaBlob = (r) => (!r ? null : r.bytes ? new Blob([r.bytes], { type: r.tipo || '' }) : (r.blob || null));
+/** Pede ao navegador para não apagar os dados deste site (Safari apaga após 7 dias sem uso; Firefox quando falta espaço). */
+const pedirPersistencia = async () => {
+  try { if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) return await navigator.storage.persist(); } catch (e) { /* sem suporte */ }
+  return null;
+};
 const partes = (c) => String(c).split('/').filter(Boolean);
 const caminhoValido = (c) => typeof c === 'string' && c && !c.includes('..') && !c.startsWith('/') && !c.includes('\\');
 
@@ -178,19 +202,30 @@ class ArmazemNavegador {
       for (const h of hs.slice(0, Math.max(0, hs.length - 50))) await BD.del('historico', h.chave); // mantém as 50 últimas versões
     }
     await BD.put('projetos', { id: this.id, nome: p.projeto.nome, codigo: p.projeto.codigo, macros: p.macroentregas.length, atualizado: Nucleo.agoraIso().replace('T', ' ').slice(0, 16), json: texto });
+    await this.conferir(texto);
     this.nome = p.projeto.nome;
+    if (!ArmazemNavegador._persistencia) ArmazemNavegador._persistencia = pedirPersistencia();
     return Nucleo.nomeArquivo(p);
+  }
+
+  /** Lê de volta o que foi gravado: se o navegador não guardou, avisa em vez de dar o salvamento por feito. */
+  async conferir(texto) {
+    const r = await BD.get('projetos', this.id);
+    if (!r || r.json !== texto) throw new Error('o navegador não confirmou a gravação (armazenamento cheio, aba privada ou bloqueio do navegador). Exporte o ZIP para não perder o trabalho.');
   }
 
   async atualizarSemHistorico(p, texto) {
     const r = await BD.get('projetos', this.id);
-    if (r) { r.json = texto; await BD.put('projetos', r); }
+    if (r) { r.json = texto; await BD.put('projetos', r); await this.conferir(texto); }
   }
 
-  async lerArquivo(caminho) { const r = await BD.get('arquivos', `${this.id}/${caminho}`); return r ? r.blob : null; }
+  async lerArquivo(caminho) { return registroParaBlob(await BD.get('arquivos', `${this.id}/${caminho}`)); }
   async gravarArquivo(caminho, blob) {
     if (!caminhoValido(caminho)) throw new Error('Caminho inválido: ' + caminho);
-    await BD.put('arquivos', { chave: `${this.id}/${caminho}`, projId: this.id, caminho, blob });
+    const bytes = await blobParaBytes(blob);
+    await BD.put('arquivos', { chave: `${this.id}/${caminho}`, projId: this.id, caminho, bytes, tipo: blob.type || '', tamanho: bytes.byteLength });
+    const r = await BD.get('arquivos', `${this.id}/${caminho}`);
+    if (!r || !r.bytes || r.bytes.byteLength !== bytes.byteLength) throw new Error(`o navegador não confirmou a gravação de ${caminho}.`);
   }
   async removerArquivo(caminho) { await BD.del('arquivos', `${this.id}/${caminho}`); }
 
@@ -206,7 +241,7 @@ class ArmazemNavegador {
     const out = [];
     const r = await BD.get('projetos', this.id);
     if (r) out.push({ caminho: PREFIXO + Nucleo.nomeSeguro(r.nome) + '.json', obter: async () => new Blob([r.json], { type: 'application/json' }) });
-    (await BD.porProjeto('arquivos', this.id)).forEach((a) => out.push({ caminho: a.caminho, obter: async () => a.blob }));
+    (await BD.porProjeto('arquivos', this.id)).forEach((a) => out.push({ caminho: a.caminho, obter: async () => registroParaBlob(a) }));
     (await BD.porProjeto('historico', this.id)).forEach((h) => out.push({ caminho: 'historico/' + h.arquivo, obter: async () => new Blob([h.json], { type: 'application/json' }) }));
     return out;
   }

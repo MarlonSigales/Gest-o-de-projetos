@@ -10,6 +10,7 @@ App.abas.relatorios = {
   <div class="barra"><button class="btn primario" data-acao="pdf-geral">📊 Relatório geral de andamento</button></div>
   <div class="barra">${App.p.macroentregas.map((m, i) => `<button class="btn" data-acao="pdf-macro" data-i="${i}">📄 Macroentrega ${i + 1}</button>`).join('')}</div>
   ${App.campo('config.incluirAndamentoNaMacro', 'Incluir a seção "Andamento e TRL" no relatório de cada macroentrega', { tipo: 'checkbox' })}
+  ${App.qfdRelatorioHtml()}
 </div>
 
 <div class="cartao"><h3 style="margin-top:0">E-mail de andamento</h3>
@@ -45,6 +46,15 @@ App.abas.relatorios = {
 ${naPasta ? '' : `<div class="cartao"><h3 style="margin-top:0">Excluir projeto</h3>
   <div class="barra"><button class="btn perigo" data-acao="excluir">Excluir este projeto do navegador</button><span class="muted">Exporte o ZIP antes, se quiser guardar uma cópia.</span></div></div>`}`;
   },
+};
+
+/** Seções do QFD no relatório geral (a mesma escolha do cartão no projeto informacional). */
+App.qfdRelatorioHtml = function () {
+  const a = window.Qfd ? Qfd.analisar(App.p.qfdDados) : null;
+  if (!a) return `<p class="muted">Análise QFD no relatório geral: nenhum QFD importado. <button class="btn pequeno" data-acao="ir-aba" data-aba="produto" data-etapa="informacional">Importar no projeto informacional</button></p>`;
+  const rel = App.p.config.qfdRelatorio || [];
+  return `<h4>Análise QFD no relatório geral</h4><div class="nb-checks">${Qfd.SECOES.map(([s, nome]) => { const d = Qfd.disponivel(a, s);
+    return `<label class="campo rec" style="flex-direction:row;gap:8px"><input type="checkbox" data-acao="qfd-int" data-sec="${s}" data-macro="__rel" ${rel.includes(s) ? 'checked' : ''} ${d.ok ? '' : 'disabled'}> ${esc(nome)}${d.ok ? '' : ` <span class="muted">(falta no QFD)</span>`}</label>`; }).join('')}</div>`;
 };
 
 App.acoes['pdf-macro'] = async (el) => {

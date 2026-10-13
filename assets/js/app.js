@@ -43,7 +43,7 @@ App.baixarBlob = function (blob, nome) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = nome;
   document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000); // Safari lê o blob depois do clique: revogar cedo cancela o download
 };
 
 // ------------------------------------------------------------------ configurações
@@ -240,6 +240,11 @@ App.carregarEstado = function (p, arm) {
   App.render();
   const falta = [];
   (async () => {
+    // projetos de versões anteriores: o backup do QFD ficou só em qfd/; recupera-o para o relatório da casa da qualidade
+    const o = App.p.qfdOrigem || {};
+    if (!App.p.qfdDados && o.guardadoEm) {
+      try { const b = await arm.lerArquivo(o.guardadoEm); const d = b ? JSON.parse((await b.text()).replace(/^﻿/, '')) : null; if (d && Array.isArray(d.requisitosProjeto) && App.arm === arm) { App.p.qfdDados = d; if (App.aba === 'produto') App.render(); } } catch (e) { /* segue sem o relatório do QFD */ }
+    }
     for (const f of Nucleo.figurasReferenciadas(App.p)) if (!(await arm.lerArquivo(f.arquivo))) falta.push(`Macroentrega ${f.macro}: ${f.arquivo}`);
     if (falta.length) App.toast('Figuras não encontradas junto ao JSON:<br>' + falta.map(esc).join('<br>'), 'aviso', 10000);
   })();
@@ -292,12 +297,12 @@ App.telaProjetos = async function () {
   App.modal(`<h2>Projetos</h2>
   <div class="grade-campos" style="grid-template-columns:1fr 1fr">
     <div class="cartao" style="margin:0"><h3 style="margin-top:0">📁 Pasta do computador <span class="muted">(recomendado)</span></h3>
-      <p class="muted">O JSON e a pasta <b>figuras/</b> ficam juntos na pasta que você escolher. ${suporta ? '' : '<br><b class="gap-neg">Este navegador não permite gravar em pastas. Use Chrome ou Edge no computador, ou guarde no navegador.</b>'}</p>
+      <p class="muted">O JSON e a pasta <b>figuras/</b> ficam juntos na pasta que você escolher. ${suporta ? '' : '<br><b class="gap-neg">Este navegador (Safari, Firefox ou celular) não permite gravar em pastas. Guarde no navegador e exporte o ZIP com frequência — ou use Chrome/Edge no computador.</b>'}</p>
       <div class="barra"><button class="btn primario" data-acao="abrir-pasta" ${suporta ? '' : 'disabled'}>Abrir ou criar em uma pasta…</button></div>
       ${recentes.length ? '<h4>Recentes</h4>' + recentes.map((r) => `<div class="barra" style="margin:4px 0"><button class="btn" data-acao="abrir-recente" data-id="${esc(r.id)}">📁 ${esc(r.nome)}${r.projeto ? ' — ' + esc(r.projeto) : ''}</button><button class="btn pequeno" data-acao="esquecer-recente" data-id="${esc(r.id)}" title="Remover da lista">✕</button></div>`).join('') : ''}
     </div>
     <div class="cartao" style="margin:0"><h3 style="margin-top:0">🌐 Guardados no navegador</h3>
-      <p class="muted">Ficam só neste navegador/computador. Exporte o ZIP para guardar ou levar a outra máquina.</p>
+      <p class="muted">Ficam só neste navegador/computador. Exporte o ZIP para guardar ou levar a outra máquina.${/Safari\//.test(navigator.userAgent) && !/Chrom(e|ium)\//.test(navigator.userAgent) ? ' <b>No Safari, dados de sites sem uso por 7 dias podem ser apagados:</b> em ⚙ Configurações, escolha baixar o ZIP completo a cada salvamento.' : ''}</p>
       <div class="barra"><button class="btn" data-acao="novo-navegador">+ Novo projeto no navegador</button></div>
       ${nav.length ? nav.map((r) => `<div class="barra" style="margin:4px 0"><button class="btn" data-acao="abrir-navegador" data-id="${esc(r.id)}">${esc(r.nome || '(sem nome)')}${r.codigo ? ' · ' + esc(r.codigo) : ''} <span class="muted">(${esc(r.atualizado)})</span></button></div>`).join('') : '<p class="vazio">Nenhum projeto guardado no navegador.</p>'}
     </div>
@@ -319,7 +324,7 @@ App.acoes['novo-navegador'] = () => App.novoNavegador();
 App.acoes['ir-importar'] = () => App.telaImportar();
 App.acoes['carregar-exemplo'] = async () => {
   if (!App.confirmarDescartar()) return;
-  const ex = structuredClone(window.EXEMPLO.projeto);
+  const ex = Nucleo.clonar(window.EXEMPLO.projeto);
   ex.id = uid('prj');
   const arm = new ArmazemNavegador(ex.id, ex.projeto.nome);
   for (const [cam, dataUrl] of Object.entries(window.EXEMPLO.arquivos)) await arm.gravarArquivo(cam, await (await fetch(dataUrl)).blob());
@@ -361,7 +366,8 @@ App.salvar = async function () {
     if (App.arm.tipo === 'pasta') await Recentes.lembrar(App.arm.h, App.p.projeto.nome);
     else try { localStorage.setItem('gp-ultimo', JSON.stringify({ tipo: 'navegador', id: App.arm.id })); } catch (e) { /* ignora */ }
     const modoBaixar = App.p.config.baixarAoSalvar || 'auto';
-    if (modoBaixar === 'sempre' || (modoBaixar === 'auto' && App.arm.tipo === 'navegador')) App.baixarBlob(new Blob([texto], { type: 'application/json' }), nome);
+    if (modoBaixar === 'zip') App.baixarBlob(await Zip.exportar(App.arm), 'gestão do projeto ' + Nucleo.nomeSeguro(App.p.projeto.nome) + '.zip');
+    else if (modoBaixar === 'sempre' || (modoBaixar === 'auto' && App.arm.tipo === 'navegador')) App.baixarBlob(new Blob([texto], { type: 'application/json' }), nome);
     App.toast(App.arm.tipo === 'pasta' ? `Salvo na pasta <b>${esc(App.arm.nome)}</b>: ${esc(nome)}` : `Salvo no navegador: ${esc(nome)}`, 'ok');
     App.analisar();
 
@@ -452,7 +458,7 @@ App.telaConfig = function () {
   <h3>Do projeto (salvas no JSON)</h3>
   <div class="grade-campos">
     <label class="campo">Ao salvar, baixar uma cópia do JSON
-      <select id="cfgBaixar">${App.opcoes([['auto', 'automático (só quando guardado no navegador)'], ['sempre', 'sempre'], ['nunca', 'nunca']], App.p.config.baixarAoSalvar)}</select></label>
+      <select id="cfgBaixar">${App.opcoes([['auto', 'JSON, automático (só quando guardado no navegador)'], ['sempre', 'JSON, sempre'], ['zip', 'ZIP completo (JSON + figuras + documentos) — recomendado no Safari/Firefox'], ['nunca', 'nunca']], App.p.config.baixarAoSalvar)}</select></label>
     <label class="campo">Envio do e-mail de andamento<select id="cfgModo">${App.opcoes([['mailto', 'Programa de e-mail do computador (anexos manuais)'], ['emailjs', 'Automático pelo EmailJS'], ['nenhum', 'Não enviar']], e.modo)}</select></label>
   </div>
   <div class="info-box" style="margin-top:10px">A cada salvamento o sistema prepara: <b>gestão</b> → ZIP completo do projeto; <b>demais</b> → PDFs (relatório geral + cada macroentrega) e o JSON.<br>

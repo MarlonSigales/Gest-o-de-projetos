@@ -250,3 +250,49 @@ table.tab-edit td.escolhido { background: var(--teal); color: #fff; }
 table.morf td.escolhido { background: var(--teal); color: #fff; font-weight: 600; }
 table.morf { border-collapse: collapse; margin: 6px 0; }
 table.morf th, table.morf td { border: 1px solid var(--borda); padding: 5px 8px; vertical-align: top; }
+
+/* Safari: <input type=file hidden> dentro de <label> nem sempre abre a caixa de arquivos; fica invisível, mas ativo */
+label input[type=file][hidden] { display: block !important; position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+label.btn { position: relative; }
+.centro { text-align: center; }
+
+/* desenvolvimento em blocos (estilo caderno) */
+.nb { display: flex; flex-direction: column; gap: 2px; }
+.nb-inserir { display: flex; align-items: center; gap: 8px; opacity: .3; transition: opacity .15s; padding: 3px 0; }
+.nb-inserir:hover, .nb-inserir:focus-within, .nb-inserir.fixo { opacity: 1; }
+@media (hover: none) { .nb-inserir { opacity: .8; } }
+.nb-linha { flex: 1; height: 1px; background: var(--borda); min-width: 12px; }
+.nb-botoes { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.nb-botoes .btn { border-style: dashed; color: var(--escuro); }
+.nb-bloco { border: 1px solid var(--borda); border-left: 4px solid #c9d6d3; border-radius: 8px; background: #fff; }
+.nb-bloco:hover { border-left-color: var(--teal); }
+.nb-bloco.editando { border-left-color: var(--teal); box-shadow: 0 0 0 2px rgba(64,149,128,.15); }
+.nb-ferr { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid #edf2f1; background: #f7faf9; border-radius: 8px 8px 0 0; }
+.nb-tipo { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--suave); font-weight: 600; }
+.nb-esp { flex: 1; }
+.nb-corpo { padding: 10px 14px; }
+.nb-corpo [data-acao="bloco-editar"] { cursor: text; }
+.nb-titulo { font-weight: 700; color: var(--escuro); }
+.nb-titulo.n1 { font-size: 17px; } .nb-titulo.n2 { font-size: 15px; color: var(--teal); } .nb-titulo.n3 { font-size: 14px; font-style: italic; }
+.nb-texto p { margin: 0 0 8px; line-height: 1.5; text-align: justify; } .nb-texto ul { margin: 0 0 8px; }
+.nb-quebra { text-align: center; color: var(--suave); font-size: 12px; border-top: 2px dashed var(--borda); padding-top: 4px; }
+.nb-quebra-bloco .nb-corpo { padding: 4px 14px; }
+.nb-resumo ul { margin: 6px 0; }
+.nb-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2px 14px; margin: 6px 0; }
+.nb-fig { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+.nb-fig .prev { width: 260px; height: 180px; display: flex; align-items: center; justify-content: center; background: #f5f8f7; border-radius: 6px; }
+.nb-fig .prev img { max-width: 100%; max-height: 180px; }
+.nb-fmt select { width: auto; }
+
+/* questionário (Google Forms) */
+.form-box { border: 1px solid #b9dcd2; background: #f6fbf9; border-radius: var(--raio); padding: 12px 14px; margin: 10px 0 16px; }
+.form-det { margin: 10px 0; border: 1px solid var(--borda); border-radius: 8px; background: #fff; padding: 6px 10px; }
+.form-det > summary { cursor: pointer; font-weight: 600; color: var(--escuro); padding: 4px 0; }
+.form-resp { max-height: 520px; overflow: auto; }
+.form-resp th { position: sticky; top: 0; z-index: 1; min-width: 120px; font-weight: 600; }
+.form-resp td input { min-width: 120px; }
+
+/* integração do QFD */
+.qfd-int th.centro, .qfd-int td.centro { text-align: center; width: 92px; }
+.qfd-int tr.indisp td { background: #fbf7f6; }
+.qfd-int input[type=checkbox] { width: 18px; height: 18px; }

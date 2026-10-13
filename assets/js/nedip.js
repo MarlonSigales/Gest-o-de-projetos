@@ -178,6 +178,7 @@ window.nedipNormalizar = function (prod) {
         questionarios: nedipLista(e.questionarios).map((q) => Object.assign({ publico: '', meio: '', respondentes: null, data: '', observacao: '' }, q)),
         consolidacao: nedipLista(e.consolidacao).map((q) => Object.assign({ necessidade: '', fase: '', citacoes: null, importancia: null }, q)),
         necessidades: nedipLista(e.necessidades).map((n) => Object.assign({ descricao: '', peso: 0, origem: 'manual' }, n)),
+        formulario: window.Formulario ? Formulario.normalizar(e.formulario) : (e.formulario || { perguntas: [], respostas: [] }), // questionário (Google Forms)
       }),
       conceitual: () => ({
         funcaoGlobal: Object.assign({ nome: '', entradas: '', saidas: '' }, e.funcaoGlobal || {}),

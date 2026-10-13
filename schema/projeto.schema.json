@@ -535,6 +535,84 @@
                 "type": "boolean"
               }
             }
+          },
+          "blocos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "tipo"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "tipo": {
+                  "enum": [
+                    "texto",
+                    "titulo",
+                    "figura",
+                    "tabela",
+                    "qfd",
+                    "questionario",
+                    "quebra"
+                  ]
+                },
+                "texto": {
+                  "type": "string",
+                  "description": "texto (parágrafos, listas com '- ', **negrito**, {{fig:id}}/{{tab:id}})"
+                },
+                "titulo": {
+                  "type": "string",
+                  "description": "título do capítulo ou do bloco de QFD/questionário"
+                },
+                "nivel": {
+                  "enum": [
+                    1,
+                    2,
+                    3
+                  ],
+                  "description": "1 = capítulo (3.1), 2 = subcapítulo (3.1.1), 3 = seção"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "id da figura (figuras[]) ou tabela (tabelas[]) da macroentrega"
+                },
+                "secoes": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "dicionario",
+                      "clientes",
+                      "comparacoes",
+                      "projeto",
+                      "matriz",
+                      "telhado",
+                      "especificacoes",
+                      "competitiva",
+                      "atendimento",
+                      "ranking",
+                      "insights"
+                    ]
+                  },
+                  "description": "seções do QFD no bloco"
+                },
+                "partes": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "identificacao",
+                      "roteiro",
+                      "resultados",
+                      "consolidacao"
+                    ]
+                  },
+                  "description": "partes do documento do questionário no bloco"
+                }
+              }
+            },
+            "description": "desenvolvimento em blocos (caderno); no PDF entram em 3. Resultados, na ordem"
           }
         }
       }
@@ -758,8 +836,10 @@
           "enum": [
             "auto",
             "sempre",
+            "zip",
             "nunca"
-          ]
+          ],
+          "description": "cópia baixada a cada salvamento: JSON (auto/sempre), ZIP completo ou nada"
         },
         "email": {
           "type": "object",
@@ -787,6 +867,25 @@
               "type": "boolean"
             }
           }
+        },
+        "qfdRelatorio": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "dicionario",
+              "clientes",
+              "comparacoes",
+              "projeto",
+              "matriz",
+              "telhado",
+              "especificacoes",
+              "competitiva",
+              "atendimento",
+              "ranking",
+              "insights"
+            ]
+          },
+          "description": "seções do QFD incluídas no relatório geral de andamento"
         }
       }
     },
@@ -1192,6 +1291,126 @@
                       "origem": {
                         "type": "string",
                         "description": "manual, questionários ou QFD"
+                      }
+                    }
+                  }
+                },
+                "formulario": {
+                  "type": "object",
+                  "description": "questionário aplicado (Google Forms): perguntas e respostas importadas do CSV, editáveis",
+                  "properties": {
+                    "titulo": {
+                      "type": "string"
+                    },
+                    "publico": {
+                      "type": "string"
+                    },
+                    "meio": {
+                      "type": "string"
+                    },
+                    "arquivo": {
+                      "type": "string"
+                    },
+                    "importadoEm": {
+                      "type": "string"
+                    },
+                    "perguntas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "texto",
+                          "tipo"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "texto": {
+                            "type": "string"
+                          },
+                          "tipo": {
+                            "enum": [
+                              "identificacao",
+                              "texto",
+                              "escolha",
+                              "caixas",
+                              "escala",
+                              "grade"
+                            ]
+                          },
+                          "opcoes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "itens": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "texto": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "escala": {
+                            "type": "object",
+                            "properties": {
+                              "min": {
+                                "type": "number"
+                              },
+                              "max": {
+                                "type": "number"
+                              },
+                              "invertida": {
+                                "type": "boolean",
+                                "description": "o menor valor é o mais importante"
+                              },
+                              "rotulos": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "fase": {
+                            "type": "string",
+                            "description": "fase do ciclo de vida"
+                          },
+                          "analisar": {
+                            "type": "boolean",
+                            "description": "entra no documento (identificação nunca entra)"
+                          }
+                        }
+                      }
+                    },
+                    "respostas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "type": "string"
+                          },
+                          "valores": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "chave = id da pergunta, ou <pergunta>__<item> nas grades"
+                          }
+                        }
                       }
                     }
                   }
@@ -2003,6 +2222,13 @@
           }
         }
       }
+    },
+    "qfdDados": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Backup completo do sistema QFD (requisitosCliente, requisitosProjeto, comparacaoCliente, correlacaoProjeto, matrizQFD, especificacoesProjeto, avaliacaoCompetitiva, metadata). Base do relatório da casa da qualidade nas macroentregas e no relatório geral."
     }
   }
 }

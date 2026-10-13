@@ -12,9 +12,12 @@ App.editorFiguras = function (mi) {
   let h = `<div class="barra"><label class="btn primario">+ Inserir figura (PNG, JPG ou SVG até ${CONFIG.uploadMaxMb} MB)
     <input type="file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" multiple hidden data-upload-fig="${mi}"></label>
     <span class="muted">As imagens ficam em <b>figuras/</b>, junto do JSON do projeto.</span></div>`;
-  if (!m.figuras.length) return h + '<p class="vazio">Nenhuma figura nesta macroentrega.</p>';
+  const refs = Nucleo.refsBlocos(m), nBl = m.figuras.filter((f) => refs.fig.has(f.id)).length;
+  if (nBl) h += `<p class="muted">${nBl} figura(s) estão nos blocos do desenvolvimento (editadas lá).</p>`;
+  if (m.figuras.length === nBl) return h + (nBl ? '' : '<p class="vazio">Nenhuma figura nesta macroentrega.</p>');
   h += '<div class="lista-figs">';
   m.figuras.forEach((f, i) => {
+    if (refs.fig.has(f.id)) return;
     h += `<div class="fig-card">
       <div class="leg">Figura ${num.fig[f.id] ?? '?'} – ${esc(f.titulo || '(sem título)')}</div>
       <div class="prev"><img data-fig="${esc(f.arquivo)}" alt=""></div>
@@ -38,8 +41,11 @@ App.editorTabelas = function (mi) {
   const base = `macroentregas.${mi}.tabelas`;
   let h = `<div class="barra"><button class="btn primario" data-acao="add-tabela" data-mi="${mi}">+ Nova tabela</button>
     <span class="muted">Padrão IBGE/ABNT: título acima, fonte abaixo, sem bordas laterais.</span></div>`;
-  if (!m.tabelas.length) return h + '<p class="vazio">Nenhuma tabela nesta macroentrega.</p>';
+  const refs = Nucleo.refsBlocos(m), nBl = m.tabelas.filter((t) => refs.tab.has(t.id)).length;
+  if (nBl) h += `<p class="muted">${nBl} tabela(s) estão nos blocos do desenvolvimento (editadas lá).</p>`;
+  if (m.tabelas.length === nBl) return h + (nBl ? '' : '<p class="vazio">Nenhuma tabela nesta macroentrega.</p>');
   m.tabelas.forEach((t, ti) => {
+    if (refs.tab.has(t.id)) return;
     const p = `${base}.${ti}`;
     const nc = Math.max(1, t.cabecalho.length);
     h += `<div class="tab-card"><div class="grade-campos">
@@ -193,6 +199,8 @@ App.acoes['nova-figura'] = () => {
       <div class="barra"><button class="btn primario" data-acao="nova-figura-ok">Inserir figura</button><button class="btn" data-acao="nova-figura">Escolher outra imagem</button></div>`);
     $('#nfTitulo').addEventListener('input', (e) => { $('#nfLeg').textContent = 'Figura – ' + e.target.value; });
   };
+  inp.style.display = 'none'; document.body.appendChild(inp); // Safari só dispara o change de inputs que estão no documento
+  inp.addEventListener('change', () => setTimeout(() => inp.remove(), 0));
   inp.click();
 };
 App.acoes['nova-figura-ok'] = async () => {

@@ -8,6 +8,8 @@ Nucleo.hoje = () => { const d = new Date(); return new Date(d.getTime() - d.getT
 Nucleo.agoraIso = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19); };
 Nucleo.dataBR = (iso) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso)) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : (iso || '');
 Nucleo.uid = (pref) => pref + '_' + Math.random().toString(16).slice(2, 10);
+/** Cópia profunda (structuredClone não existe no Safari anterior ao 15.4). */
+Nucleo.clonar = (o) => (typeof structuredClone === 'function' ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
 Nucleo.emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || '').trim());
 Nucleo.nomeSeguro = (n) => (String(n || '').replace(/[\\/:*?"<>|\x00-\x1F]+/g, '').replace(/\s+/g, ' ').trim().replace(/^\.+|\.+$/g, '').slice(0, 120)) || 'sem nome';
 Nucleo.slug = (t) => (String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80)) || 'projeto';
@@ -27,11 +29,14 @@ Nucleo.novo = function (nome = '') {
     },
     gruposEmail: Nucleo.gruposPadrao(),
     interessados: [], areas: [], macroentregas: [Nucleo.novaMacro(1)],
-    riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null }, dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
+    riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
+    qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
+    dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
     trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
     produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
     config: {
       incluirAndamentoNaMacro: true,
+      qfdRelatorio: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [], // seções do QFD no relatório geral de andamento
       baixarAoSalvar: 'auto',
       email: { modo: 'mailto', emailjsServico: '', emailjsModelo: '', emailjsChave: '', limiteAnexoKb: 45, gerarPdfsAoSalvar: true },
     },
@@ -50,16 +55,43 @@ Nucleo.novaMacro = function (numero) {
     uid: Nucleo.uid('me'), numero, titulo: '', descricao: '', dataInicio: '', dataPrevista: '', dataEntrega: '',
     status: 'planejada', percentualConcluido: 0, trlEsperado: 4, areas: [], objetivosEtapa: [],
     resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [],
+    blocos: [],              // desenvolvimento em blocos (texto, capítulos, figuras, tabelas, QFD, questionário)
     aceite: { dataAceite: '', nomeResponsavelEmpresa: '', aceito: false },
   };
+};
+
+/** Blocos do desenvolvimento da macroentrega (editor no estilo de caderno). */
+Nucleo.TIPOS_BLOCO = {
+  texto: () => ({ texto: '' }),
+  titulo: () => ({ titulo: '', nivel: 1 }),
+  figura: () => ({ ref: '' }),
+  tabela: () => ({ ref: '' }),
+  qfd: () => ({ titulo: 'Análise QFD – casa da qualidade', secoes: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [] }),
+  questionario: () => ({ titulo: 'Questionário aos clientes – resultados', partes: ['identificacao', 'roteiro', 'resultados', 'consolidacao'] }),
+  quebra: () => ({}),
+};
+Nucleo.novoBloco = (tipo) => Object.assign({ id: Nucleo.uid('bl'), tipo }, (Nucleo.TIPOS_BLOCO[tipo] || Nucleo.TIPOS_BLOCO.texto)());
+Nucleo.normalizarBlocos = (l) => (Array.isArray(l) ? l : []).filter((b) => b && typeof b === 'object').map((b) => {
+  const tipo = Nucleo.TIPOS_BLOCO[b.tipo] ? b.tipo : 'texto';
+  const x = Object.assign({ id: Nucleo.uid('bl') }, Nucleo.TIPOS_BLOCO[tipo](), b, { tipo });
+  if (tipo === 'titulo') x.nivel = [1, 2, 3].includes(+x.nivel) ? +x.nivel : 1;
+  if (tipo === 'qfd' && !Array.isArray(x.secoes)) x.secoes = [];
+  if (tipo === 'questionario' && !Array.isArray(x.partes)) x.partes = [];
+  return x;
+});
+/** Ids de figuras/tabelas posicionadas por blocos (não vão para a seção "Resultados" como anexos soltos). */
+Nucleo.refsBlocos = (m) => {
+  const fig = new Set(), tab = new Set();
+  (m.blocos || []).forEach((b) => { if (b.tipo === 'figura' && b.ref) fig.add(b.ref); if (b.tipo === 'tabela' && b.ref) tab.add(b.ref); });
+  return { fig, tab };
 };
 
 function mesclar(base, dados) {
   for (const k of Object.keys(base)) {
     const v = base[k];
-    if (!(k in dados) || dados[k] === null || dados[k] === undefined) { dados[k] = structuredClone(v); continue; }
+    if (!(k in dados) || dados[k] === null || dados[k] === undefined) { dados[k] = Nucleo.clonar(v); continue; }
     if (v && typeof v === 'object' && !Array.isArray(v) && typeof dados[k] === 'object' && !Array.isArray(dados[k])) dados[k] = mesclar(v, dados[k]);
-    if (Array.isArray(v) && !Array.isArray(dados[k])) dados[k] = structuredClone(v);
+    if (Array.isArray(v) && !Array.isArray(dados[k])) dados[k] = Nucleo.clonar(v);
   }
   return dados;
 }
@@ -74,8 +106,10 @@ Nucleo.normalizar = function (p) {
     // seção desconhecida faria a figura/tabela sumir do PDF: cai em "Resultados"
     const secOk = (x) => { if (!Nucleo.SECOES.some(([s]) => s === x.secao)) x.secao = 'resultados'; return x; };
     m.figuras = m.figuras.map(secOk); m.tabelas = m.tabelas.map(secOk);
+    m.blocos = Nucleo.normalizarBlocos(m.blocos);
     return m;
   });
+  if (p.qfdDados && (typeof p.qfdDados !== 'object' || !Array.isArray(p.qfdDados.requisitosProjeto))) p.qfdDados = null;
   if (!p.gruposEmail.some((g) => g.gestao)) p.gruposEmail.unshift({ id: 'gestao', nome: 'Gestão', gestao: true });
   const idsGrupo = new Set(p.gruposEmail.map((g) => g.id));
   p.interessados = p.interessados.map((i) => Object.assign({ nome: '', email: '', papel: '', grupos: [] }, i, { grupos: (Array.isArray(i.grupos) ? i.grupos : []).filter((g) => idsGrupo.has(g)) }));
@@ -455,14 +489,26 @@ Nucleo.ganttSvg = function (an, largura = 1000) {
   return s + '</svg>';
 };
 
-/** Figuras e tabelas: numeração por seção do relatório e depois pela ordem da lista. */
+/**
+ * Figuras e tabelas: numeração na ordem em que aparecem no relatório — por seção e, dentro dela, pela ordem da lista.
+ * Em "Resultados", as que estão em blocos vêm depois das soltas, na ordem dos blocos.
+ */
 Nucleo.SECOES = [['introducao', 'Introdução'], ['objetivos', 'Objetivos da etapa'], ['resultados', 'Resultados'], ['conclusao', 'Conclusão'], ['etapasFuturas', 'Etapas futuras']];
 Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }) {
   const fig = {}, tab = {}, listaF = [], listaT = [];
-  macros.forEach((m) => Nucleo.SECOES.forEach(([s]) => {
-    (m.figuras || []).forEach((f) => { if ((f.secao || 'resultados') === s && !(f.id in fig)) { fig[f.id] = ++contador.f; listaF.push({ n: fig[f.id], titulo: f.titulo, macro: m.numero }); } });
-    (m.tabelas || []).forEach((x) => { if ((x.secao || 'resultados') === s && !(x.id in tab)) { tab[x.id] = ++contador.t; listaT.push({ n: tab[x.id], titulo: x.titulo, macro: m.numero }); } });
-  }));
+  const addF = (f, m) => { if (f && !(f.id in fig)) { fig[f.id] = ++contador.f; listaF.push({ n: fig[f.id], titulo: f.titulo, macro: m.numero }); } };
+  const addT = (x, m) => { if (x && !(x.id in tab)) { tab[x.id] = ++contador.t; listaT.push({ n: tab[x.id], titulo: x.titulo, macro: m.numero }); } };
+  macros.forEach((m) => {
+    const refs = Nucleo.refsBlocos(m);
+    Nucleo.SECOES.forEach(([s]) => {
+      (m.figuras || []).forEach((f) => { if ((f.secao || 'resultados') === s && !refs.fig.has(f.id)) addF(f, m); });
+      (m.tabelas || []).forEach((x) => { if ((x.secao || 'resultados') === s && !refs.tab.has(x.id)) addT(x, m); });
+      if (s === 'resultados') (m.blocos || []).forEach((b) => {
+        if (b.tipo === 'figura') addF((m.figuras || []).find((f) => f.id === b.ref), m);
+        if (b.tipo === 'tabela') addT((m.tabelas || []).find((x) => x.id === b.ref), m);
+      });
+    });
+  });
   return { fig, tab, listaF, listaT };
 };
 

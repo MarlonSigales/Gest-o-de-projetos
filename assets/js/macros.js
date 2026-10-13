@@ -7,7 +7,7 @@ App.novaMacro = function () {
   return {
     uid: Nucleo.uid('me'), numero: App.p.macroentregas.length + 1, titulo: '', descricao: '', dataInicio: '', dataPrevista: '', dataEntrega: '',
     status: 'planejada', percentualConcluido: 0, trlEsperado: 4, areas: [], objetivosEtapa: [''],
-    resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [],
+    resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [], blocos: [],
     aceite: { dataAceite: '', nomeResponsavelEmpresa: '', aceito: false },
   };
 };
@@ -53,12 +53,14 @@ App.abas.macros = {
   ${c(b + '.conclusao', 'Conclusão', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
 </div></div>
 
+<div class="cartao nb-cartao"><h3 style="margin-top:0">Resultados — desenvolvimento em blocos</h3>${App.blocosHtml(mi)}</div>
+
 <div class="cartao"><h3 style="margin-top:0">Projeções e próximos passos</h3>
   ${c(b + '.etapasFuturas', 'Etapas futuras', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
 </div>
 
-<div class="cartao"><h3 style="margin-top:0">Figuras</h3>${App.editorFiguras(mi)}</div>
-<div class="cartao"><h3 style="margin-top:0">Tabelas</h3>${App.editorTabelas(mi)}</div>
+<div class="cartao"><h3 style="margin-top:0">Figuras soltas (por seção)</h3>${App.editorFiguras(mi)}</div>
+<div class="cartao"><h3 style="margin-top:0">Tabelas soltas (por seção)</h3>${App.editorTabelas(mi)}</div>
 
 <div class="cartao"><h3 style="margin-top:0">Atividades (cronograma desta macroentrega)</h3>
 ${App.tabela(b + '.atividades', [
