@@ -8,6 +8,41 @@ Nucleo.hoje = () => { const d = new Date(); return new Date(d.getTime() - d.getT
 Nucleo.agoraIso = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19); };
 Nucleo.dataBR = (iso) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso)) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : (iso || '');
 Nucleo.uid = (pref) => pref + '_' + Math.random().toString(16).slice(2, 10);
+// ------------------------------------------------------------------ texto (Markdown básico), usado no PDF e na prévia
+/** Linhas → blocos: títulos (#), listas (-, *, • ou 1.), parágrafos (linha em branco separa). Listas e parágrafos podem se alternar sem linha em branco. */
+Nucleo.mdBlocos = function (txt) {
+  const out = [];
+  let par = null, lista = null;
+  String(txt || '').replace(/\r/g, '').split('\n').forEach((bruta) => {
+    const l = bruta.replace(/\s+$/, '');
+    let m;
+    if (!l.trim()) { par = null; lista = null; return; }
+    if ((m = l.match(/^\s*(#{1,6})\s+(.*)$/))) { par = null; lista = null; out.push({ tipo: 'h', nivel: Math.min(3, m[1].length), texto: m[2].replace(/\s+#+$/, '') }); return; }
+    if ((m = l.match(/^\s*[-•*]\s+(.*)$/))) { par = null; if (!lista || lista.tipo !== 'ul') { lista = { tipo: 'ul', itens: [] }; out.push(lista); } lista.itens.push(m[1]); return; }
+    if ((m = l.match(/^\s*(\d{1,3})[.)]\s+(.*)$/))) { par = null; if (!lista || lista.tipo !== 'ol') { lista = { tipo: 'ol', itens: [], inicio: +m[1] }; out.push(lista); } lista.itens.push(m[2]); return; }
+    if (lista && /^\s{2,}\S/.test(bruta)) { lista.itens[lista.itens.length - 1] += ' ' + l.trim(); return; } // continuação recuada do item
+    lista = null;
+    if (!par) { par = { tipo: 'p', linhas: [] }; out.push(par); }
+    par.linhas.push(l.trim());
+  });
+  return out;
+};
+/** Trechos com **negrito** e *itálico* → [{t, b, i}]. Asteriscos soltos ficam como estão. */
+Nucleo.mdInline = function (s) {
+  const out = [];
+  String(s).split(/(\*\*(?=\S)[^\n]*?\S\*\*|\*(?=[^\s*])(?:[^*\n]*[^\s*])?\*)/g).forEach((pt) => {
+    if (!pt) return;
+    if (/^\*\*\S[\s\S]*\*\*$/.test(pt) && pt.length > 4) out.push(...Nucleo.mdInline(pt.slice(2, -2)).map((x) => Object.assign(x, { b: true })));
+    else if (/^\*[^*][\s\S]*\*$|^\*[^\s*]\*$/.test(pt) && pt.length > 2) out.push({ t: pt.slice(1, -1), b: false, i: true });
+    else out.push({ t: pt, b: false, i: false });
+  });
+  return out;
+};
+/** {{fig:id}} / {{tab:id}} → "Figura N" / "Tabela N". */
+Nucleo.trocarRefs = (s, num) => String(s).replace(/\{\{(fig|tab):([A-Za-z0-9_-]+)\}\}/g, (_, t, id) => {
+  const n = num && (t === 'fig' ? num.fig[id] : num.tab[id]);
+  return n ? (t === 'fig' ? 'Figura ' : 'Tabela ') + n : (t === 'fig' ? '[figura não encontrada]' : '[tabela não encontrada]');
+});
 /** Cópia profunda (structuredClone não existe no Safari anterior ao 15.4). */
 Nucleo.clonar = (o) => (typeof structuredClone === 'function' ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
 Nucleo.emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || '').trim());
@@ -36,6 +71,7 @@ Nucleo.novo = function (nome = '') {
     produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
     config: {
       incluirAndamentoNaMacro: true,
+      nedipRelatorio: ['fases', 'funcoes'], // seções do projeto de produto no relatório geral de andamento
       qfdRelatorio: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [], // seções do QFD no relatório geral de andamento
       baixarAoSalvar: 'auto',
       email: { modo: 'mailto', emailjsServico: '', emailjsModelo: '', emailjsChave: '', limiteAnexoKb: 45, gerarPdfsAoSalvar: true },
@@ -56,6 +92,7 @@ Nucleo.novaMacro = function (numero) {
     status: 'planejada', percentualConcluido: 0, trlEsperado: 4, areas: [], objetivosEtapa: [],
     resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [],
     blocos: [],              // desenvolvimento em blocos (texto, capítulos, figuras, tabelas, QFD, questionário)
+    relatorios: [],          // relatórios de andamento intermediários (entre macroentregas)
     aceite: { dataAceite: '', nomeResponsavelEmpresa: '', aceito: false },
   };
 };
@@ -67,7 +104,8 @@ Nucleo.TIPOS_BLOCO = {
   figura: () => ({ ref: '' }),
   tabela: () => ({ ref: '' }),
   qfd: () => ({ titulo: 'Análise QFD – casa da qualidade', secoes: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [] }),
-  questionario: () => ({ titulo: 'Questionário aos clientes – resultados', partes: ['identificacao', 'roteiro', 'resultados', 'consolidacao'] }),
+  questionario: () => ({ titulo: 'Questionário aos clientes – resultados', partes: ['identificacao', 'destaques', 'graficos', 'consolidacao'] }),
+  nedip: () => ({ titulo: 'Projeto do produto', secoes: ['ciclo', 'concorrentes', 'normas', 'funcoes'] }),
   quebra: () => ({}),
 };
 Nucleo.novoBloco = (tipo) => Object.assign({ id: Nucleo.uid('bl'), tipo }, (Nucleo.TIPOS_BLOCO[tipo] || Nucleo.TIPOS_BLOCO.texto)());
@@ -75,16 +113,28 @@ Nucleo.normalizarBlocos = (l) => (Array.isArray(l) ? l : []).filter((b) => b && 
   const tipo = Nucleo.TIPOS_BLOCO[b.tipo] ? b.tipo : 'texto';
   const x = Object.assign({ id: Nucleo.uid('bl') }, Nucleo.TIPOS_BLOCO[tipo](), b, { tipo });
   if (tipo === 'titulo') x.nivel = [1, 2, 3].includes(+x.nivel) ? +x.nivel : 1;
-  if (tipo === 'qfd' && !Array.isArray(x.secoes)) x.secoes = [];
+  if ((tipo === 'qfd' || tipo === 'nedip') && !Array.isArray(x.secoes)) x.secoes = [];
   if (tipo === 'questionario' && !Array.isArray(x.partes)) x.partes = [];
   return x;
 });
 /** Ids de figuras/tabelas posicionadas por blocos (não vão para a seção "Resultados" como anexos soltos). */
 Nucleo.refsBlocos = (m) => {
   const fig = new Set(), tab = new Set();
-  (m.blocos || []).forEach((b) => { if (b.tipo === 'figura' && b.ref) fig.add(b.ref); if (b.tipo === 'tabela' && b.ref) tab.add(b.ref); });
+  const ver = (l) => (l || []).forEach((b) => { if (b.tipo === 'figura' && b.ref) fig.add(b.ref); if (b.tipo === 'tabela' && b.ref) tab.add(b.ref); });
+  ver(m.blocos);
+  (m.relatorios || []).forEach((r) => ver(r.blocos)); // as dos relatórios intermediários também não são "soltas"
   return { fig, tab };
 };
+/** Macroentrega "vista" por uma lista de blocos (relatório intermediário): só as figuras e tabelas dessa lista. */
+Nucleo.macroDaLista = (m, blocos) => {
+  if (!blocos || blocos === m.blocos) return m;
+  const refs = Nucleo.refsBlocos({ blocos });
+  return { uid: m.uid, numero: m.numero, titulo: m.titulo, figuras: (m.figuras || []).filter((f) => refs.fig.has(f.id)), tabelas: (m.tabelas || []).filter((t) => refs.tab.has(t.id)), blocos };
+};
+/** Relatórios de andamento entre macroentregas. */
+Nucleo.novoRelatorio = (n) => ({ id: Nucleo.uid('ri'), titulo: `Relatório de andamento ${n}`, data: Nucleo.hoje(), periodoInicio: '', periodoFim: '', enviar: true, blocos: [], gerado: '' });
+/** Numeração com o projeto (as figuras geradas pelo sistema — gráficos do questionário, diagrama de funções — entram na conta). */
+Nucleo.numerar = (p, macros, contador) => Nucleo.numerarAbnt(macros, contador, { p });
 
 function mesclar(base, dados) {
   for (const k of Object.keys(base)) {
@@ -107,6 +157,8 @@ Nucleo.normalizar = function (p) {
     const secOk = (x) => { if (!Nucleo.SECOES.some(([s]) => s === x.secao)) x.secao = 'resultados'; return x; };
     m.figuras = m.figuras.map(secOk); m.tabelas = m.tabelas.map(secOk);
     m.blocos = Nucleo.normalizarBlocos(m.blocos);
+    m.relatorios = (Array.isArray(m.relatorios) ? m.relatorios : []).filter((r) => r && typeof r === 'object')
+      .map((r, k) => Object.assign(Nucleo.novoRelatorio(k + 1), r, { blocos: Nucleo.normalizarBlocos(r.blocos) }));
     return m;
   });
   if (p.qfdDados && (typeof p.qfdDados !== 'object' || !Array.isArray(p.qfdDados.requisitosProjeto))) p.qfdDados = null;
@@ -423,6 +475,10 @@ Nucleo.analisar = function (p) {
 
   macros.forEach((m) => { if (m.atrasada) alertas.push(`Macroentrega ${m.numero} atrasada (prevista para ${Nucleo.dataBR(m.dataPrevista)}).`); });
   const vig = Nucleo.vigencia(p);
+  macros.forEach((m) => {
+    if (m.dataInicio && vig.inicio && m.dataInicio < vig.inicio) alertas.push(`Macroentrega ${m.numero} começa em ${Nucleo.dataBR(m.dataInicio)}, antes do início do projeto (${Nucleo.dataBR(vig.inicio)}). Confira a data.`);
+    if (m.dataInicio && m.dataPrevista && m.dataInicio > m.dataPrevista) alertas.push(`Macroentrega ${m.numero}: início (${Nucleo.dataBR(m.dataInicio)}) depois da data prevista de entrega (${Nucleo.dataBR(m.dataPrevista)}).`);
+  });
   if (vig.fimVigente) {
     macros.forEach((m) => { if (m.dataPrevista && m.dataPrevista > vig.fimVigente) alertas.push(`Macroentrega ${m.numero} prevista para ${Nucleo.dataBR(m.dataPrevista)}, depois do fim da vigência (${Nucleo.dataBR(vig.fimVigente)}).`); });
     if (vig.restamDias !== null && vig.restamDias < 0) alertas.push(`Vigência do projeto encerrada em ${Nucleo.dataBR(vig.fimVigente)}.`);
@@ -494,7 +550,8 @@ Nucleo.ganttSvg = function (an, largura = 1000) {
  * Em "Resultados", as que estão em blocos vêm depois das soltas, na ordem dos blocos.
  */
 Nucleo.SECOES = [['introducao', 'Introdução'], ['objetivos', 'Objetivos da etapa'], ['resultados', 'Resultados'], ['conclusao', 'Conclusão'], ['etapasFuturas', 'Etapas futuras']];
-Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }) {
+Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }, extra = {}) {
+  const geradas = extra.p && window.Formulario ? Nucleo.figurasGeradas(extra.p) : () => [];
   const fig = {}, tab = {}, listaF = [], listaT = [];
   const addF = (f, m) => { if (f && !(f.id in fig)) { fig[f.id] = ++contador.f; listaF.push({ n: fig[f.id], titulo: f.titulo, macro: m.numero }); } };
   const addT = (x, m) => { if (x && !(x.id in tab)) { tab[x.id] = ++contador.t; listaT.push({ n: tab[x.id], titulo: x.titulo, macro: m.numero }); } };
@@ -506,10 +563,21 @@ Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }) {
       if (s === 'resultados') (m.blocos || []).forEach((b) => {
         if (b.tipo === 'figura') addF((m.figuras || []).find((f) => f.id === b.ref), m);
         if (b.tipo === 'tabela') addT((m.tabelas || []).find((x) => x.id === b.ref), m);
+        geradas(b).forEach((f) => addF(f, m));
       });
     });
   });
   return { fig, tab, listaF, listaT };
+};
+
+/** Figuras que um bloco gera sozinho (sem arquivo): gráficos do questionário e diagrama da estrutura de funções. */
+Nucleo.figurasGeradas = (p) => (b) => {
+  if (b.tipo === 'questionario' && (b.partes || []).includes('graficos')) {
+    const f = p.produto && p.produto.etapas.informacional.formulario;
+    return f ? Formulario.perguntasGrafico(f).map((q) => ({ id: `qg_${b.id}_${q.id}`, titulo: Formulario.tituloGrafico(q) })) : [];
+  }
+  if (b.tipo === 'nedip' && (b.secoes || []).includes('funcoes') && window.nedipTemFuncoes && nedipTemFuncoes(p)) return [{ id: `nd_${b.id}_funcoes`, titulo: 'Função global e estrutura de funções' }];
+  return [];
 };
 
 Nucleo.figurasReferenciadas = (p) => {
@@ -560,13 +628,15 @@ Nucleo.importarQfd = function (dados) {
         estado = ok ? 'atingida' : 'nao-atingida';
       }
     }
-    if (!metaTxt) avisos.push(`RP${r._i + 1} "${r.descricao}" está sem valor-meta nas especificações do QFD.`);
     const moeda = /^(R\$|US\$|\$|€)$/.test(un);
     const valUn = (v) => (moeda ? `${un} ${v}` : `${v} ${un}`).trim();
-    const criterio = metaTxt ? `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}` + (sentido === 'none' ? ' (±5%)' : '') : '';
+    // sem valor-meta, a meta costuma estar escrita na observação do requisito (ex.: "entre 0,6 a 1,1 m3/s"): vira o critério
+    const obsReq = String(r.observacao || '').trim(), metaNaObs = !metaTxt && /\d/.test(obsReq);
+    const criterio = metaTxt ? `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}` + (sentido === 'none' ? ' (±5%)' : '') : (metaNaObs ? obsReq : '');
+    if (!metaTxt) avisos.push(`RP${r._i + 1} "${r.descricao}" está sem valor-meta nas especificações do QFD${metaNaObs ? ` (usada a observação: "${obsReq}")` : ''}.`);
     return {
       id: 'qfd_' + r.id, requisito: `RP${r._i + 1}. ${r.descricao}`, criterioAceite: criterio,
-      metodoVerificacao: String(e.observacao || r.observacao || '').trim(),
+      metodoVerificacao: String(e.observacao || (metaNaObs ? '' : r.observacao) || '').trim(),
       status: estado === 'atingida' ? 'conforme' : estado === 'nao-atingida' ? 'não conforme' : 'pendente',
       pdca: { planejar: '', executar: '', verificar: '', agir: '' },
       aspectosIndesejaveis: String(e.aspectosIndesejaveis || '').trim(),
@@ -586,7 +656,8 @@ Nucleo.mesclarQfd = function (atual, novos) {
     if (!a) return n;
     porId.delete(n.qfd.id);
     const temMedicao = ['atingida', 'nao-atingida'].includes(n.qfd.estado);
-    return Object.assign({}, a, n, { status: temMedicao ? n.status : (a.status || n.status), pdca: a.pdca || n.pdca, metodoVerificacao: a.metodoVerificacao || n.metodoVerificacao });
+    const metodoAntigo = a.metodoVerificacao && a.metodoVerificacao !== n.criterioAceite ? a.metodoVerificacao : ''; // versões anteriores punham a meta da observação aqui
+    return Object.assign({}, a, n, { status: temMedicao ? n.status : (a.status || n.status), pdca: a.pdca || n.pdca, metodoVerificacao: metodoAntigo || n.metodoVerificacao });
   });
   const removidos = [...porId.values()].map((q) => Object.assign({}, q, { qfd: Object.assign({}, q.qfd, { removidoDoQfd: true }) }));
   const manuais = (atual || []).filter((q) => !q.qfd || !q.qfd.id);

@@ -55,6 +55,8 @@ App.abas.macros = {
 
 <div class="cartao nb-cartao"><h3 style="margin-top:0">Resultados — desenvolvimento em blocos</h3>${App.blocosHtml(mi)}</div>
 
+<div class="cartao"><h3 style="margin-top:0">Relatórios de andamento desta macroentrega (antes da entrega)</h3>${App.intermediariosHtml(mi)}</div>
+
 <div class="cartao"><h3 style="margin-top:0">Projeções e próximos passos</h3>
   ${c(b + '.etapasFuturas', 'Etapas futuras', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
 </div>

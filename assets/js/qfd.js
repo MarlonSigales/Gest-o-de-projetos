@@ -158,7 +158,7 @@ const qfdCelCorr = (v) => (v ? { text: v.replace('-', '−').replace('-', '−')
   fillColor: { '++': COR.teal, '+': '#cfe8df', '-': '#f6cfcb', '--': '#c0392b' }[v] } : { text: '', fontSize: 8 });
 const qfdTerco = (x) => { const [r, f, c] = Qfd.TERCOS[x.terco]; return { text: r, bold: true, color: c, fillColor: f }; };
 const qfdEstado = { atingida: ['Atingida', COR.teal], 'nao-atingida': ['Não atingida', '#c0392b'], 'sem-medicao': ['Sem medição', '#888888'], 'sem-meta': ['Sem meta', '#888888'] };
-const qfdMeta = (x) => (x.metaTxt ? `${Nucleo.SENTIDO_QFD[x.sentido] || ''} ${x.metaTxt} ${x.unidade}`.trim() : '—');
+const qfdMeta = (x) => (x.metaTxt ? `${Nucleo.SENTIDO_QFD[x.sentido] || ''} ${x.metaTxt} ${x.unidade}`.trim() : (/\d/.test(x.obs) ? x.obs : '—')); // sem valor-meta: a meta escrita na observação
 const qfdBarra = (frac, max = 60, cor = COR.teal) => ({ canvas: [{ type: 'rect', x: 0, y: 2, w: Math.max(1.5, max * Math.max(0, Math.min(1, frac || 0))), h: 6, color: cor }] });
 
 /**

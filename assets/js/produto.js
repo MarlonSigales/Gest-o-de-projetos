@@ -61,6 +61,7 @@ App.abas.produto = {
     h += App.nedipEspecifico[et.id](e, b, servico);
     h += cartao('Registro da fase (em aberto)', c(b + '.registro', 'Decisões, resultados, pendências e referências. Aceita parágrafos, listas com "- ", **negrito** e {{fig:id}}/{{tab:id}} das macroentregas.', { tipo: 'textarea', linhas: 7 }));
     h += App.nedipAnexosHtml(et, e, b);
+    h += App.nedipIntegracaoHtml();
     return h;
   },
   depois() {
@@ -178,10 +179,7 @@ App.nedipEspecifico = {
     }
     if (ferr(e, 'especificacoes')) h += App.nedipEspecHtml();
     h += App.qfdIntegracaoHtml();
-    if (ferr(e, 'contexto')) h += cartao('Ciclo de vida, concorrentes e normas', `<div class="grade-campos">
-  ${c(b + '.cicloVida', 'Ciclo de vida e clientes de cada fase', { tipo: 'textarea', classe: 'largo', linhas: 3 })}
-  ${c(b + '.concorrentes', 'Concorrentes, similares e patentes analisados', { tipo: 'textarea', classe: 'largo', linhas: 3 })}
-  ${c(b + '.normas', 'Normas, legislação e restrições', { tipo: 'textarea', classe: 'largo', linhas: 3 })}</div>`);
+    if (ferr(e, 'contexto')) h += App.nedipContextoHtml(e, b);
     return h;
   },
 

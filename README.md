@@ -143,6 +143,9 @@ Depois de importar:
 - **Documento do questionário (PDF):** no padrão do roteiro, com identificação da pesquisa, roteiro aplicado, resultados por pergunta (tabelas com barras, média e importância de 1 a 5) e necessidades consolidadas. O botão "Roteiro de questionário" passa a imprimir as perguntas do projeto, com campos para marcar.
 - **Anexar a uma macroentrega:** escolha a macroentrega, e o documento entra como bloco no desenvolvimento dela.
 - **→ Gerar a consolidação:** itens de grade e escalas viram necessidades com citações e importância, que alimentam os requisitos de cliente.
+- **Gráficos das respostas:** cada pergunta de escolha, caixas, escala ou grade vira um gráfico de barras, como no Google Forms, numerado como **figura ABNT** (entra na lista de figuras). Na lista de perguntas, a coluna **Gráfico** escolhe quais entram e o campo "título da figura" ajusta a legenda. Isso substitui os prints dos gráficos do Forms.
+- **Destaques:** frases com a alternativa mais citada e o percentual (ou o item mais importante da grade), **geradas e editáveis**. Entram em "Principais resultados".
+- No bloco do questionário, escolha as partes: identificação, destaques, roteiro, gráficos, tabelas por pergunta e consolidação.
 
 ### Relatório do QFD nas macroentregas e no relatório geral
 A importação do backup do QFD guarda o arquivo completo no projeto. No projeto informacional, o cartão **Relatório do QFD nas macroentregas** tem uma caixa de seleção por informação (linha) e por macroentrega (coluna), mais o relatório geral. As informações são:
@@ -160,9 +163,34 @@ A importação do backup do QFD guarda o arquivo completo no projeto. No projeto
 
 Na primeira importação, as macroentregas ligadas ao projeto informacional já recebem tudo o que o QFD tem. Informação que falta no QFD aparece desativada, com o botão **↗ completar no QFD**. O conteúdo sai com a identidade visual dos relatórios: **tabelas largas viram a folha (paisagem)** e, se ainda assim não couberem, são divididas em partes que repetem a primeira coluna. Também há o PDF avulso **Análise QFD**.
 
+### Projeto de produto nos relatórios
+No fim de cada fase do projeto de produto, o cartão **Projeto de produto nos relatórios** funciona como o do QFD: uma caixa por informação e por macroentrega, mais o relatório geral. Cada macroentrega marcada recebe o bloco "Projeto do produto". As informações são:
+- situação das fases, escopo e plano;
+- ciclo de vida;
+- necessidades e requisitos de cliente;
+- concorrentes e normas (agora em **tabela**, além do texto livre);
+- **função global e estrutura de funções**, com um **diagrama desenhado pelo sistema** (caixa-preta com entradas e saídas, funções parciais e subfunções com o princípio escolhido) como figura ABNT, mais a tabela de funções e princípios;
+- desdobramento das especificações;
+- concepções e matriz de decisão;
+- leiaute, protótipos e FMEA;
+- lista de materiais.
+
+Seções sem dados não entram no PDF; na tela elas aparecem com o botão que leva à fase onde se preenche. Os concorrentes da avaliação competitiva do QFD podem ser trazidos para a tabela com um clique.
+
+### Relatórios de andamento entre macroentregas
+Dentro de cada macroentrega, **+ Relatório de andamento** cria um relatório intermediário ("pré-macroentrega"), com título, data, período coberto e **desenvolvimento em blocos** (o mesmo editor). O PDF tem capa própria, identificação, andamento das atividades e os capítulos numerados 2.1, 2.1.1 …, **sem termo de aceite**. Ele fica em `relatorios/macroentrega_NN_andamento_NN.pdf` e entra no ZIP; se marcado, vai também no e-mail de andamento. O botão **⧉ Copiar para o relatório final** reaproveita os blocos no desenvolvimento da macroentrega. O relatório geral lista os relatórios intermediários.
+
+### Texto (Markdown básico)
+Nos campos de texto e nos blocos:
+- linha em branco separa parágrafos;
+- `- `, `* ` ou `• ` fazem lista; `1. ` faz lista numerada (listas e parágrafos podem se alternar sem linha em branco);
+- `#`, `##` e `###` fazem títulos;
+- `**negrito**` e `*itálico*`;
+- `{{fig:fig_001}}` e `{{tab:tab_001}}` citam figuras e tabelas.
+
 ### Macroentregas: desenvolvimento em blocos
 No cartão **Resultados — desenvolvimento em blocos**, monte o texto como num caderno (Google Colab).
-- Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Questionário e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
+- Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Projeto do produto, + Questionário e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
 - Cada bloco tem **✎ Editar / ✓ Concluir**, **🗑 Excluir** e **↑ ↓** para mover.
 - O texto aceita negrito, listas e citações de figuras e tabelas (botões e seletor).
 - Figura e tabela (importar CSV ou colar do Excel) ficam no próprio bloco, com numeração ABNT.
@@ -250,6 +278,8 @@ assets/js/produto.js        aba Projeto de produto/serviço (anexos e manuais)
 assets/js/formulario.js     questionário do Google Forms (CSV, edição, análise, PDF)
 assets/js/qfd.js            relatório da casa da qualidade a partir do backup do QFD; tabelas que viram a folha
 assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF
+assets/js/nedip_relatorio.js projeto de produto nos relatórios; diagrama da estrutura de funções
+assets/js/intermediarios.js relatórios de andamento entre macroentregas
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD

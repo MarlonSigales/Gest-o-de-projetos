@@ -3,7 +3,7 @@
 
 App.SECOES = Nucleo.SECOES;
 /** Mesma regra dos PDFs: numera por seção (na ordem do relatório) e depois pela ordem da lista. */
-App.numerarAbnt = (m) => Nucleo.numerarAbnt([m]);
+App.numerarAbnt = (m) => Nucleo.numerar(App.p, [m]);
 
 App.editorFiguras = function (mi) {
   const m = App.p.macroentregas[mi];

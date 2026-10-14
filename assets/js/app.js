@@ -232,6 +232,7 @@ App.carregarEstado = function (p, arm) {
   App.p = Nucleo.normalizar(p);
   App.macroSel = 0;
   App.aba = 'projeto';
+  App.relAberto = null; if (App.blocoEdit) App.blocoEdit.clear(); // estado da tela não passa de um projeto para outro
   App.fecharModal();
   App.atualizarTopo();
   App.marcarSujo(false);
@@ -345,6 +346,11 @@ App.gerarTodosPdfs = async function () {
   for (let i = 0; i < App.p.macroentregas.length; i++) {
     App.progresso(`Gerando PDF da macroentrega ${i + 1} de ${App.p.macroentregas.length}…`);
     out.push({ nome: `Macroentrega ${String(i + 1).padStart(2, '0')} - ${nomeProj}.pdf`, arq: `relatorios/macroentrega_${String(i + 1).padStart(2, '0')}.pdf`, blob: await Pdf.gerar(await Pdf.macroentrega(App.p, i, App.arm)) });
+    for (let ri = 0; ri < App.p.macroentregas[i].relatorios.length; ri++) { // relatórios de andamento intermediários marcados para envio
+      if (!App.p.macroentregas[i].relatorios[ri].enviar) continue;
+      App.progresso(`Gerando o relatório de andamento ${ri + 1} da macroentrega ${i + 1}…`);
+      out.push({ nome: App.relNomePdf(i, ri), arq: App.relCaminhoPdf(i, ri), blob: await Pdf.gerar(await Pdf.relatorioIntermediario(App.p, i, ri, App.arm)) });
+    }
   }
   return out;
 };

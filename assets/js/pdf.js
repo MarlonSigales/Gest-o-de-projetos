@@ -27,23 +27,18 @@ Pdf.carregarFiguras = async function (p, armazem) {
   return out;
 };
 
-/** Texto simples → nós pdfmake: parágrafos, listas ("- "), **negrito** e {{fig:id}}/{{tab:id}}. */
+/** Texto simples (Markdown básico) → nós pdfmake: parágrafos, títulos #, listas "- "/"* "/"1.", **negrito**, *itálico* e {{fig:id}}/{{tab:id}}. */
 Pdf.texto = function (txt, num, estilo = 'corpo') {
-  txt = String(txt || '').replace(/\r/g, '').trim();
-  if (!txt) return [];
-  const inline = (s) => {
-    s = s.replace(/\{\{(fig|tab):([A-Za-z0-9_-]+)\}\}/g, (_, t, id) => {
-      const n = t === 'fig' ? num.fig[id] : num.tab[id];
-      return n ? (t === 'fig' ? 'Figura ' : 'Tabela ') + n : (t === 'fig' ? '[figura não encontrada]' : '[tabela não encontrada]');
-    });
-    return s.split(/(\*\*.+?\*\*)/g).filter(Boolean).map((pt) => (pt.startsWith('**') && pt.endsWith('**')) ? { text: pt.slice(2, -2), bold: true } : pt);
-  };
-  return txt.split(/\n\s*\n/).map((bloco) => {
-    const linhas = bloco.split('\n');
-    if (linhas.every((l) => /^\s*[-•*]\s+/.test(l))) return { ul: linhas.map((l) => ({ text: inline(l.replace(/^\s*[-•*]\s+/, '')) })), style: estilo, margin: [0, 0, 0, 6] };
-    const partesTxt = [];
-    linhas.forEach((l, i) => { partesTxt.push(...inline(l)); if (i < linhas.length - 1) partesTxt.push('\n'); });
-    return { text: partesTxt, style: estilo, alignment: 'justify', margin: [0, 0, 0, 6] };
+  const refs = (s) => Nucleo.trocarRefs(s, num);
+  const inline = (s) => Nucleo.mdInline(refs(s)).map((t) => (t.b || t.i ? { text: t.t, bold: t.b, italics: t.i } : t.t));
+  const tamH = { 1: 11.5, 2: 10.8, 3: 10.2 };
+  return Nucleo.mdBlocos(txt).map((b) => {
+    if (b.tipo === 'h') return { text: inline(b.texto), bold: true, fontSize: tamH[b.nivel], color: b.nivel === 2 ? COR.teal : COR.escuro, margin: [0, 6, 0, 3] };
+    if (b.tipo === 'ul') return { ul: b.itens.map((l) => ({ text: inline(l) })), style: estilo, margin: [0, 0, 0, 6] };
+    if (b.tipo === 'ol') return { ol: b.itens.map((l) => ({ text: inline(l) })), start: b.inicio, style: estilo, margin: [0, 0, 0, 6] };
+    const partes = [];
+    b.linhas.forEach((l, k) => { partes.push(...inline(l)); if (k < b.linhas.length - 1) partes.push('\n'); });
+    return { text: partes, style: estilo, alignment: 'justify', margin: [0, 0, 0, 6] };
   });
 };
 
@@ -190,7 +185,7 @@ const corpo = (arr) => ({ stack: arr, margin: [22, 0, 0, 0] });
 Pdf.macroentrega = async function (p, mi, armazem) {
   const m = p.macroentregas[mi];
   const an = Nucleo.analisar(p);
-  const pj = p.projeto, u = CONFIG.unidade, num = Nucleo.numerarAbnt([m]);
+  const pj = p.projeto, u = CONFIG.unidade, num = Nucleo.numerar(p, [m]);
   const imgs = await Pdf.carregarFiguras({ macroentregas: [m] }, armazem);
   const n = mi + 1;
   const c = [];
@@ -327,7 +322,10 @@ Pdf.tabelaAreas = function (areas, esperadoPadrao) {
 // ------------------------------------------------------------------ RELATÓRIO GERAL DE ANDAMENTO
 Pdf.andamento = async function (p, armazem) {
   const pj = p.projeto, u = CONFIG.unidade, an = Nucleo.analisar(p);
-  const num = Nucleo.numerarAbnt(p.macroentregas);
+  const cont = { f: 0, t: 0 }, figRel = [];
+  if ((p.config.nedipRelatorio || []).includes('funcoes') && nedipTemFuncoes(p)) figRel.push(['nd_rel_funcoes', ++cont.f]); // seção 6 vem antes do desenvolvimento
+  const num = Nucleo.numerar(p, p.macroentregas, cont);
+  figRel.forEach(([id, n]) => { num.fig[id] = n; num.listaF.unshift({ n, titulo: 'Função global e estrutura de funções' }); });
   const imgs = await Pdf.carregarFiguras(p, armazem);
   const c = [];
   let sec = 0;
@@ -370,10 +368,13 @@ Pdf.andamento = async function (p, armazem) {
     an.macroentregas.map((m) => [String(m.numero), m.titulo, Nucleo.dataBR(m.dataInicio), Nucleo.dataBR(m.dataPrevista), Nucleo.dataBR(m.dataEntrega),
       m.atrasada ? { text: 'atrasada', color: '#c0392b', bold: true } : m.status, String(m.percentual), m.aceito ? 'sim' : 'não']),
     [18, '*', 50, 50, 50, 58, 28, 32]));
+  const inter = p.macroentregas.flatMap((m, i) => m.relatorios.map((r) => [String(i + 1), r.titulo, Nucleo.dataBR(r.data), r.periodoInicio || r.periodoFim ? `${Nucleo.dataBR(r.periodoInicio) || '…'} a ${Nucleo.dataBR(r.periodoFim) || '…'}` : '—', String(r.blocos.length)]));
+  if (inter.length) c.push(h2('Relatórios de andamento entre macroentregas'), Pdf.grade(['Macro', 'Relatório', 'Data', 'Período', 'Blocos'], inter, [32, '*', 55, 110, 38]));
 
   // 3
   c.push(...h1('Cronograma'));
-  c.push({ svg: Nucleo.ganttSvg(an, 1000), width: 470 });
+  if (an.atividades.some((a) => a.inicio && a.fim)) c.push({ svg: Nucleo.ganttSvg(an, 1000), width: 470 });
+  else c.push({ text: 'Cadastre atividades com data de início e fim nas macroentregas para gerar o Gantt.', style: 'muted', margin: [0, 0, 0, 8] });
   if (an.cpm.caminho.length) c.push({ text: [{ text: 'Caminho crítico', bold: true }, ` (${an.cpm.duracao} dias): ${an.cpm.caminho.join(' › ')}.`], style: 'corpo', margin: [0, 6, 0, 4] });
   const atras = an.atividades.filter((a) => a.atrasada);
   if (atras.length) c.push(h2('Atividades atrasadas'), Pdf.grade(['Cód.', 'Atividade', 'Responsável', 'Fim previsto', '%'], atras.map((a) => [a.codigo, a.nome, a.responsavel, Nucleo.dataBR(a.fim), String(a.percentual)]), [28, '*', 100, 60, 26]));
@@ -428,21 +429,18 @@ Pdf.andamento = async function (p, armazem) {
   }
 
   // 5
-  c.push(...h1('Riscos'));
-  c.push(Pdf.matrizRiscos(an.riscos));
+  c.push({ stack: [...h1('Riscos'), Pdf.matrizRiscos(an.riscos)], unbreakable: true }); // título junto da matriz (não fica sozinho no fim da página)
   if (an.riscosAltos.length) c.push(h2('Riscos altos e críticos em aberto'), Pdf.grade(['ID', 'Risco', 'P×I', 'Resposta', 'Plano de ação', 'Responsável'],
     an.riscosAltos.map((r) => [r.id, r.descricao, `${r.nivel} (${r.rotulo})`, r.resposta, r.planoAcao, r.responsavel]), [22, '*', 50, 48, '*', 70]));
   else c.push(caixa('Nenhum risco alto ou crítico em aberto.', 'ok'));
 
-  // projeto de produto/serviço (NeDIP)
-  if (p.produto && p.produto.etapas && p.produto.etapas.informacional) {
+  // projeto de produto/serviço (NeDIP): seções escolhidas no cartão "Projeto de produto nos relatórios"
+  const secNedip = (p.config && p.config.nedipRelatorio) || [];
+  if (p.produto && p.produto.etapas && p.produto.etapas.informacional && secNedip.length) {
     c.push(...h1(`Projeto de ${p.produto.tipo === 'serviço' ? 'serviço' : 'produto'} (fases NeDIP)`));
-    c.push(Pdf.grade(['Fase', 'Situação', 'Recomendações aplicadas', 'Macroentrega(s)', 'Documentos', 'Saída esperada'],
-      nedipResumo(p).map((r) => [r.nome, { text: r.status, bold: true, color: r.status === 'concluída' ? COR.teal : r.status === 'em andamento' ? '#b7791f' : COR.suave },
-        `${r.feitas} de ${r.total}`, r.macros.join(', ') || '—', String(r.anexos), r.saida]), [85, 60, 60, 55, 50, '*']));
-    const cc = p.produto.etapas.conceitual, conc = cc.concepcoes.find((x) => x.selecionada);
-    if (cc.funcaoGlobal.nome || conc) c.push({ text: [cc.funcaoGlobal.nome ? { text: 'Função global: ', bold: true } : '', cc.funcaoGlobal.nome || '', cc.funcaoGlobal.nome && conc ? ' · ' : '',
-      conc ? { text: 'Concepção selecionada: ', bold: true } : '', conc ? conc.nome : ''], style: 'corpo', margin: [0, 0, 0, 6] });
+    c.push(...Pdf.blocoNedip(p, secNedip, { h: h2, num, figId: 'nd_rel_funcoes', tocFig: 'fig' }));
+    const conc = p.produto.etapas.conceitual.concepcoes.find((x) => x.selecionada);
+    if (conc) c.push({ text: [{ text: 'Concepção selecionada: ', bold: true }, conc.nome], style: 'corpo', margin: [0, 0, 0, 6] });
     c.push({ text: 'Referência: ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 8] });
   }
 
@@ -479,9 +477,10 @@ Pdf.andamento = async function (p, armazem) {
     if (pend.length) c.push({ text: 'Diretrizes ainda não decididas: ' + pend.map((i) => i.nome).join('; ') + '.', style: 'muted', margin: [0, 0, 0, 6] });
     c.push({ text: 'Referência: PAHL, G.; BEITZ, W.; FELDHUSEN, J.; GROTE, K.-H. Engineering Design: A Systematic Approach. 3. ed. London: Springer, 2007.', style: 'muted', margin: [0, 0, 0, 8] });
   }
-  if (p.licoesAprendidas.length) {
+  const licoes = p.licoesAprendidas.filter((l) => String((l.descricao || '') + (l.recomendacao || '')).trim()); // linhas vazias não vão ao relatório
+  if (licoes.length) {
     const numMacro = (uid) => { const i = p.macroentregas.findIndex((m) => m.uid === uid); return i >= 0 ? String(i + 1) : '—'; };
-    c.push(h2('Lições aprendidas'), Pdf.grade(['Data', 'Macro', 'Lição', 'Recomendação'], p.licoesAprendidas.map((l) => [Nucleo.dataBR(l.data), numMacro(l.macroUid), l.descricao, l.recomendacao]), [52, 32, '*', '*']));
+    c.push(h2('Lições aprendidas'), Pdf.grade(['Data', 'Macro', 'Lição', 'Recomendação'], licoes.map((l) => [Nucleo.dataBR(l.data), numMacro(l.macroUid), l.descricao, l.recomendacao]), [52, 32, '*', '*']));
   }
 
   // 7
@@ -563,7 +562,7 @@ Pdf.matrizRiscos = function (riscos) {
   }
   body.push(['', ...[1, 2, 3, 4, 5].map((i) => ({ text: String(i), bold: true, alignment: 'center' }))]);
   return { stack: [
-    { columns: [{ text: 'Probabilidade', fontSize: 8.5, bold: true, width: 80, margin: [40, 60, 0, 0] },
+    { columns: [{ text: 'Probabilidade', fontSize: 8.5, bold: true, width: 80, alignment: 'right', margin: [0, 92, 8, 0] },
       { table: { widths: [18, 58, 58, 58, 58, 58], body }, layout: { hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => '#fff', vLineColor: () => '#fff' }, width: 'auto' }] },
     { text: 'Impacto', fontSize: 8.5, bold: true, alignment: 'center', margin: [0, 2, 0, 2] },
     { text: 'Nível = P × I · verde ≤ 4 · amarelo 5–9 · laranja 10–14 · vermelho ≥ 15 (riscos fechados não aparecem)', style: 'muted', alignment: 'center', margin: [0, 0, 0, 8] },
@@ -602,7 +601,7 @@ const recsAplicadas = (p, et) => { const e = p.produto.etapas[et.id]; return et.
 
 Pdf.manualProjeto = async function (p, armazem) {
   const pj = p.projeto, pr = p.produto, E = pr.etapas, an = Nucleo.analisar(p);
-  const num = Nucleo.numerarAbnt(p.macroentregas);
+  const num = Nucleo.numerar(p, p.macroentregas);
   const imgs = await Pdf.carregarFiguras(p, armazem);
   const { h1, h2 } = secoesNumeradas();
   const nomeMacro = (u) => { const i = p.macroentregas.findIndex((m) => m.uid === u); return i >= 0 ? `${i + 1} – ${p.macroentregas[i].titulo}` : ''; };
@@ -744,7 +743,7 @@ Pdf.manualUso = async function (p) {
   const pj = p.projeto, e = p.produto.etapas.detalhado, mu = e.manualUso;
   const { h1 } = secoesNumeradas();
   const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
-  const num = Nucleo.numerarAbnt(p.macroentregas);
+  const num = Nucleo.numerar(p, p.macroentregas);
   let primeira = true;
   NEDIP_MANUAL_USO.forEach(([k, rot]) => {
     if (!String(mu[k] || '').trim()) return;

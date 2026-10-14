@@ -31,8 +31,9 @@ const RE_DIV_LETRA = /,\s*(?=[A-Za-z]\)\s)/;
 const RE_ABERTA = /coment|sugest|observa|por ?qu[eê]|descreva|explique|justifique/i;
 const RE_IDENT = /\b(nome|cargo|fun[cç][aã]o|contato|telefone|celular|e-?mail|whats ?app|cpf|endere[cç]o)\b/i;
 
-Formulario.vazio = () => ({ titulo: '', publico: '', meio: 'Google Forms', arquivo: '', importadoEm: '', perguntas: [], respostas: [] });
-Formulario.novaPergunta = (id, texto = '', tipo = 'texto') => ({ id, texto, tipo, opcoes: [], itens: [], escala: { min: 1, max: 5, invertida: false, rotulos: {} }, fase: '', analisar: tipo !== 'identificacao' });
+Formulario.vazio = () => ({ titulo: '', publico: '', meio: 'Google Forms', arquivo: '', importadoEm: '', perguntas: [], respostas: [], destaques: [] });
+Formulario.novaPergunta = (id, texto = '', tipo = 'texto') => ({ id, texto, tipo, opcoes: [], itens: [], escala: { min: 1, max: 5, invertida: false, rotulos: {} }, fase: '', analisar: tipo !== 'identificacao',
+  grafico: true, rotulo: '' }); // grafico: gera a figura da pergunta; rotulo: título da figura (vazio = resumo da pergunta)
 Formulario.chave = (p, it) => (it ? `${p.id}__${it.id}` : p.id);
 Formulario.colunas = (f) => f.perguntas.flatMap((p) => (p.tipo === 'grade' ? p.itens.map((it) => ({ p, it })) : [{ p, it: null }]));
 Formulario.proximoId = (lista, pref) => pref + (Math.max(0, ...lista.map((x) => +(String(x.id).match(/(\d+)$/) || [0, 0])[1])) + 1);
@@ -49,10 +50,14 @@ Formulario.normalizar = function (f) {
     p.itens = (Array.isArray(p.itens) ? p.itens : []).map((it, k) => (typeof it === 'object' && it ? Object.assign({ id: 'i' + (k + 1), texto: '' }, it) : { id: 'i' + (k + 1), texto: String(it) }));
     p.escala = Object.assign({ min: 1, max: 5, invertida: false, rotulos: {} }, p.escala || {});
     p.analisar = p.analisar !== false;
+    p.grafico = p.grafico !== false;
+    p.rotulo = String(p.rotulo || '');
     return p;
   });
   f.respostas = (Array.isArray(f.respostas) ? f.respostas : []).filter((r) => r && typeof r === 'object')
     .map((r, k) => Object.assign({ id: 'r' + (k + 1), data: '', valores: {} }, r, { valores: Object.assign({}, r.valores || {}) }));
+  f.destaques = (Array.isArray(f.destaques) ? f.destaques : []).filter((d) => d && typeof d === 'object')
+    .map((d, k) => Object.assign({ id: 'd' + (k + 1), pergunta: '', texto: '', incluir: true }, d));
   return f;
 };
 
@@ -288,8 +293,114 @@ Formulario.acrescentar = function (f, novo) {
   return f;
 };
 
+// ------------------------------------------------------------------ gráficos e destaques
+/** Texto curto para títulos e frases (sem parênteses, sem "?" final). */
+const fCurto = (t, n = 70) => { t = fLinha(t).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').replace(/[?:.\s]+$/, '').trim(); return t.length > n ? t.slice(0, Math.max(t.lastIndexOf(' ', n), 20)) + '…' : t; };
+/** Alternativa sem a letra e sem a explicação ("D) Muito importante; sistemas…" → "Muito importante"). */
+const fOpcaoCurta = (o) => { const t = fLinha(o).replace(/^[A-Za-z]\)\s*/, ''); const c = t.split(/[;:]/)[0].replace(/\.$/, '').trim(); return fCurto(c || t, 80); };
+const fPct = (n, d) => (d ? Math.round(n / d * 1000) / 10 : 0).toString().replace('.', ',') + '%';
+const fDec = (x) => (x === null || x === undefined ? '—' : (Math.round(x * 100) / 100).toString().replace('.', ','));
+
+/** Perguntas que viram gráfico (figura): analisadas, de escolha/caixas/escala/grade, com respostas e com "gráfico" marcado. */
+Formulario.perguntasGrafico = (f) => Formulario.analisar(f).analisadas
+  .filter((x) => ['escolha', 'caixas', 'escala', 'grade'].includes(x.tipo) && x.p.grafico !== false && x.respondidas).map((x) => x.p);
+Formulario.tituloGrafico = (q) => fLinha(q.rotulo) || fCurto(q.texto);
+
+/** Frases com a resposta mais citada (ou o item mais importante) de cada pergunta analisada — o usuário edita depois. */
+Formulario.gerarDestaques = function (f) {
+  const an = Formulario.analisar(f), out = [];
+  an.analisadas.forEach((x) => {
+    const q = x.p, tema = fCurto(q.texto, 90);
+    let t = '';
+    if ((x.tipo === 'escolha' || x.tipo === 'caixas') && x.respondidas) {
+      const l = x.contagem.filter((o) => o.n).sort((a, b) => b.n - a.n);
+      if (!l.length) return;
+      t = `${tema}: ${fPct(l[0].n, x.respondidas)} (${l[0].n} de ${x.respondidas}) apontaram “${fOpcaoCurta(l[0].op)}”` + (l[1] ? `, seguido de “${fOpcaoCurta(l[1].op)}” (${fPct(l[1].n, x.respondidas)})` : '') + '.';
+    } else if (x.tipo === 'escala' && x.media !== null) {
+      t = `${tema}: média ${fDec(x.media)} na escala de ${q.escala.min} a ${q.escala.max} (${x.respondidas} respostas).`;
+    } else if (x.tipo === 'grade' && x.numerica) {
+      const its = x.itens.filter((i) => i.imp !== null).sort((a, b) => b.imp - a.imp);
+      if (!its.length) return;
+      t = `${tema}: maior importância para “${fCurto(its[0].it.texto, 60)}” (${fDec(its[0].imp)} de 5)` + (its[1] ? `, seguido de “${fCurto(its[1].it.texto, 60)}” (${fDec(its[1].imp)})` : '')
+        + (its.length > 2 ? `; menor importância: “${fCurto(its[its.length - 1].it.texto, 60)}” (${fDec(its[its.length - 1].imp)})` : '') + '.';
+    } else if (x.tipo === 'texto' && x.respostas && x.respostas.length) {
+      const rep = x.respostas.filter((r) => r.n > 1);
+      t = `${tema}: ${x.respondidas} resposta(s) aberta(s)` + (rep.length ? `; a mais repetida: “${fCurto(rep[0].t, 80)}” (${rep[0].n}×)` : '') + '.';
+    }
+    if (t) out.push({ id: 'd' + (out.length + 1), pergunta: q.id, texto: t, incluir: x.tipo !== 'texto' });
+  });
+  return out;
+};
+
+const fXml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+/** Quebra um rótulo em até 2 linhas para o eixo dos gráficos. */
+const fLinhasRotulo = (t, n = 44) => {
+  t = fLinha(t);
+  if (t.length <= n) return [t];
+  let i = t.lastIndexOf(' ', n);
+  if (i < 15) i = n;
+  const r = t.slice(i).trim();
+  return [t.slice(0, i).trim(), r.length > n ? r.slice(0, n - 1) + '…' : r];
+};
+const F_CORES = ['#085357', '#409580', '#8cc9b5', '#e0b84a', '#d9773f', '#b3261e', '#7c3aed', '#4b5563', '#0e7490', '#be185d', '#1d4ed8'];
+
+/** Gráfico de uma pergunta (item de Formulario.analisar) em SVG: barras horizontais como no Google Forms; grades em barras empilhadas. */
+Formulario.graficoSvg = function (x) {
+  const q = x.p, W = 900, lab = 340, x0 = lab + 14, wBar = W - x0 - 110, fonte = 'font-family="Roboto"';
+  const rotulo = (t, y, lin) => fLinhasRotulo(t).map((l, k, ls) => `<text x="${lab}" y="${(y + lin / 2 + 5 + (k - (ls.length - 1) / 2) * 15).toFixed(1)}" font-size="13.5" fill="#1d2b2b" text-anchor="end" ${fonte}>${fXml(l)}</text>`).join('');
+  let s = '', h;
+  if (x.tipo === 'escolha' || x.tipo === 'caixas' || x.tipo === 'escala') {
+    const l = x.tipo === 'escala'
+      ? Object.keys(x.dist).map(Number).sort((a, b) => a - b).map((k) => ({ op: q.escala.rotulos[k] ? `${k} – ${q.escala.rotulos[k]}` : String(k), n: x.dist[k] }))
+      : x.contagem.concat(x.outros.length ? [{ op: `Outras respostas (${x.outros.length})`, n: x.outros.reduce((a, o) => a + o.n, 0) }] : []);
+    const lin = 34, topo = 30, max = Math.max(1, ...l.map((o) => o.n));
+    const passo = max <= 10 ? 2 : max <= 25 ? 5 : max <= 60 ? 10 : 20, eixo = Math.ceil(max / passo) * passo;
+    h = topo + l.length * lin + 30;
+    s += `<text x="0" y="16" font-size="15" fill="#555" ${fonte}>${x.respondidas} respostas${x.tipo === 'caixas' ? ' (várias alternativas por pessoa)' : ''}</text>`;
+    for (let v = 0; v <= eixo; v += passo) {
+      const xx = (x0 + wBar * v / eixo).toFixed(1);
+      s += `<line x1="${xx}" y1="${topo}" x2="${xx}" y2="${topo + l.length * lin}" stroke="#e3e8e8"/><text x="${xx}" y="${topo + l.length * lin + 18}" font-size="13" fill="#666" text-anchor="middle" ${fonte}>${v}</text>`;
+    }
+    l.forEach((o, i) => {
+      const y = topo + i * lin, w = wBar * o.n / eixo;
+      s += rotulo(o.op, y, lin);
+      s += `<rect x="${x0}" y="${y + 6}" width="${Math.max(w, 1.5).toFixed(1)}" height="${lin - 12}" fill="${o.n === max ? '#085357' : '#409580'}"/>`;
+      s += `<text x="${(x0 + w + 6).toFixed(1)}" y="${y + lin / 2 + 5}" font-size="13.5" fill="#1d2b2b" ${fonte}>${o.n} (${fPct(o.n, x.respondidas)})</text>`;
+    });
+  } else {
+    const cats = x.numerica ? Object.keys(x.itens[0] ? x.itens[0].dist : {}).map(Number).sort((a, b) => a - b) : q.opcoes.slice();
+    const rot = (k) => (x.numerica && q.escala.rotulos[k] ? `${k} – ${q.escala.rotulos[k]}` : String(k));
+    const SEQ = ['#e3efeb', '#b5dccf', '#7fbfaa', '#409580', '#1f6f6a', '#085357'];
+    const nivel = (ci) => { const t = ci / Math.max(1, cats.length - 1); return Math.round((q.escala.invertida ? 1 - t : t) * 5); }; // 0 = menos importante
+    const cor = (ci) => (x.numerica ? SEQ[nivel(ci)] : F_CORES[ci % F_CORES.length]);
+    const lin = 36, topo = 30, legLin = Math.ceil(cats.length / 3);
+    h = topo + x.itens.length * lin + 18 + legLin * 22;
+    s += `<text x="0" y="16" font-size="15" fill="#555" ${fonte}>${x.respondidas} respostas${x.numerica ? ' · à direita, importância de 1 a 5 (5 = mais importante)' : ''}</text>`;
+    x.itens.forEach((i, r) => {
+      const y = topo + r * lin;
+      s += rotulo(i.it.texto, y, lin);
+      let acc = 0;
+      cats.forEach((k, ci) => {
+        const n = i.dist[k] || 0;
+        if (!n || !i.n) return;
+        const w = wBar * n / i.n, xx = x0 + wBar * acc / i.n;
+        acc += n;
+        s += `<rect x="${xx.toFixed(1)}" y="${y + 6}" width="${w.toFixed(1)}" height="${lin - 12}" fill="${cor(ci)}"/>`;
+        if (w > 22) s += `<text x="${(xx + w / 2).toFixed(1)}" y="${y + lin / 2 + 5}" font-size="12.5" fill="${x.numerica && nivel(ci) <= 2 ? '#1d2b2b' : '#ffffff'}" text-anchor="middle" ${fonte}>${n}</text>`;
+      });
+      if (x.numerica && i.imp !== null) s += `<text x="${x0 + wBar + 10}" y="${y + lin / 2 + 5}" font-size="13.5" font-weight="bold" fill="#085357" ${fonte}>${fDec(i.imp)}</text>`;
+    });
+    const ly = topo + x.itens.length * lin + 22;
+    cats.forEach((k, ci) => {
+      const lx = x0 + (ci % 3) * (wBar / 3), yy = ly + Math.floor(ci / 3) * 22;
+      s += `<rect x="${lx.toFixed(1)}" y="${yy - 11}" width="13" height="13" fill="${cor(ci)}"/><text x="${(lx + 18).toFixed(1)}" y="${yy}" font-size="12.5" fill="#333" ${fonte}>${fXml(fCurto(rot(k), 32))}</text>`;
+    });
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h}" viewBox="0 0 ${W} ${h}"><rect width="${W}" height="${h}" fill="#ffffff"/>${s}</svg>`;
+};
+
 // ================================================================== tela (projeto informacional)
-App.formAberto = { perguntas: false, respostas: false };
+App.formAberto = { perguntas: false, respostas: false, destaques: false };
 App.novos.perguntaForm = () => Formulario.novaPergunta(Formulario.proximoId(App.p.produto.etapas.informacional.formulario.perguntas, 'p'), '', 'texto');
 App.novos.respostaForm = () => ({ id: Formulario.proximoId(App.p.produto.etapas.informacional.formulario.respostas, 'r'), data: hojeISO(), valores: {} });
 App.formMacroAtual = () => { const m = App.p.macroentregas.find((x) => (x.blocos || []).some((b) => b.tipo === 'questionario')); return m ? m.uid : ''; };
@@ -320,21 +431,32 @@ App.formularioHtml = function (e, b) {
 
   // perguntas
   h += `<details class="form-det" data-det="perguntas" ${App.formAberto.perguntas ? 'open' : ''}><summary>Perguntas (${temP}) — editar texto, tipo, alternativas e itens</summary>
-  <div class="rolagem"><table class="tab-edit"><thead><tr><th style="width:34px">#</th><th>Pergunta</th><th style="width:190px">Tipo</th><th>Alternativas / itens (um por linha)</th><th style="width:130px">Fase do ciclo de vida</th><th style="width:96px">Escala</th><th style="width:70px">Analisar</th><th class="acoes" style="width:90px"></th></tr></thead><tbody>
+  <div class="rolagem"><table class="tab-edit"><thead><tr><th style="width:34px">#</th><th>Pergunta</th><th style="width:190px">Tipo</th><th>Alternativas / itens (um por linha)</th><th style="width:130px">Fase do ciclo de vida</th><th style="width:96px">Escala</th><th style="width:70px">Analisar</th><th style="width:70px">Gráfico</th><th class="acoes" style="width:90px"></th></tr></thead><tbody>
   ${f.perguntas.map((p, i) => {
     const bp = `${bf}.perguntas.${i}`;
     const lista = p.tipo === 'grade' ? p.itens.map((x) => x.texto).join('\n') : p.opcoes.join('\n');
     const usaLista = ['grade', 'escolha', 'caixas'].includes(p.tipo);
     const usaEscala = p.tipo === 'grade' ? !p.opcoes.length : p.tipo === 'escala';
-    return `<tr><td>P${i + 1}</td><td>${c(bp + '.texto', '', { tipo: 'textarea', linhas: 2 })}</td>
+    const temGraf = ['escolha', 'caixas', 'escala', 'grade'].includes(p.tipo);
+    return `<tr><td>P${i + 1}</td><td>${c(bp + '.texto', '', { tipo: 'textarea', linhas: 2 })}${temGraf && p.grafico ? c(bp + '.rotulo', '', { ph: 'título da figura: ' + Formulario.tituloGrafico(p) }) : ''}</td>
       <td>${c(bp + '.tipo', '', { tipo: 'select', render: true, opcoes: Formulario.TIPOS })}</td>
       <td>${usaLista ? `<textarea rows="3" data-form-lista="${p.tipo === 'grade' ? 'itens' : 'opcoes'}" data-i="${i}" placeholder="${p.tipo === 'grade' ? 'um item por linha' : 'uma alternativa por linha'}">${esc(lista)}</textarea>` : '<span class="muted">—</span>'}</td>
       <td>${c(bp + '.fase', '')}</td>
       <td>${usaEscala ? `<span class="muted">${p.escala.min} a ${p.escala.max}</span>${c(bp + '.escala.invertida', `${p.escala.min} = mais importante`, { tipo: 'checkbox', classe: 'rec' })}` : ''}</td>
       <td class="centro">${c(bp + '.analisar', '', { tipo: 'checkbox' })}</td>
+      <td class="centro">${temGraf ? c(bp + '.grafico', '', { tipo: 'checkbox', render: true }) : ''}</td>
       <td class="acoes"><button class="btn pequeno" data-acao="mover" data-lista="${bf}.perguntas" data-i="${i}" data-d="-1" title="Subir">↑</button><button class="btn pequeno" data-acao="mover" data-lista="${bf}.perguntas" data-i="${i}" data-d="1" title="Descer">↓</button><button class="btn pequeno perigo" data-acao="form-rem-pergunta" data-i="${i}" title="Excluir">✕</button></td></tr>`;
   }).join('')}</tbody></table></div>
   <div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="${bf}.perguntas" data-novo="perguntaForm">+ Pergunta</button></div></details>`;
+
+  // destaques (frases para o relatório)
+  h += `<details class="form-det" data-det="destaques" ${App.formAberto.destaques ? 'open' : ''}><summary>Destaques para o relatório (${f.destaques.filter((d) => d.incluir).length}) — frases com os principais resultados</summary>
+  <p class="muted" style="margin-top:4px">Geradas a partir das respostas (alternativa mais citada, item mais importante…) e editáveis. Entram em “Principais resultados” no documento e no bloco do questionário. Sem destaques salvos, o relatório usa os gerados na hora.</p>
+  <div class="barra"><button class="btn pequeno" data-acao="form-destaques">↻ Gerar destaques a partir das respostas</button></div>
+  ${f.destaques.length ? `<table class="tab-edit"><tbody>${f.destaques.map((d, i) => `<tr><td style="width:60px" class="centro">${c(`${bf}.destaques.${i}.incluir`, '', { tipo: 'checkbox' })}</td>
+    <td>${c(`${bf}.destaques.${i}.texto`, '', { tipo: 'textarea', linhas: 2 })}</td>
+    <td class="acoes"><button class="btn pequeno perigo" data-acao="rem-linha" data-lista="${bf}.destaques" data-i="${i}">✕</button></td></tr>`).join('')}</tbody></table>` : '<p class="vazio">Nenhum destaque salvo.</p>'}
+  </details>`;
 
   // respondentes (montado só quando aberto: pode ter centenas de campos)
   h += `<details class="form-det" data-det="respostas" ${App.formAberto.respostas ? 'open' : ''}><summary>Respondentes (${temR}) — editar ou excluir respostas</summary>`;
@@ -444,6 +566,13 @@ App.acoes['form-rem-pergunta'] = (el) => {
   f.perguntas.splice(+el.dataset.i, 1);
   App.marcarSujo(true); App.render();
 };
+App.acoes['form-destaques'] = () => {
+  const f = App.p.produto.etapas.informacional.formulario;
+  if (f.destaques.length && !confirm(`Substituir os ${f.destaques.length} destaque(s) atuais (inclusive os editados) pelos gerados agora?`)) return;
+  f.destaques = Formulario.gerarDestaques(f); App.formAberto.destaques = true;
+  App.marcarSujo(true); App.render();
+  App.toast(`${f.destaques.length} destaque(s) gerado(s). Revise o texto antes de usar no relatório.`, 'ok');
+};
 App.acoes['form-consolidar'] = () => {
   const e = App.p.produto.etapas.informacional, l = Formulario.consolidar(e.formulario);
   if (!l.length) { App.toast('Nenhuma pergunta de escala/grade com respostas numéricas para consolidar.', 'aviso'); return; }
@@ -459,8 +588,6 @@ App.acoes['form-pdf'] = async () => {
 };
 
 // ================================================================== PDF
-const fPct = (n, d) => (d ? Math.round(n / d * 1000) / 10 : 0).toString().replace('.', ',') + '%';
-const fDec = (x) => (x === null || x === undefined ? '—' : (Math.round(x * 100) / 100).toString().replace('.', ','));
 
 /**
  * Conteúdo do documento do questionário (também usado no bloco da macroentrega).
@@ -477,6 +604,11 @@ Pdf.blocoQuestionario = function (p, partes, ctx) {
       ['Período', an.periodo ? `${Nucleo.dataBR(an.periodo[0])} a ${Nucleo.dataBR(an.periodo[1])}` : '—'], ['Respondentes', String(an.n)],
       ['Perguntas', `${f.perguntas.length} (${an.analisadas.length} analisadas; dados de identificação não são reproduzidos)`]]));
   }
+  if (partes.includes('destaques')) {
+    const ds = f.destaques.length ? f.destaques : Formulario.gerarDestaques(f); // sem destaques editados: gera na hora
+    const l = ds.filter((d) => d.incluir && String(d.texto).trim()).map((d) => ({ text: Nucleo.mdInline(d.texto).map((t) => (t.b || t.i ? { text: t.t, bold: t.b, italics: t.i } : t.t)) }));
+    if (l.length) c.push(ctx.h('Principais resultados'), { ul: l, style: 'corpo', margin: [0, 0, 0, 6] });
+  }
   if (partes.includes('roteiro')) {
     c.push(ctx.h('Roteiro aplicado'));
     let fase = null;
@@ -486,6 +618,19 @@ Pdf.blocoQuestionario = function (p, partes, ctx) {
       const esc0 = (q.tipo === 'escala' || (q.tipo === 'grade' && !q.opcoes.length)) ? ` (escala de ${q.escala.min} a ${q.escala.max}${q.escala.invertida ? `; ${q.escala.min} = mais importante` : ''})` : '';
       c.push({ stack: [{ text: [{ text: `P${i + 1}. `, bold: true }, q.texto, { text: `  — ${Formulario.TIPOS.find(([t]) => t === q.tipo)[1].split(' (')[0].toLowerCase()}${esc0}`, color: COR.suave, fontSize: 8.5 }], style: 'corpo' },
         ...(det.length ? [{ ul: det, fontSize: 8.8, color: COR.texto, margin: [10, 1, 0, 0] }] : [])], margin: [0, 2, 0, 3], unbreakable: det.length < 12 });
+    });
+  }
+  if (partes.includes('graficos')) {
+    const qs = Formulario.perguntasGrafico(f);
+    let local = 0;
+    qs.forEach((q, k) => {
+      const x = an.perguntas.find((y) => y.p === q);
+      const n = (ctx.num && ctx.num.fig[`qg_${ctx.blocoId}_${q.id}`]) || ++local;
+      const leg = { text: `Figura ${n} – ${Formulario.tituloGrafico(q)}`, style: 'legenda' };
+      if (ctx.tocFig) { leg.tocItem = ctx.tocFig; leg.tocStyle = { fontSize: 9.5 }; }
+      c.push({ stack: [...(k ? [] : [ctx.h('Gráficos das respostas')]), leg, { text: `P${x.num}. ${q.texto}`, style: 'muted', alignment: 'center', margin: [0, 0, 0, 3] },
+        { svg: Formulario.graficoSvg(x), width: Math.min(larg, 440), alignment: 'center' },
+        { text: fonteAbnt(`Elaborado pelos autores com dados do questionário (${new Date().getFullYear()})`), style: 'fonte' }], unbreakable: true, margin: [0, 6, 0, 10] });
     });
   }
   if (partes.includes('resultados')) {
@@ -547,7 +692,7 @@ Pdf.questionarioFormulario = function (p) {
   let primeira = true;
   const h = (t) => { const r = { stack: h1(t, primeira) }; primeira = false; return r; };
   const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' },
-    ...Pdf.blocoQuestionario(p, ['identificacao', 'roteiro', 'resultados', 'consolidacao'], { h }),
+    ...Pdf.blocoQuestionario(p, ['identificacao', 'destaques', 'roteiro', 'graficos', 'resultados', 'consolidacao'], { h }),
     { text: 'Base: levantamento de necessidades por fase do ciclo de vida no projeto informacional. ' + NEDIP_REF, style: 'muted', margin: [0, 10, 0, 0] }];
   const f = p.produto.etapas.informacional.formulario;
   return Pdf.documento(p, 'QUESTIONÁRIO', 'RESULTADOS', 'Questionário – resultados', c, `Projeto informacional · ${f.titulo || p.projeto.nome}`);

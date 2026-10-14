@@ -43,7 +43,7 @@ ${App.tabela('projeto.aditivos', [
   ${c('projeto.introducao', 'Introdução (contextualização do projeto)', { tipo: 'textarea', classe: 'largo', linhas: 7 })}
   ${c('projeto.objetivoGeral', 'Objetivo geral do projeto', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
 </div>
-<p class="muted">Dicas de texto: deixe uma linha em branco entre parágrafos; linhas iniciadas por "- " viram lista; <b>**negrito**</b>; cite figuras e tabelas com <span class="marcador">{{fig:fig_001}}</span> e <span class="marcador">{{tab:tab_001}}</span>.</p></div>`;
+<p class="muted">Dicas de texto: deixe uma linha em branco entre parágrafos; linhas iniciadas por "- " ou "1. " viram lista; "# " vira título; <b>**negrito**</b>; <i>*itálico*</i>; cite figuras e tabelas com <span class="marcador">{{fig:fig_001}}</span> e <span class="marcador">{{tab:tab_001}}</span>.</p></div>`;
   },
   analise() {
     const an = App.an, el = $('#painelKpi');

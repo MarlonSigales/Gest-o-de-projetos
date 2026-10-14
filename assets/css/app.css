@@ -296,3 +296,10 @@ label.btn { position: relative; }
 .qfd-int th.centro, .qfd-int td.centro { text-align: center; width: 92px; }
 .qfd-int tr.indisp td { background: #fbf7f6; }
 .qfd-int input[type=checkbox] { width: 18px; height: 18px; }
+
+/* relatórios intermediários e prévia do diagrama de funções */
+.rel-editor { border: 1px solid #b9dcd2; background: #f6fbf9; border-radius: var(--raio); padding: 12px 14px; margin-top: 10px; }
+tr.sel td { background: #eef7f4; }
+.nd-previa { overflow-x: auto; background: #fff; padding: 8px; }
+.nd-previa svg { max-width: 100%; height: auto; }
+.nb-h { margin: 8px 0 4px; color: var(--escuro); }
