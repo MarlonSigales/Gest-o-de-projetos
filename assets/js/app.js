@@ -332,7 +332,7 @@ App.acoes['carregar-exemplo'] = async () => {
   const txt = JSON.stringify(Nucleo.normalizar(ex), null, 2);
   await arm.gravarProjeto(ex, txt);
   await App.abrirNavegador(ex.id);
-  App.toast('Exemplo fictício (roda de bicicleta 700c) copiado para o navegador. Pessoas, empresa e resultados são ilustrativos.', 'ok');
+  App.toast('Exemplo fictício (roda de bicicleta 700c) copiado para o navegador. Pessoas, empresa e resultados são ilustrativos. Siga o “Guia do exemplo” na aba Projeto.', 'ok', 9000);
 };
 
 // ------------------------------------------------------------------ salvar

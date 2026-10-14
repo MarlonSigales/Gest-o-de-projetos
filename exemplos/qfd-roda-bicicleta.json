@@ -567,10 +567,195 @@
         "id": "nosso",
         "nome": "Nosso produto",
         "tipo": "nosso"
+      },
+      {
+        "id": "c_alfa",
+        "nome": "Roda Alfa",
+        "tipo": "concorrente"
+      },
+      {
+        "id": "c_beta",
+        "nome": "Roda Beta",
+        "tipo": "concorrente"
+      },
+      {
+        "id": "c_gama",
+        "nome": "Wheel Gamma",
+        "tipo": "concorrente"
       }
     ],
-    "notasCliente": [],
-    "metasCliente": [],
+    "notasCliente": [
+      {
+        "requisitoClienteId": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+        "produtoId": "nosso",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+        "produtoId": "c_alfa",
+        "nota": 2
+      },
+      {
+        "requisitoClienteId": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+        "produtoId": "c_beta",
+        "nota": 2
+      },
+      {
+        "requisitoClienteId": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+        "produtoId": "c_gama",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+        "produtoId": "nosso",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+        "produtoId": "c_alfa",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+        "produtoId": "c_beta",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+        "produtoId": "c_gama",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "77d608fb-5129-444d-832c-a621d9839962",
+        "produtoId": "nosso",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "77d608fb-5129-444d-832c-a621d9839962",
+        "produtoId": "c_alfa",
+        "nota": 2
+      },
+      {
+        "requisitoClienteId": "77d608fb-5129-444d-832c-a621d9839962",
+        "produtoId": "c_beta",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "77d608fb-5129-444d-832c-a621d9839962",
+        "produtoId": "c_gama",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+        "produtoId": "nosso",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+        "produtoId": "c_alfa",
+        "nota": 2
+      },
+      {
+        "requisitoClienteId": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+        "produtoId": "c_beta",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+        "produtoId": "c_gama",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+        "produtoId": "nosso",
+        "nota": 4
+      },
+      {
+        "requisitoClienteId": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+        "produtoId": "c_alfa",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+        "produtoId": "c_beta",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+        "produtoId": "c_gama",
+        "nota": 2
+      },
+      {
+        "requisitoClienteId": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+        "produtoId": "nosso",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+        "produtoId": "c_alfa",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+        "produtoId": "c_beta",
+        "nota": 3
+      },
+      {
+        "requisitoClienteId": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+        "produtoId": "c_gama",
+        "nota": 1
+      },
+      {
+        "requisitoClienteId": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+        "produtoId": "nosso",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+        "produtoId": "c_alfa",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+        "produtoId": "c_beta",
+        "nota": 5
+      },
+      {
+        "requisitoClienteId": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+        "produtoId": "c_gama",
+        "nota": 3
+      }
+    ],
+    "metasCliente": [
+      {
+        "requisitoClienteId": "279d5930-d91a-41fe-92a9-6eaef2cd297f",
+        "meta": 5
+      },
+      {
+        "requisitoClienteId": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
+        "meta": 5
+      },
+      {
+        "requisitoClienteId": "77d608fb-5129-444d-832c-a621d9839962",
+        "meta": 4
+      },
+      {
+        "requisitoClienteId": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
+        "meta": 4
+      },
+      {
+        "requisitoClienteId": "b61d809a-67e0-4b70-a011-6f645a9b1893",
+        "meta": 4
+      },
+      {
+        "requisitoClienteId": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
+        "meta": 4
+      },
+      {
+        "requisitoClienteId": "249fa77e-a54a-4089-9ec8-af042f06f44d",
+        "meta": 5
+      }
+    ],
     "valoresTecnicos": [
       {
         "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
@@ -616,6 +801,156 @@
         "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
         "produtoId": "nosso",
         "valor": "19"
+      },
+      {
+        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+        "produtoId": "c_alfa",
+        "valor": "1220"
+      },
+      {
+        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+        "produtoId": "c_beta",
+        "valor": "1250"
+      },
+      {
+        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+        "produtoId": "c_gama",
+        "valor": "980"
+      },
+      {
+        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+        "produtoId": "c_alfa",
+        "valor": "1200"
+      },
+      {
+        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+        "produtoId": "c_beta",
+        "valor": "1450"
+      },
+      {
+        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+        "produtoId": "c_gama",
+        "valor": "1100"
+      },
+      {
+        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+        "produtoId": "c_alfa",
+        "valor": "150000"
+      },
+      {
+        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+        "produtoId": "c_beta",
+        "valor": "180000"
+      },
+      {
+        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+        "produtoId": "c_gama",
+        "valor": "120000"
+      },
+      {
+        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+        "produtoId": "c_alfa",
+        "valor": "0,6"
+      },
+      {
+        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+        "produtoId": "c_beta",
+        "valor": "0,5"
+      },
+      {
+        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+        "produtoId": "c_gama",
+        "valor": "0,5"
+      },
+      {
+        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+        "produtoId": "c_alfa",
+        "valor": "0,7"
+      },
+      {
+        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+        "produtoId": "c_beta",
+        "valor": "0,5"
+      },
+      {
+        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+        "produtoId": "c_gama",
+        "valor": "0,6"
+      },
+      {
+        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+        "produtoId": "c_alfa",
+        "valor": "18"
+      },
+      {
+        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+        "produtoId": "c_beta",
+        "valor": "12"
+      },
+      {
+        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+        "produtoId": "c_gama",
+        "valor": "15"
+      },
+      {
+        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+        "produtoId": "c_alfa",
+        "valor": "280"
+      },
+      {
+        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+        "produtoId": "c_beta",
+        "valor": "420"
+      },
+      {
+        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+        "produtoId": "c_gama",
+        "valor": "900"
+      },
+      {
+        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+        "produtoId": "c_alfa",
+        "valor": "20"
+      },
+      {
+        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+        "produtoId": "c_beta",
+        "valor": "18"
+      },
+      {
+        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+        "produtoId": "c_gama",
+        "valor": "30"
+      },
+      {
+        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+        "produtoId": "c_alfa",
+        "valor": "17"
+      },
+      {
+        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+        "produtoId": "c_beta",
+        "valor": "19"
+      },
+      {
+        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+        "produtoId": "c_gama",
+        "valor": "17"
+      },
+      {
+        "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+        "produtoId": "c_alfa",
+        "valor": "48"
+      },
+      {
+        "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+        "produtoId": "c_beta",
+        "valor": "72"
+      },
+      {
+        "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+        "produtoId": "c_gama",
+        "valor": "96"
       }
     ]
   },

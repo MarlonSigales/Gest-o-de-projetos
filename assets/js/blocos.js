@@ -350,9 +350,14 @@ Pdf.blocos = function (p, m, num, imgs, ctx = {}) {
   const hBloco = (t) => ({ text: t, fontSize: 10.5, bold: true, color: COR.escuro, margin: [0, 10, 0, 4] });
   const hSub = (t) => ({ text: t, fontSize: 10, bold: true, color: COR.teal, margin: [0, 8, 0, 3] });
   const tocFig = ctx.toc && ctx.toc.fig;
-  const out = [];
+  const saida = [];
+  let titulos = []; // títulos esperando o próximo conteúdo (não ficam sozinhos no fim da página)
+  const out = { push: (...nos) => {
+    if (titulos.length && nos.length && !nos[0].pageBreak) { saida.push({ stack: [...titulos, nos[0]], unbreakable: true }, ...nos.slice(1)); titulos = []; return; }
+    saida.push(...titulos, ...nos); titulos = [];
+  } };
   (m.blocos || []).forEach((b, i) => {
-    if (b.tipo === 'titulo') { if (b.titulo) out.push(Object.assign({ text: `${numerar ? tit[b.id] + ' ' : ''}${b.titulo}` }, estiloT[b.nivel])); return; }
+    if (b.tipo === 'titulo') { if (b.titulo) titulos.push(Object.assign({ text: `${numerar ? tit[b.id] + ' ' : ''}${b.titulo}` }, estiloT[b.nivel])); return; }
     if (b.tipo === 'texto') { out.push(...Pdf.texto(b.texto, num)); return; }
     if (b.tipo === 'figura') { const f = m.figuras.find((x) => x.id === b.ref); if (f) out.push(Pdf.figura(f, num.fig[f.id], imgs, tocFig)); return; }
     if (b.tipo === 'tabela') {
@@ -377,5 +382,6 @@ Pdf.blocos = function (p, m, num, imgs, ctx = {}) {
     if (b.tipo === 'questionario') { if (b.partes.length) out.push(hBloco(b.titulo), ...Pdf.blocoQuestionario(p, b.partes, { h: hSub, recuo: ctx.recuo || 0, num, blocoId: b.id, tocFig })); return; }
     if (b.tipo === 'quebra' && i < m.blocos.length - 1) out.push({ text: '', pageBreak: 'after' });
   });
-  return out;
+  saida.push(...titulos);
+  return saida;
 };

@@ -303,3 +303,9 @@ tr.sel td { background: #eef7f4; }
 .nd-previa { overflow-x: auto; background: #fff; padding: 8px; }
 .nd-previa svg { max-width: 100%; height: auto; }
 .nb-h { margin: 8px 0 4px; color: var(--escuro); }
+
+/* guia do exemplo */
+.guia-exemplo { border-left: 5px solid var(--lima); background: #fbfdf6; }
+.guia-passos { margin: 6px 0 0; padding-left: 22px; }
+.guia-passos li { margin: 6px 0; }
+.guia-passos .btn { min-width: 210px; text-align: left; margin-right: 6px; }

@@ -2412,6 +2412,10 @@
         "null"
       ],
       "description": "Backup completo do sistema QFD (requisitosCliente, requisitosProjeto, comparacaoCliente, correlacaoProjeto, matrizQFD, especificacoesProjeto, avaliacaoCompetitiva, metadata). Base do relatório da casa da qualidade nas macroentregas e no relatório geral."
+    },
+    "exemplo": {
+      "type": "boolean",
+      "description": "projeto de exemplo: mostra o \"Guia do exemplo\" na aba Projeto"
     }
   }
 }

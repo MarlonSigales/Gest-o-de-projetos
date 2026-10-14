@@ -84,7 +84,16 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 
 **Primeira abertura:** o sistema exige **nome** (registrado no log) e **e-mail**. Esse e-mail entra automaticamente no **grupo de gestão** de qualquer projeto aberto ou criado que ainda não tenha ninguém na gestão (quando o projeto já tem gestão, nada muda). Para trocar, use ⚙.
 
-**Exemplo:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício completo — roda dianteira 700c, 5 macroentregas (concluídas, em andamento e planejada), 8 figuras, 5 tabelas, cronograma, riscos, TRL por critérios, DfX, lições, qualidade importada do QFD com PDCA e as **quatro fases NeDIP** preenchidas (questionários, estrutura de funções, concepções, protótipos, lista de materiais e conteúdo do manual de uso — gere os manuais no projeto detalhado). Ele também traz o **questionário do Google Forms** com 24 respostas e, na macroentrega 1, o **desenvolvimento em blocos** com o documento do questionário e a **análise QFD**. Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). O backup do QFD está em `exemplos/qfd-roda-bicicleta.json` (importável no sistema QFD) e o CSV do Forms em `exemplos/questionario-roda-google-forms.csv`.
+**Exemplo para aprender:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício que usa **todos os recursos** do sistema, e a aba Projeto mostra o **🎓 Guia do exemplo**: um roteiro com o que olhar em cada aba e um botão que leva direto ao recurso. O guia pode ser ocultado. O exemplo traz:
+- vigência com termo aditivo, equipe, grupos de e-mail, interessados e áreas ligadas à árvore TRL;
+- 5 macroentregas em situações diferentes: aceitas, concluída aguardando o aceite, em andamento e planejada;
+- desenvolvimento em blocos com todos os tipos (capítulo, subcapítulo, seção, texto, figura, tabela, QFD, projeto do produto, questionário e quebra de página) e um **relatório de andamento intermediário** na macroentrega em andamento;
+- questionário do Google Forms com 24 respostas e todos os tipos de pergunta (escolha, caixas, escala, grade, aberta, identificação), gráficos e destaques;
+- QFD completo, com avaliação competitiva de 3 concorrentes;
+- as fases NeDIP preenchidas, com o diagrama de funções, FMEA, lista de materiais e manuais;
+- cronograma com dependências e uma atividade atrasada, riscos, especificação manual, PDCA, DfX (inclusive um criado pela equipe), TRL por critérios e lições aprendidas.
+
+Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). O backup do QFD está em `exemplos/qfd-roda-bicicleta.json` e o CSV do Forms em `exemplos/questionario-roda-google-forms.csv`.
 
 | Aba | Conteúdo |
 |---|---|
@@ -280,6 +289,7 @@ assets/js/qfd.js            relatório da casa da qualidade a partir do backup d
 assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF
 assets/js/nedip_relatorio.js projeto de produto nos relatórios; diagrama da estrutura de funções
 assets/js/intermediarios.js relatórios de andamento entre macroentregas
+assets/js/guia_exemplo.js   guia do exemplo (roteiro de aprendizado na aba Projeto)
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD

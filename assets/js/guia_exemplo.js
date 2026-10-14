@@ -1,0 +1,45 @@
+/*
+ * Guia do exemplo: no projeto de exemplo (roda de bicicleta), a aba Projeto mostra um roteiro para quem está
+ * começando — o que olhar em cada aba, com um botão que leva direto ao recurso. Some com "Ocultar o guia".
+ */
+'use strict';
+
+/** [título, explicação, destino {aba, etapa?, macro?, rel?}] */
+App.GUIA_EXEMPLO = [
+  ['Projeto', 'Vigência com termo aditivo, painel de andamento e textos comuns aos relatórios (com listas e negrito).', { aba: 'projeto' }],
+  ['Equipe e interessados', 'Grupos de e-mail: a gestão recebe o ZIP completo; os demais, os PDFs e o JSON.', { aba: 'equipe' }],
+  ['Áreas e responsáveis', 'Cada área ligada a um item da árvore TRL; quem deve ser cobrado quando o TRL estiver baixo.', { aba: 'areas' }],
+  ['Projeto informacional', 'Questionário do Google Forms (CSV importado, perguntas editáveis, gráficos e destaques), QFD completo com avaliação competitiva, concorrentes e normas em tabela.', { aba: 'produto', etapa: 'informacional' }],
+  ['Projeto conceitual', 'Função global e estrutura de funções → diagrama desenhado pelo sistema; concepções e matriz de decisão.', { aba: 'produto', etapa: 'conceitual' }],
+  ['Projeto preliminar e detalhado', 'Protótipos, FMEA (críticos viram riscos), lista de materiais e manuais de projeto e de uso.', { aba: 'produto', etapa: 'preliminar' }],
+  ['Macroentrega 1', 'Desenvolvimento em blocos: questionário, contexto do produto e análise QFD. Aceite registrado.', { aba: 'macros', macro: 0 }],
+  ['Macroentrega 2', 'Bloco “Projeto do produto” com o diagrama de funções; figura na Introdução do relatório.', { aba: 'macros', macro: 1 }],
+  ['Macroentrega 3', 'Concluída, mas ainda sem o aceite da empresa (o termo sai em branco para assinar).', { aba: 'macros', macro: 2 }],
+  ['Macroentrega 4 (em andamento)', 'Blocos com capítulo, subcapítulo, seção, figura, tabela e quebra de página; um relatório de andamento intermediário (pré-macroentrega).', { aba: 'macros', macro: 3, rel: true }],
+  ['Cronograma', 'Gantt com caminho crítico, dependências e uma atividade atrasada (gera alerta).', { aba: 'cronograma' }],
+  ['Riscos', 'Matriz probabilidade × impacto; riscos abertos, monitorados e fechados.', { aba: 'riscos' }],
+  ['Qualidade / DfX', 'Especificações do QFD e uma manual; não conformidade com PDCA; diretrizes DfX, inclusive uma criada pela equipe.', { aba: 'qualidade' }],
+  ['TRL', 'Árvore do produto avaliada por critérios, com histórico das mudanças.', { aba: 'trl' }],
+  ['Lições aprendidas', 'Registro por macroentrega.', { aba: 'licoes' }],
+  ['Relatórios e exportação', 'Gere o relatório geral, o de cada macroentrega e exporte o ZIP. Os PDFs mostram tudo o que foi visto acima.', { aba: 'relatorios' }],
+];
+
+App.guiaExemploHtml = function () {
+  if (!App.p || !App.p.exemplo) return '';
+  return `<div class="cartao guia-exemplo"><div class="barra" style="justify-content:space-between;margin-top:0"><h3 style="margin:0">🎓 Guia do exemplo</h3>
+    <button class="btn pequeno" data-acao="guia-ocultar" title="Ocultar o guia neste projeto">Ocultar o guia</button></div>
+  <p class="muted">Este projeto é fictício e usa todos os recursos do sistema. Siga os passos abaixo; cada botão leva ao lugar certo. Depois, gere os PDFs para ver como cada coisa aparece nos relatórios.</p>
+  <ol class="guia-passos">${App.GUIA_EXEMPLO.map(([t, d], i) => `<li><button class="btn pequeno" data-acao="guia-ir" data-i="${i}">${esc(t)}</button> <span>${esc(d)}</span></li>`).join('')}</ol></div>`;
+};
+App.acoes['guia-ir'] = (el) => {
+  const [, , d] = App.GUIA_EXEMPLO[+el.dataset.i];
+  App.aba = d.aba;
+  if (d.etapa) App.etapaSel = d.etapa;
+  if (d.macro !== undefined) App.macroSel = Math.min(d.macro, App.p.macroentregas.length - 1);
+  if (d.rel) { const m = App.p.macroentregas[App.macroSel]; App.relAberto = m && m.relatorios[0] ? m.relatorios[0].id : null; }
+  App.render(); window.scrollTo(0, 0);
+};
+App.acoes['guia-ocultar'] = () => {
+  if (!confirm('Ocultar o guia do exemplo neste projeto? (Para ver de novo, abra o exemplo outra vez em 📂 Projetos.)')) return;
+  App.p.exemplo = false; App.marcarSujo(true); App.render();
+};

@@ -601,7 +601,7 @@ const recsAplicadas = (p, et) => { const e = p.produto.etapas[et.id]; return et.
 
 Pdf.manualProjeto = async function (p, armazem) {
   const pj = p.projeto, pr = p.produto, E = pr.etapas, an = Nucleo.analisar(p);
-  const num = Nucleo.numerar(p, p.macroentregas);
+  const num = Nucleo.numerarAbnt(p.macroentregas); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
   const imgs = await Pdf.carregarFiguras(p, armazem);
   const { h1, h2 } = secoesNumeradas();
   const nomeMacro = (u) => { const i = p.macroentregas.findIndex((m) => m.uid === u); return i >= 0 ? `${i + 1} – ${p.macroentregas[i].titulo}` : ''; };
@@ -743,7 +743,7 @@ Pdf.manualUso = async function (p) {
   const pj = p.projeto, e = p.produto.etapas.detalhado, mu = e.manualUso;
   const { h1 } = secoesNumeradas();
   const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
-  const num = Nucleo.numerar(p, p.macroentregas);
+  const num = Nucleo.numerarAbnt(p.macroentregas); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
   let primeira = true;
   NEDIP_MANUAL_USO.forEach(([k, rot]) => {
     if (!String(mu[k] || '').trim()) return;
