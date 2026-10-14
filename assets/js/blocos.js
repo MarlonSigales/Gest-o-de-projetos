@@ -9,7 +9,8 @@
 
 App.blocoEdit = new Set(); // blocos abertos para edição (não vai para o JSON)
 App.BLOCOS_MENU = [['texto', '¶ Texto'], ['titulo:1', 'Capítulo'], ['titulo:2', 'Subcapítulo'], ['titulo:3', 'Seção'], ['figura', '🖼 Figura'],
-  ['tabela', '▦ Tabela'], ['qfd', '🏠 Dados do QFD'], ['nedip', '🛠 Projeto do produto'], ['questionario', '📋 Questionário'], ['quebra', '⤓ Quebra de página']];
+  ['tabela', '▦ Tabela'], ['qfd', '🏠 Dados do QFD'], ['nedip', '🛠 Projeto do produto'], ['questionario', '📋 Questionário'], ['pesquisa', '📚 Pesquisa'], ['quebra', '⤓ Quebra de página']];
+App.PARTES_PESQ = [['estrategia', 'Estratégia de busca'], ['patentes', 'Tabela de patentes'], ['sintese', 'Síntese (domínio público × vigentes)']];
 App.NIVEIS = [[1, 'Capítulo'], [2, 'Subcapítulo'], [3, 'Seção']];
 App.PARTES_QUEST = [['identificacao', 'Identificação da pesquisa'], ['destaques', 'Principais resultados (destaques)'], ['roteiro', 'Roteiro aplicado'],
   ['graficos', 'Gráficos das respostas (figuras)'], ['resultados', 'Resultados por pergunta (tabelas)'], ['consolidacao', 'Necessidades consolidadas']];
@@ -57,7 +58,7 @@ const dl = (x) => `data-mi="${x.mi}" data-lp="${esc(x.lp)}"`;
 App.blocoInserirHtml = (x, pos, fixo) => `<div class="nb-inserir ${fixo ? 'fixo' : ''}"><span class="nb-linha"></span><div class="nb-botoes">${App.BLOCOS_MENU.map(([t, r]) =>
   `<button class="btn pequeno" data-acao="bloco-add" ${dl(x)} data-pos="${pos}" data-tipo="${t}">+ ${r}</button>`).join('')}</div><span class="nb-linha"></span></div>`;
 
-const ROTULO_BLOCO = { texto: 'Texto', titulo: 'Título', figura: 'Figura', tabela: 'Tabela', qfd: 'Dados do QFD', nedip: 'Projeto do produto', questionario: 'Questionário', quebra: 'Quebra de página' };
+const ROTULO_BLOCO = { texto: 'Texto', titulo: 'Título', figura: 'Figura', tabela: 'Tabela', qfd: 'Dados do QFD', nedip: 'Projeto do produto', questionario: 'Questionário', pesquisa: 'Pesquisa (anterioridade)', quebra: 'Quebra de página' };
 
 App.blocoHtml = function (x, i) {
   const b = x.bl[i], ed = App.blocoEdit.has(b.id), bp = `${x.lp}.${i}`;
@@ -112,6 +113,12 @@ App.blocoPrevia = function (x, b) {
         <ul>${b.partes.map((s) => `<li>${esc((App.PARTES_QUEST.find(([k]) => k === s) || [, s])[1])}</li>`).join('') || '<li class="vazio">Nenhuma parte escolhida.</li>'}</ul>
         ${f.respostas.length ? '' : irInformacional('Importar as respostas')}</div>`;
     }
+    case 'pesquisa': {
+      const pq = App.p.pesquisa;
+      return `<div class="nb-resumo"><b>${esc(b.titulo)}</b> <span class="muted">· ${pq.patentes.length} patente(s)</span>
+        <ul>${b.partes.map((s) => `<li>${esc((App.PARTES_PESQ.find(([k]) => k === s) || [, s])[1])}</li>`).join('') || '<li class="vazio">Nenhuma parte escolhida.</li>'}</ul>
+        ${pq.patentes.length || pzTxt(pq.estrategia.palavras) ? '' : '<div class="aviso-box">Nenhuma busca registrada. <button class="btn pequeno primario" data-acao="ir-aba" data-aba="pesquisa">Ir à aba Pesquisa</button></div>'}</div>`;
+    }
     case 'quebra': return '<div class="nb-quebra">— nova página no PDF —</div>';
     default: return '';
   }
@@ -129,7 +136,7 @@ App.blocoEditor = function (x, b, bp) {
       ${c(bp + '.nivel', 'Nível', { tipo: 'select', render: true, opcoes: App.NIVEIS })}</div>`;
     case 'texto': return `<div class="barra nb-fmt"><button class="btn pequeno" data-acao="txt-fmt" data-f="negrito" data-id="${esc(b.id)}" title="Negrito"><b>B</b></button>
       <button class="btn pequeno" data-acao="txt-fmt" data-f="lista" data-id="${esc(b.id)}">• Lista</button>
-      ${App.opcoesReferencias(m, num).length ? `<select data-ref-texto="${esc(b.id)}"><option value="">Citar figura/tabela…</option>${App.opcoes(App.opcoesReferencias(m, num), '')}</select>` : ''}
+      ${App.opcoesReferencias(m, num).length ? `<select data-ref-texto="${esc(b.id)}"><option value="">Citar figura, tabela ou referência…</option>${App.opcoes(App.opcoesReferencias(m, num), '')}</select>` : ''}
       <span class="muted">linha em branco = novo parágrafo · “- ” ou “1.” = lista · # título · **negrito** · *itálico*</span></div>
       ${c(bp + '.texto', '', { tipo: 'textarea', linhas: 8, attrs: `data-foco="1" id="txt_${esc(b.id)}"` })}`;
     case 'figura': {
@@ -163,6 +170,8 @@ App.blocoEditor = function (x, b, bp) {
         ${caixasLista(x, b, 'partes', App.PARTES_QUEST)}
         <p class="muted">Quais perguntas viram gráfico e o título de cada figura: no questionário (projeto informacional), colunas “Gráfico” e “título da figura”.</p>`;
     }
+    case 'pesquisa': return `${c(bp + '.titulo', 'Título do bloco', { attrs: 'data-foco="1"' })}${caixasLista(x, b, 'partes', App.PARTES_PESQ)}
+        <div class="barra"><button class="btn pequeno" data-acao="ir-aba" data-aba="pesquisa">Editar a busca na aba Pesquisa</button></div>`;
     default: return '';
   }
 };
@@ -171,7 +180,8 @@ const caxasQfd = (x, b, a) => caixasLista(x, b, 'secoes', Qfd.SECOES, (s) => { c
 App.opcoesReferencias = (m, num) => {
   num = num || Nucleo.numerar(App.p, [m]);
   return m.figuras.filter((f) => num.fig[f.id]).map((f) => [`{{fig:${f.id}}}`, `Figura ${num.fig[f.id]} – ${f.titulo || f.id}`])
-    .concat(m.tabelas.filter((t) => num.tab[t.id]).map((t) => [`{{tab:${t.id}}}`, `Tabela ${num.tab[t.id]} – ${t.titulo || t.id}`]));
+    .concat(m.tabelas.filter((t) => num.tab[t.id]).map((t) => [`{{tab:${t.id}}}`, `Tabela ${num.tab[t.id]} – ${t.titulo || t.id}`]))
+    .concat((App.p.pesquisa ? App.p.pesquisa.referencias : []).map((r) => [`{{ref:${r.id}}}`, `Referência ${Pesquisa.citacao(r)} – ${fCurto(r.titulo, 50)}`]));
 };
 
 /** Editor de uma tabela (o mesmo da lista de tabelas, para usar dentro do bloco). */
@@ -258,7 +268,7 @@ App.acoes['bloco-excluir'] = async (el) => {
 App.acoes['bloco-lista'] = (el) => {
   const b = blocoAchar(el, el.dataset.id), campo = el.dataset.campo;
   if (!b) return;
-  const ordem = (campo === 'partes' ? App.PARTES_QUEST : b.tipo === 'nedip' ? NedipRel.SECOES : Qfd.SECOES).map(([s]) => s);
+  const ordem = (campo === 'partes' ? (b.tipo === 'pesquisa' ? App.PARTES_PESQ : App.PARTES_QUEST) : b.tipo === 'nedip' ? NedipRel.SECOES : Qfd.SECOES).map(([s]) => s);
   const l = new Set(b[campo]);
   if (el.checked) l.add(el.dataset.v); else l.delete(el.dataset.v);
   b[campo] = ordem.filter((s) => l.has(s));
@@ -380,6 +390,7 @@ Pdf.blocos = function (p, m, num, imgs, ctx = {}) {
       return;
     }
     if (b.tipo === 'questionario') { if (b.partes.length) out.push(hBloco(b.titulo), ...Pdf.blocoQuestionario(p, b.partes, { h: hSub, recuo: ctx.recuo || 0, num, blocoId: b.id, tocFig })); return; }
+    if (b.tipo === 'pesquisa') { const c = Pdf.blocoPesquisa(p, b.partes, { h: hSub, recuo: ctx.recuo || 0, num }); if (c.length) out.push(hBloco(b.titulo), ...c); return; }
     if (b.tipo === 'quebra' && i < m.blocos.length - 1) out.push({ text: '', pageBreak: 'after' });
   });
   saida.push(...titulos);

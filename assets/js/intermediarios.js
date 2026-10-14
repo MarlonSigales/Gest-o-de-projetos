@@ -103,5 +103,7 @@ Pdf.relatorioIntermediario = async function (p, mi, ri, armazem) {
   c.push(...h1('Desenvolvimento', true));
   const bl = Pdf.blocos(p, vista, num, imgs, { base: '2', toc: { fig: null, tab: null } });
   c.push(...(bl.length ? bl : [{ text: 'Sem conteúdo: inclua blocos neste relatório.', style: 'muted' }]));
+  const refs = Pdf.referenciasCitadas(p, num);
+  if (refs.length) c.push(...h1('Referências'), ...refs);
   return Pdf.documento(p, 'RELATÓRIO DE', 'ANDAMENTO', `Relatório de andamento – Macroentrega ${n}`, c, `Macroentrega ${n} – ${m.titulo} · ${r.titulo} · período ${per}`);
 };

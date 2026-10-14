@@ -38,8 +38,14 @@ Nucleo.mdInline = function (s) {
   });
   return out;
 };
-/** {{fig:id}} / {{tab:id}} → "Figura N" / "Tabela N". */
-Nucleo.trocarRefs = (s, num) => String(s).replace(/\{\{(fig|tab):([A-Za-z0-9_-]+)\}\}/g, (_, t, id) => {
+/** {{fig:id}} / {{tab:id}} → "Figura N" / "Tabela N"; {{ref:código}} → "(AUTOR, ano)" e marca a obra como citada. */
+Nucleo.trocarRefs = (s, num) => String(s).replace(/\{\{(fig|tab|ref):([A-Za-z0-9_:.-]+)\}\}/g, (_, t, id) => {
+  if (t === 'ref') {
+    const r = num && num.refs && num.refs.get(id);
+    if (!r || !window.Pesquisa) return '[referência não encontrada]';
+    if (num.citadas) num.citadas.add(id);
+    return Pesquisa.citacao(r);
+  }
   const n = num && (t === 'fig' ? num.fig[id] : num.tab[id]);
   return n ? (t === 'fig' ? 'Figura ' : 'Tabela ') + n : (t === 'fig' ? '[figura não encontrada]' : '[tabela não encontrada]');
 });
@@ -66,6 +72,7 @@ Nucleo.novo = function (nome = '') {
     interessados: [], areas: [], macroentregas: [Nucleo.novaMacro(1)],
     riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
     qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
+    pesquisa: window.pesquisaNormalizar ? window.pesquisaNormalizar({}) : { estrategia: {}, patentes: [], referencias: [] }, // anterioridade e referências
     dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
     trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
     produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
@@ -106,6 +113,7 @@ Nucleo.TIPOS_BLOCO = {
   qfd: () => ({ titulo: 'Análise QFD – casa da qualidade', secoes: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [] }),
   questionario: () => ({ titulo: 'Questionário aos clientes – resultados', partes: ['identificacao', 'destaques', 'graficos', 'consolidacao'] }),
   nedip: () => ({ titulo: 'Projeto do produto', secoes: ['ciclo', 'concorrentes', 'normas', 'funcoes'] }),
+  pesquisa: () => ({ titulo: 'Busca de anterioridade', partes: ['estrategia', 'patentes', 'sintese'] }),
   quebra: () => ({}),
 };
 Nucleo.novoBloco = (tipo) => Object.assign({ id: Nucleo.uid('bl'), tipo }, (Nucleo.TIPOS_BLOCO[tipo] || Nucleo.TIPOS_BLOCO.texto)());
@@ -114,7 +122,7 @@ Nucleo.normalizarBlocos = (l) => (Array.isArray(l) ? l : []).filter((b) => b && 
   const x = Object.assign({ id: Nucleo.uid('bl') }, Nucleo.TIPOS_BLOCO[tipo](), b, { tipo });
   if (tipo === 'titulo') x.nivel = [1, 2, 3].includes(+x.nivel) ? +x.nivel : 1;
   if ((tipo === 'qfd' || tipo === 'nedip') && !Array.isArray(x.secoes)) x.secoes = [];
-  if (tipo === 'questionario' && !Array.isArray(x.partes)) x.partes = [];
+  if ((tipo === 'questionario' || tipo === 'pesquisa') && !Array.isArray(x.partes)) x.partes = [];
   return x;
 });
 /** Ids de figuras/tabelas posicionadas por blocos (não vão para a seção "Resultados" como anexos soltos). */
@@ -168,6 +176,7 @@ Nucleo.normalizar = function (p) {
   p.projeto.aditivos = (p.projeto.aditivos || []).map((a) => Object.assign({ id: Nucleo.uid('ad'), tipo: 'aditivo', quantidade: 0, unidade: 'meses', numero: '', dataTermo: '', justificativa: '' }, a));
   if (window.dfxNormalizar) p.dfx = window.dfxNormalizar(p.dfx);
   if (window.nedipNormalizar) p.produto = window.nedipNormalizar(p.produto);
+  if (window.pesquisaNormalizar) p.pesquisa = window.pesquisaNormalizar(p.pesquisa);
   p.trl.arvore = Nucleo.normalizarArvore(p.trl.arvore || []);
   p.trl.historico = Array.isArray(p.trl.historico) ? p.trl.historico : [];
   p.qualidade = p.qualidade.map((q) => { q.id = q.id || (q.qfd && q.qfd.id ? 'qfd_' + q.qfd.id : Nucleo.uid('q')); q.aspectosIndesejaveis = q.aspectosIndesejaveis || ''; q.valorMedido = q.valorMedido || ''; q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });
@@ -551,7 +560,7 @@ Nucleo.ganttSvg = function (an, largura = 1000) {
  */
 Nucleo.SECOES = [['introducao', 'Introdução'], ['objetivos', 'Objetivos da etapa'], ['resultados', 'Resultados'], ['conclusao', 'Conclusão'], ['etapasFuturas', 'Etapas futuras']];
 Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }, extra = {}) {
-  const geradas = extra.p && window.Formulario ? Nucleo.figurasGeradas(extra.p) : () => [];
+  const geradas = extra.p && extra.gerar !== false && window.Formulario ? Nucleo.figurasGeradas(extra.p) : () => [];
   const fig = {}, tab = {}, listaF = [], listaT = [];
   const addF = (f, m) => { if (f && !(f.id in fig)) { fig[f.id] = ++contador.f; listaF.push({ n: fig[f.id], titulo: f.titulo, macro: m.numero }); } };
   const addT = (x, m) => { if (x && !(x.id in tab)) { tab[x.id] = ++contador.t; listaT.push({ n: tab[x.id], titulo: x.titulo, macro: m.numero }); } };
@@ -567,7 +576,8 @@ Nucleo.numerarAbnt = function (macros, contador = { f: 0, t: 0 }, extra = {}) {
       });
     });
   });
-  return { fig, tab, listaF, listaT };
+  const refs = new Map(((extra.p && extra.p.pesquisa && extra.p.pesquisa.referencias) || []).map((r) => [r.id, r]));
+  return { fig, tab, listaF, listaT, refs, citadas: new Set() }; // citadas: preenchido ao montar os textos (seção "Referências")
 };
 
 /** Figuras que um bloco gera sozinho (sem arquivo): gráficos do questionário e diagrama da estrutura de funções. */

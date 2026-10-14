@@ -309,3 +309,11 @@ tr.sel td { background: #eef7f4; }
 .guia-passos { margin: 6px 0 0; padding-left: 22px; }
 .guia-passos li { margin: 6px 0; }
 .guia-passos .btn { min-width: 210px; text-align: left; margin-right: 6px; }
+
+/* referências bibliográficas */
+.ref-item { border-bottom: 1px solid #edf2f1; padding: 6px 0; }
+.ref-item.aberta { background: #f6fbf9; padding: 8px; border: 1px solid #b9dcd2; border-radius: 8px; margin: 6px 0; }
+.ref-linha { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.ref-abnt { flex: 1; min-width: 300px; line-height: 1.45; }
+.ref-acoes { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+a.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }

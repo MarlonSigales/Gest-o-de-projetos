@@ -121,6 +121,7 @@ Qfd.analisar = function (d) {
       rcSoFracas: rc.filter((c) => c.cobertura === 'Fraca'), rpSemRelacao: rp.filter((x) => !x.relacoes),
       abaixo50: comAt.filter((c) => c.atend < 0.5), metasNaoAtingidas: rp.filter((x) => x.estado === 'nao-atingida') },
     metasAbaixo: ordem.filter((x) => x.abaixoConcorrente),
+    inconsistencias: Qfd.inconsistencias(rc, rp, produtos, notas, valores, infl),
     fortes: rc.filter((c) => c.notaNosso !== null && c.melhorConc !== null && c.notaNosso > c.melhorConc),
     melhorar: rc.filter((c) => c.notaNosso !== null && c.melhorConc !== null && c.notaNosso < c.melhorConc),
     insights: {
@@ -130,6 +131,31 @@ Qfd.analisar = function (d) {
     },
     projeto: qTxt((d.metadata || {}).projeto), schemaVersion: (d.metadata || {}).schemaVersion ?? null,
   };
+};
+
+/**
+ * Inconsistências entre a avaliação dos clientes e a técnica: para cada requisito do cliente e cada par de produtos,
+ * os clientes preferem A a B (nota maior), mas os requisitos de projeto com relação forte (9) favorecem B e nenhum favorece A.
+ */
+Qfd.inconsistencias = function (rc, rp, produtos, notas, valores, infl) {
+  const out = [];
+  rc.forEach((c) => {
+    const fortes = rp.filter((x) => infl(c, x) === 9 && x.sentido !== 'none');
+    if (!fortes.length) return;
+    produtos.forEach((a) => produtos.forEach((b) => {
+      if (a === b) return;
+      const na = notas.get(c.id + '|' + a.id), nb = notas.get(c.id + '|' + b.id);
+      if (na === undefined || nb === undefined || na <= nb) return; // clientes preferem a
+      const lado = (x) => { // 1 = favorece b, -1 = favorece a, 0 = sem dado ou empate
+        const va = Nucleo.parseNumero(valores.get(x.id + '|' + a.id)), vb = Nucleo.parseNumero(valores.get(x.id + '|' + b.id));
+        if (va === null || vb === null || va === vb) return 0;
+        return (x.sentido === 'up' ? vb > va : vb < va) ? 1 : -1;
+      };
+      const contra = fortes.filter((x) => lado(x) === 1);
+      if (contra.length && !fortes.some((x) => lado(x) === -1)) out.push({ rc: c, preferido: a, outro: b, rps: contra }); // nada técnico explica a preferência
+    }));
+  });
+  return out;
 };
 
 /** Seção disponível no backup? Se não, diz o que falta (para direcionar ao preenchimento). */
@@ -344,7 +370,13 @@ Pdf.blocoQfd = function (dados, secoes, ctx) {
         'Reveja essas metas nas especificações ou justifique por que ficar abaixo do concorrente é aceitável.']));
       if (a.fortes.length) res.push(caixa([{ text: 'Pontos fortes (nota do cliente acima de todos os concorrentes): ', bold: true }, a.fortes.map((c) => `${c.cod} ${c.descricao}`).join('; ')], 'ok'));
       if (a.melhorar.length) res.push(caixa([{ text: 'A melhorar (nota do cliente abaixo do melhor concorrente): ', bold: true }, a.melhorar.map((c) => `${c.cod} ${c.descricao}`).join('; ')]));
-      if (!res.length) res.push(caixa('Nenhuma meta técnica abaixo do melhor concorrente.', 'ok'));
+      if (a.inconsistencias.length) {
+        const l = a.inconsistencias.map((x) => `${x.rc.cod} — os clientes preferem ${x.preferido.nome} a ${x.outro.nome}, mas os valores técnicos de ${x.rps.map((r) => r.cod).join(', ')} (relação forte na matriz) favorecem ${x.outro.nome}.`);
+        res.push(caixa([{ text: `Inconsistências entre a avaliação dos clientes e a técnica (${l.length})`, bold: true },
+          { ul: l.slice(0, 15), fontSize: 8.5 }, ...(l.length > 15 ? [{ text: `… e mais ${l.length - 15}.`, fontSize: 8.5 }] : []),
+          'Confira as medições e as notas, ou se falta algum requisito de projeto que explique a preferência dos clientes.']));
+      }
+      if (!res.length) res.push(caixa('Nenhuma meta técnica abaixo do melhor concorrente e nenhuma inconsistência entre as notas dos clientes e os valores técnicos.', 'ok'));
       res.forEach((r) => itens.push({ no: r, segue: true }));
     },
     atendimento() {

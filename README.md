@@ -90,6 +90,7 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 - desenvolvimento em blocos com todos os tipos (capítulo, subcapítulo, seção, texto, figura, tabela, QFD, projeto do produto, questionário e quebra de página) e um **relatório de andamento intermediário** na macroentrega em andamento;
 - questionário do Google Forms com 24 respostas e todos os tipos de pergunta (escolha, caixas, escala, grade, aberta, identificação), gráficos e destaques;
 - QFD completo, com avaliação competitiva de 3 concorrentes;
+- busca de anterioridade com patentes **fictícias** importadas de um CSV no formato do Google Patents (`exemplos/patentes-roda-google-patents.csv`) e referências reais citadas nos textos;
 - as fases NeDIP preenchidas, com o diagrama de funções, FMEA, lista de materiais e manuais;
 - cronograma com dependências e uma atividade atrasada, riscos, especificação manual, PDCA, DfX (inclusive um criado pela equipe), TRL por critérios e lições aprendidas.
 
@@ -165,7 +166,7 @@ A importação do backup do QFD guarda o arquivo completo no projeto. No projeto
 - matriz QFD;
 - telhado de correlações;
 - especificações;
-- avaliação competitiva (notas, gráfico, valores técnicos e metas abaixo do melhor concorrente);
+- avaliação competitiva (notas, gráfico, valores técnicos, metas abaixo do melhor concorrente e **inconsistências**: o cliente prefere um produto, mas os requisitos de relação forte favorecem outro);
 - atendimento aos requisitos do cliente;
 - ranking;
 - indicadores.
@@ -186,6 +187,21 @@ No fim de cada fase do projeto de produto, o cartão **Projeto de produto nos re
 
 Seções sem dados não entram no PDF; na tela elas aparecem com o botão que leva à fase onde se preenche. Os concorrentes da avaliação competitiva do QFD podem ser trazidos para a tabela com um clique.
 
+### Pesquisa: busca de anterioridade e referências (aba 📚 Pesquisa)
+**Busca de anterioridade (patentes).** O navegador não consulta as bases de patentes sozinho, porque elas não permitem acesso sem servidor. A busca é feita nelas e importada aqui:
+1. Defina a estratégia: objetivo, palavras-chave, classificação IPC/CPC, período e data.
+2. Os botões abrem a busca pronta no **Google Patents**, no **Espacenet** e no **WIPO Patentscope**. No **INPI**, a busca é manual, com as mesmas palavras.
+3. Exporte o CSV (no Google Patents: “Download (CSV)”) e use **⬆ Importar CSV de patentes**.
+4. A situação (pedido, concedida, expirada) vem **estimada pelas datas**; confirme na base oficial. Classifique a relevância e a **liberdade de operação** (livre, atenção, risco).
+
+A síntese mostra o que está em domínio público e o que exige atenção. O bloco **📚 Pesquisa** leva a estratégia, a tabela e a síntese a uma macroentrega.
+
+**Referências bibliográficas (ABNT NBR 6023).**
+- Importe **BibTeX** (`.bib`) ou **RIS** (`.ris`), exportados do Zotero, do Mendeley ou do Google Acadêmico (“Citar → BibTeX”), ou cadastre à mão.
+- Instituições como autor vão entre chaves: `{Associação Brasileira de Normas Técnicas}`.
+- Cite no texto com `{{ref:código}}`, por exemplo `{{ref:back2008}}`, que vira “(BACK et al., 2008)”.
+- Cada relatório ganha a seção **Referências**, em ordem alfabética, só com as obras citadas nele.
+
 ### Relatórios de andamento entre macroentregas
 Dentro de cada macroentrega, **+ Relatório de andamento** cria um relatório intermediário ("pré-macroentrega"), com título, data, período coberto e **desenvolvimento em blocos** (o mesmo editor). O PDF tem capa própria, identificação, andamento das atividades e os capítulos numerados 2.1, 2.1.1 …, **sem termo de aceite**. Ele fica em `relatorios/macroentrega_NN_andamento_NN.pdf` e entra no ZIP; se marcado, vai também no e-mail de andamento. O botão **⧉ Copiar para o relatório final** reaproveita os blocos no desenvolvimento da macroentrega. O relatório geral lista os relatórios intermediários.
 
@@ -195,11 +211,11 @@ Nos campos de texto e nos blocos:
 - `- `, `* ` ou `• ` fazem lista; `1. ` faz lista numerada (listas e parágrafos podem se alternar sem linha em branco);
 - `#`, `##` e `###` fazem títulos;
 - `**negrito**` e `*itálico*`;
-- `{{fig:fig_001}}` e `{{tab:tab_001}}` citam figuras e tabelas.
+- `{{fig:fig_001}}` e `{{tab:tab_001}}` citam figuras e tabelas; `{{ref:código}}` cita uma referência bibliográfica.
 
 ### Macroentregas: desenvolvimento em blocos
 No cartão **Resultados — desenvolvimento em blocos**, monte o texto como num caderno (Google Colab).
-- Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Projeto do produto, + Questionário e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
+- Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Projeto do produto, + Questionário, + Pesquisa e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
 - Cada bloco tem **✎ Editar / ✓ Concluir**, **🗑 Excluir** e **↑ ↓** para mover.
 - O texto aceita negrito, listas e citações de figuras e tabelas (botões e seletor).
 - Figura e tabela (importar CSV ou colar do Excel) ficam no próprio bloco, com numeração ABNT.
@@ -289,10 +305,11 @@ assets/js/qfd.js            relatório da casa da qualidade a partir do backup d
 assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF
 assets/js/nedip_relatorio.js projeto de produto nos relatórios; diagrama da estrutura de funções
 assets/js/intermediarios.js relatórios de andamento entre macroentregas
+assets/js/pesquisa.js       aba Pesquisa: busca de anterioridade (patentes) e referências ABNT
 assets/js/guia_exemplo.js   guia do exemplo (roteiro de aprendizado na aba Projeto)
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD
-exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json e questionario-roda-google-forms.csv
+exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json, questionario-roda-google-forms.csv e patentes-roda-google-patents.csv
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```

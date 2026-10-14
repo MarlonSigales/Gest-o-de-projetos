@@ -1,44 +1,63 @@
 TODO / QA — Gestão de Projetos
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
-Ordem: do mais simples para o mais difícil.
+Atualizado em 14/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
 
+=== O QUE FALTA
+Nada pendente no momento.
+   Regra permanente: a cada recurso novo, incluí-lo no exemplo da roda e no Guia do exemplo (item 18).
+
+=== REJEITADO
+16 [rejeitado] Pesquisar patentes automaticamente direto do navegador: as bases não permitem esse acesso sem servidor; substituído pelo item 15.
+24 [rejeitado] Testar num Safari de verdade (Mac ou iPhone). As correções do item 20 foram testadas no Chrome.
+
+=== FEITO
 --- Correções do relatório de andamento (PDF da mesa densimétrica, 13/10/2026)
-01 [resolvido] Lição aprendida vazia aparece como linha em branco na tabela do relatório: ignorar lições sem texto.
-02 [resolvido] Matriz de riscos: rótulo "Probabilidade" quebrava no meio; seta sem glifo trocada; título "Riscos" agora fica na mesma página da matriz.
-03 [resolvido] Cronograma sem atividades: o aviso "Cadastre atividades…" sai cortado e por cima do título seguinte (usar texto, não SVG).
-04 [resolvido] Alerta para datas fora da vigência: macroentrega começando antes do início do projeto (ex.: 01/11/2016) ou terminando depois do fim.
-05 [resolvido] Especificações do QFD com "Critério de aceite" vazio: quando o valor-meta está vazio e a meta está na observação do requisito (ex.: "entre 0,6 a 1,1 m3/s"), usar a observação como critério.
-06 [resolvido] Texto com Markdown: aceitar títulos (#, ##, ###), *itálico*, listas numeradas (1.) e "* " como item de lista; hoje só **negrito** e "- ".
+01 [resolvido] Lição aprendida vazia não aparece mais como linha em branco no relatório.
+02 [resolvido] Matriz de riscos: "Probabilidade" não quebra no meio; seta sem glifo trocada; título "Riscos" na mesma página da matriz.
+03 [resolvido] Cronograma sem atividades: aviso em texto, sem cortar nem sobrepor o título seguinte.
+04 [resolvido] Alertas de data: macroentrega antes do início do projeto (ex.: 01/11/2016) ou com início depois da entrega prevista.
+05 [resolvido] QFD sem valor-meta: a meta escrita na observação do requisito (ex.: "entre 0,6 a 1,1 m3/s") vira o critério de aceite.
+06 [resolvido] Texto com Markdown: títulos (#, ##, ###), *itálico*, **negrito**, listas "- ", "* " e "1.".
 
 --- Questionário (Google Forms)
-07 [resolvido] Importar CSV do Google Forms, perguntas e respondentes editáveis, CSV em branco, documento PDF no padrão do roteiro, anexar à macroentrega.
-08 [resolvido] Gráfico por pergunta (barras, como no Forms) gerado pelo sistema, como figura ABNT numerada, escolhendo quais perguntas entram (substitui os prints das figuras 1–20).
-09 [resolvido] Destaques automáticos: frases editáveis com a alternativa mais votada e o percentual de cada pergunta (ex.: "77,5% consideram muito importante…").
+07 [resolvido] Importar CSV do Google Forms, perguntas e respondentes editáveis, CSV em branco, documento PDF no padrão do roteiro,
+   anexar à macroentrega.
+08 [resolvido] Gráfico por pergunta (barras, como no Forms) como figura ABNT numerada, escolhendo quais perguntas entram e o título.
+09 [resolvido] Destaques: frases editáveis com a alternativa mais citada e o percentual de cada pergunta.
 
 --- QFD
-10 [resolvido] Relatório da casa da qualidade nas macroentregas e no relatório geral, com caixas de seleção por seção; tabelas largas viram a folha.
+10 [resolvido] Relatório da casa da qualidade nas macroentregas e no relatório geral, com caixas de seleção por seção; tabelas largas
+   viram a folha.
 
 --- Projeto de produto (NeDIP) no relatório
-11 [resolvido] Módulo de projeto de produto no relatório, como no relatório do QFD: seções por fase com caixas de seleção por macroentrega e para o relatório geral.
-12 [resolvido] Projeto conceitual no relatório com as funções, de acordo com o que é adicionado: tabela da estrutura de funções e diagrama da função global (caixa-preta) e das funções parciais/subfunções desenhado automaticamente (substitui a figura 21).
-13 [resolvido] Ciclo de vida, concorrentes e normas como blocos automáticos; concorrentes e normas em tabela (empresa/país/características; norma/título/aplicação), concorrentes ligados aos do QFD.
+11 [resolvido] Projeto de produto no relatório: seções por fase com caixas de seleção por macroentrega e para o relatório geral.
+12 [resolvido] Função global e estrutura de funções: diagrama desenhado pelo sistema (caixa-preta + funções parciais e subfunções)
+   como figura ABNT, mais a tabela de funções e princípios (substitui a figura 21).
+13 [resolvido] Ciclo de vida, concorrentes e normas no relatório; concorrentes e normas em tabela; concorrentes trazidos do QFD.
 
---- Relatórios intermediários
-14 [resolvido] Relatórios de andamento entre macroentregas, quando necessários: "+ Relatório de andamento" dentro da macroentrega (data, período, blocos), PDF com capa própria sem termo de aceite, listados com data, no ZIP e no e-mail, reaproveitáveis no relatório final da macroentrega (pré-macroentrega).
+--- Relatórios e editor
+14 [resolvido] Relatórios de andamento entre macroentregas: data, período e blocos próprios, PDF sem termo de aceite, no ZIP e no
+   e-mail, blocos copiáveis para o relatório final (pré-macroentrega).
+19 [resolvido] Editor da macroentrega em blocos (estilo Colab): texto, capítulo, subcapítulo, seção, figura, tabela, QFD, projeto do
+   produto, questionário, quebra; editar/excluir/mover; títulos não ficam sozinhos no fim da página.
 
---- Pesquisa (anterioridade e bibliografia)
-15 [futuro] Busca de anterioridade: estratégia de busca (bases, palavras-chave, IPC/CPC, data), botões que abrem a busca pronta no Google Patents/Espacenet/INPI, importação do CSV exportado por eles, tabela editável (número, título, titular, ano, situação vigente/expirada/pedido, relevância, risco de FTO) e síntese automática (domínio público × vigentes).
-16 [rejeitado] Pesquisar patentes automaticamente direto do navegador: as bases não permitem esse acesso sem servidor; substituído pelo item 15.
-17 [futuro] Revisão bibliográfica: importar BibTeX/RIS (Zotero, Mendeley, Google Acadêmico), referências em ABNT, citação {{ref:id}} e seção "Referências" automática nos relatórios.
-
---- Publicação
-18 [resolvido] Versão de teste = o exemplo da roda de bicicleta: completo, com todos os recursos, para quem não tem experiência aprender
-   olhando para ele. Acrescentado: guia do exemplo na aba Projeto (roteiro com botões que levam a cada recurso), textos com Markdown,
-   especificação manual, DfX criado pela equipe, avaliação competitiva no QFD (3 concorrentes), aceites registrados e um pendente,
-   figuras em Introdução e Conclusão, blocos de todos os tipos na macroentrega em andamento, relatório de andamento intermediário,
-   pergunta de escala no questionário e plano de lançamento. Manter o exemplo atualizado a cada recurso novo.
-
---- Já resolvido nesta rodada
-19 [resolvido] Editor da macroentrega em blocos (estilo Colab): texto, capítulo, subcapítulo, figura, tabela, QFD, questionário, quebra; editar/excluir/mover.
-20 [resolvido] Safari: arquivos guardados como bytes, gravação conferida, armazenamento persistente, opção de baixar o ZIP a cada salvamento.
+--- Navegadores, exemplo e publicação
+20 [resolvido] Safari: arquivos guardados como bytes, gravação conferida, armazenamento persistente, opção de baixar o ZIP a cada
+   salvamento (falta o teste em Safari real: item 24).
 21 [resolvido] Exemplo completo é a roda de bicicleta (não o dosador de sementes).
+18 [resolvido] Exemplo da roda completo, para quem não tem experiência aprender olhando para ele: Guia do exemplo na aba Projeto
+   (roteiro com botões que levam a cada recurso), textos com Markdown, especificação manual, DfX criado pela equipe, avaliação
+   competitiva no QFD (3 concorrentes), aceites registrados e um pendente, figuras em Introdução e Conclusão, blocos de todos os
+   tipos, relatório de andamento intermediário, pergunta de escala no questionário e plano de lançamento.
+22 [resolvido] Exemplo completo com guia (commit 37cc603) enviado ao GitHub.
+
+--- Pesquisa e QFD (14/10/2026)
+25 [resolvido] QFD: inconsistências entre a avaliação dos clientes e a técnica (o cliente prefere um produto, mas os requisitos de relação
+   forte favorecem outro e nenhum favorece o preferido) — reproduz as 18 do relatório do sistema QFD da mesa densimétrica.
+15 [resolvido] Busca de anterioridade (aba Pesquisa): estratégia, botões que abrem a busca pronta (Google Patents, Espacenet, WIPO;
+   INPI manual), importação do CSV do Google Patents/Espacenet, situação estimada pelas datas, relevância, liberdade de operação,
+   síntese (domínio público × vigentes) e bloco "Pesquisa" nas macroentregas.
+17 [resolvido] Referências bibliográficas: importação BibTeX/RIS, formatação ABNT NBR 6023, citação {{ref:código}} → (AUTOR, ano)
+   e seção "Referências" automática em cada relatório, só com as obras citadas.
+23 [resolvido] PDFs dentro de exemplos/roda-bicicleta-generica.zip regerados com todos os recursos (macroentregas, relatório geral,
+   manuais e os dois relatórios de andamento intermediários); exemplo com patentes fictícias e referências reais citadas.

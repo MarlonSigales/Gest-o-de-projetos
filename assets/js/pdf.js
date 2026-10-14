@@ -261,6 +261,10 @@ Pdf.macroentrega = async function (p, mi, armazem) {
     c.push(corpo(bloco));
   }
 
+  // referências citadas nos textos desta macroentrega
+  const refs = Pdf.referenciasCitadas(p, num);
+  if (refs.length) c.push(tituloSecao('secProjecoes', 'Referências'), corpo(refs));
+
   // equipe
   const eq = [{ text: 'EQUIPE', fontSize: 24, bold: true, color: COR.lima, pageBreak: 'before' }, { text: 'PARTICIPANTES DO PROJETO', fontSize: 10.5, bold: true, color: COR.teal, margin: [0, 0, 0, 24] }];
   const pessoasEq = [];
@@ -501,6 +505,9 @@ Pdf.andamento = async function (p, armazem) {
     if (String(m.etapasFuturas || '').trim() || fut.length) c.push({ text: 'Etapas futuras', style: 'h3' }, ...Pdf.texto(m.etapasFuturas, num), ...fut);
   });
 
+  const refsG = Pdf.referenciasCitadas(p, num);
+  if (refsG.length) c.push(...h1('Referências'), ...refsG);
+
   // 8
   c.push(...h1('Equipe'));
   c.push(Pdf.grade(['Nome', 'Função', 'E-mail'], [
@@ -601,7 +608,7 @@ const recsAplicadas = (p, et) => { const e = p.produto.etapas[et.id]; return et.
 
 Pdf.manualProjeto = async function (p, armazem) {
   const pj = p.projeto, pr = p.produto, E = pr.etapas, an = Nucleo.analisar(p);
-  const num = Nucleo.numerarAbnt(p.macroentregas); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
+  const num = Nucleo.numerarAbnt(p.macroentregas, undefined, { p, gerar: false }); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
   const imgs = await Pdf.carregarFiguras(p, armazem);
   const { h1, h2 } = secoesNumeradas();
   const nomeMacro = (u) => { const i = p.macroentregas.findIndex((m) => m.uid === u); return i >= 0 ? `${i + 1} – ${p.macroentregas[i].titulo}` : ''; };
@@ -707,7 +714,7 @@ Pdf.manualProjeto = async function (p, armazem) {
     figs.forEach((x) => c.push(Pdf.figura(x.f, x.n, imgs)));
     tabs.forEach((x) => c.push(Pdf.tabela(x.t, x.n)));
   }
-  c.push(...h1('Referências'), { ul: [NEDIP_REF, PAHL_REF], style: 'corpo' });
+  c.push(...h1('Referências'), { ul: [NEDIP_REF, PAHL_REF], style: 'corpo', margin: [0, 0, 0, 6] }, ...Pdf.referenciasCitadas(p, num));
   return Pdf.documento(p, 'MANUAL DE', 'PROJETO', 'Manual de projeto', c, `Documentação técnica · modelo NeDIP · ${new Date().toLocaleDateString('pt-BR')}`);
 };
 
@@ -743,7 +750,7 @@ Pdf.manualUso = async function (p) {
   const pj = p.projeto, e = p.produto.etapas.detalhado, mu = e.manualUso;
   const { h1 } = secoesNumeradas();
   const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
-  const num = Nucleo.numerarAbnt(p.macroentregas); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
+  const num = Nucleo.numerarAbnt(p.macroentregas, undefined, { p, gerar: false }); // manuais: só as figuras de arquivo
   let primeira = true;
   NEDIP_MANUAL_USO.forEach(([k, rot]) => {
     if (!String(mu[k] || '').trim()) return;

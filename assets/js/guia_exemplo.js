@@ -10,6 +10,7 @@ App.GUIA_EXEMPLO = [
   ['Equipe e interessados', 'Grupos de e-mail: a gestão recebe o ZIP completo; os demais, os PDFs e o JSON.', { aba: 'equipe' }],
   ['Áreas e responsáveis', 'Cada área ligada a um item da árvore TRL; quem deve ser cobrado quando o TRL estiver baixo.', { aba: 'areas' }],
   ['Projeto informacional', 'Questionário do Google Forms (CSV importado, perguntas editáveis, gráficos e destaques), QFD completo com avaliação competitiva, concorrentes e normas em tabela.', { aba: 'produto', etapa: 'informacional' }],
+  ['Pesquisa', 'Busca de anterioridade (patentes fictícias importadas de um CSV do Google Patents, com situação e risco) e referências bibliográficas em ABNT, citadas nos textos com {{ref:código}}.', { aba: 'pesquisa' }],
   ['Projeto conceitual', 'Função global e estrutura de funções → diagrama desenhado pelo sistema; concepções e matriz de decisão.', { aba: 'produto', etapa: 'conceitual' }],
   ['Projeto preliminar e detalhado', 'Protótipos, FMEA (críticos viram riscos), lista de materiais e manuais de projeto e de uso.', { aba: 'produto', etapa: 'preliminar' }],
   ['Macroentrega 1', 'Desenvolvimento em blocos: questionário, contexto do produto e análise QFD. Aceite registrado.', { aba: 'macros', macro: 0 }],

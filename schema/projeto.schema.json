@@ -557,6 +557,7 @@
                     "qfd",
                     "nedip",
                     "questionario",
+                    "pesquisa",
                     "quebra"
                   ]
                 },
@@ -590,16 +591,9 @@
                 "partes": {
                   "type": "array",
                   "items": {
-                    "enum": [
-                      "identificacao",
-                      "destaques",
-                      "roteiro",
-                      "graficos",
-                      "resultados",
-                      "consolidacao"
-                    ]
+                    "type": "string"
                   },
-                  "description": "partes do documento do questionário no bloco"
+                  "description": "partes do bloco: questionário (identificacao, destaques, roteiro, graficos, resultados, consolidacao) ou pesquisa (estrategia, patentes, sintese)"
                 }
               }
             },
@@ -2416,6 +2410,170 @@
     "exemplo": {
       "type": "boolean",
       "description": "projeto de exemplo: mostra o \"Guia do exemplo\" na aba Projeto"
+    },
+    "pesquisa": {
+      "type": "object",
+      "description": "busca de anterioridade (patentes) e referências bibliográficas (ABNT)",
+      "properties": {
+        "estrategia": {
+          "type": "object",
+          "properties": {
+            "objetivo": {
+              "type": "string"
+            },
+            "palavras": {
+              "type": "string"
+            },
+            "classificacao": {
+              "type": "string"
+            },
+            "bases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "periodo": {
+              "type": "string"
+            },
+            "dataBusca": {
+              "type": "string"
+            },
+            "observacoes": {
+              "type": "string"
+            }
+          }
+        },
+        "patentes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "numero": {
+                "type": "string"
+              },
+              "titulo": {
+                "type": "string"
+              },
+              "titular": {
+                "type": "string"
+              },
+              "pais": {
+                "type": "string"
+              },
+              "ano": {
+                "type": "string"
+              },
+              "observacao": {
+                "type": "string"
+              },
+              "link": {
+                "type": "string"
+              },
+              "base": {
+                "type": "string"
+              },
+              "situacao": {
+                "enum": [
+                  "pedido",
+                  "concedida",
+                  "expirada",
+                  "abandonada",
+                  "verificar"
+                ]
+              },
+              "relevancia": {
+                "enum": [
+                  "alta",
+                  "média",
+                  "baixa"
+                ]
+              },
+              "fto": {
+                "enum": [
+                  "verificar",
+                  "livre",
+                  "atenção",
+                  "risco"
+                ]
+              }
+            }
+          }
+        },
+        "referencias": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "autores": {
+                "type": "string"
+              },
+              "titulo": {
+                "type": "string"
+              },
+              "subtitulo": {
+                "type": "string"
+              },
+              "ano": {
+                "type": "string"
+              },
+              "veiculo": {
+                "type": "string"
+              },
+              "edicao": {
+                "type": "string"
+              },
+              "editora": {
+                "type": "string"
+              },
+              "local": {
+                "type": "string"
+              },
+              "volume": {
+                "type": "string"
+              },
+              "numero": {
+                "type": "string"
+              },
+              "paginas": {
+                "type": "string"
+              },
+              "doi": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "acesso": {
+                "type": "string"
+              },
+              "tipo": {
+                "enum": [
+                  "artigo",
+                  "livro",
+                  "capitulo",
+                  "evento",
+                  "tese",
+                  "norma",
+                  "patente",
+                  "site",
+                  "outro"
+                ]
+              }
+            },
+            "description": "citada no texto com {{ref:id}}"
+          }
+        }
+      }
     }
   }
 }
