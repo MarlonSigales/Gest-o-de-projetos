@@ -32,7 +32,11 @@ Ordem: do mais simples para o mais difícil.
 17 [futuro] Revisão bibliográfica: importar BibTeX/RIS (Zotero, Mendeley, Google Acadêmico), referências em ABNT, citação {{ref:id}} e seção "Referências" automática nos relatórios.
 
 --- Publicação
-18 [fazer] Colocar na versão de teste cada etapa concluída (definir: branch/pasta "teste" no GitHub Pages ou o próprio site).
+18 [fazer] Versão de teste (veio da nota original deste arquivo: "colocar na versão de teste").
+   Ideia: publicar as mudanças primeiro num endereço separado (ex.: .../Gest-o-de-projetos/teste/), testar com projetos reais
+   e só depois levar ao site principal, que a equipe usa. Opções: (a) pasta teste/ no próprio repositório, atualizada a cada etapa;
+   (b) branch "teste" publicada por GitHub Actions; (c) não ter versão de teste e publicar direto no site principal.
+   Aguardando decisão.
 
 --- Já resolvido nesta rodada
 19 [resolvido] Editor da macroentrega em blocos (estilo Colab): texto, capítulo, subcapítulo, figura, tabela, QFD, questionário, quebra; editar/excluir/mover.
