@@ -2,8 +2,8 @@ TODO / QA — Gestão de Projetos
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
 Atualizado em 14/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
 
-=== O QUE FALTA
-Nada pendente no momento.
+=== O QUE FALTA (do mais simples para o mais difícil)
+(nada pendente)
    Regra permanente: a cada recurso novo, incluí-lo no exemplo da roda e no Guia do exemplo (item 18).
 
 === REJEITADO
@@ -61,3 +61,22 @@ Nada pendente no momento.
    e seção "Referências" automática em cada relatório, só com as obras citadas.
 23 [resolvido] PDFs dentro de exemplos/roda-bicicleta-generica.zip regerados com todos os recursos (macroentregas, relatório geral,
    manuais e os dois relatórios de andamento intermediários); exemplo com patentes fictícias e referências reais citadas.
+
+--- Menu, macroentregas e relatórios (14/10/2026)
+26 [resolvido] Projeto informacional: app do QFD fixo (https://marlonsigales.github.io/QFD/index.html); só o botão
+   "Ir para o app do projeto informacional (QFD)".
+27 [resolvido] Menu lateral na ordem: Projeto, Áreas/Responsáveis, Equipe e Interessados, Macroentregas, Cronograma, Pesquisa,
+   Projeto de produto, TRL, Qualidade/DfX, Riscos, Lições aprendidas e Relatórios.
+28 [resolvido] Gráficos do questionário com o título completo da pergunta (sem reticências; rótulo em até 3 linhas).
+29 [resolvido] Menu lateral sem "+ Figura"/"+ Tabela"; seção "Arquivo do projeto" com Criar/carregar, Salvar e Configurações.
+30 [resolvido] Projeto novo com 4 macroentregas e as seções do projeto de produto pré-marcadas (informacional → 1, conceitual → 2,
+   preliminar → 3, detalhado → última; proporcional com menos de 4).
+31 [resolvido] "Próximos passos para o TRL esperado" no início dos relatórios: item, TRL atual, o que falta e área responsável.
+32 [resolvido] Sem figuras e tabelas soltas: tudo nos blocos; projetos antigos migram sozinhos (texto de resultados e figuras/tabelas
+   viram blocos no início do desenvolvimento).
+33 [resolvido] Um só texto por macroentrega: "em andamento" gera relatórios de andamento (cópias no histórico, corrigíveis);
+   "finalizada" gera o relatório da macroentrega com termo de aceite. A página muda conforme a marcação no topo.
+34 [resolvido] Apêndices na última macroentrega e no relatório geral: manual de projeto, manual de uso, questionário, análise QFD,
+   busca de anterioridade e lista de documentos, quando houver informação.
+35 [resolvido] Balões explicativos ao parar o mouse (ou focar pelo teclado) sobre botões, abas e campos; podem ser desligados em
+   Configurações. Exemplo, guia, README, schema, ZIP e PDFs do exemplo atualizados.

@@ -5,42 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de Projetos</title>
 <meta name="description" content="Gestão de projetos com macroentregas, TRL e relatórios — roda inteiramente no navegador.">
-<link rel="stylesheet" href="assets/css/app.css?v=20261014c">
+<link rel="stylesheet" href="assets/css/app.css?v=20261014d">
 </head>
 <body>
 <header class="topo">
   <div class="marca"><img src="assets/templates/logo_inovaagro_embrapii.png" alt=""><span>Gestão de Projetos</span></div>
-  <div class="seletor">
-    <button class="btn" id="btnProjetos" title="Abrir, criar ou importar projetos">📂 Projetos</button>
-    <span id="localProjeto"></span>
-  </div>
-  <div class="acoes-topo">
-    <span id="estadoSalvo" class="estado"></span>
-    <button class="btn primario" id="btnSalvar" title="Salvar (Ctrl+S): grava o JSON e dispara o e-mail de andamento">💾 Salvar</button>
-    <button class="btn" id="btnConfig" title="Configurações deste navegador (e-mail, seu nome)">⚙</button>
-  </div>
+  <div class="seletor"><span id="localProjeto"></span></div>
+  <div class="acoes-topo"><span id="estadoSalvo" class="estado"></span></div>
 </header>
 
 <div class="corpo">
 <aside class="lateral">
   <nav class="abas" id="abas">
     <button data-aba="projeto" class="ativa">🏠 Projeto</button>
-    <button data-aba="equipe">👥 Equipe e Interessados</button>
     <button data-aba="areas">🧩 Áreas / Responsáveis</button>
+    <button data-aba="equipe">👥 Equipe e Interessados</button>
     <button data-aba="macros">📦 Macroentregas</button>
-    <button data-aba="produto">🛠 Projeto de produto/serviço</button>
-    <button data-aba="pesquisa">📚 Pesquisa (patentes e referências)</button>
     <button data-aba="cronograma">📅 Cronograma</button>
-    <button data-aba="riscos">⚠️ Riscos</button>
-    <button data-aba="qualidade">✅ Qualidade / DfX</button>
+    <button data-aba="pesquisa">📚 Pesquisa (patentes e referências)</button>
+    <button data-aba="produto">🛠 Projeto de produto/serviço</button>
     <button data-aba="trl">📈 TRL</button>
+    <button data-aba="qualidade">✅ Qualidade / DfX</button>
+    <button data-aba="riscos">⚠️ Riscos</button>
     <button data-aba="licoes">💡 Lições aprendidas</button>
     <button data-aba="relatorios">📄 Relatórios e Exportação</button>
   </nav>
   <div class="inserir">
-    <div class="rotulo">Inserir</div>
-    <button class="btn" data-acao="nova-figura" title="Escolher uma imagem e inserir como figura (ABNT)">🖼 + Figura</button>
-    <button class="btn" data-acao="nova-tabela" title="Criar uma tabela (ABNT)">▦ + Tabela</button>
+    <div class="rotulo">Arquivo do projeto</div>
+    <button class="btn" id="btnProjetos">📂 Criar/carregar</button>
+    <button class="btn" id="btnSalvar">💾 Salvar</button>
+    <button class="btn" id="btnConfig">⚙ Configurações</button>
   </div>
 </aside>
 <main id="conteudo" class="conteudo"><div class="boas-vindas">Carregando…</div></main>
@@ -54,36 +48,37 @@
 <noscript><p style="padding:20px">Este sistema precisa de JavaScript habilitado.</p></noscript>
 
 <!-- bibliotecas locais (funcionam sem internet): pdfmake (PDF) e JSZip (ZIP) -->
-<script src="lib/pdfmake.min.js?v=20261014c"></script>
-<script src="lib/vfs_fonts.js?v=20261014c"></script>
-<script src="lib/jszip.min.js?v=20261014c"></script>
+<script src="lib/pdfmake.min.js?v=20261014d"></script>
+<script src="lib/vfs_fonts.js?v=20261014d"></script>
+<script src="lib/jszip.min.js?v=20261014d"></script>
 <!-- sistema -->
-<script src="assets/js/config.js?v=20261014c"></script>
-<script src="assets/js/dfx.js?v=20261014c"></script>
-<script src="assets/js/trl_criterios.js?v=20261014c"></script>
-<script src="assets/js/nedip.js?v=20261014c"></script>
-<script src="assets/js/templates.js?v=20261014c"></script>
-<script src="assets/js/exemplo.js?v=20261014c"></script>
-<script src="assets/js/nucleo.js?v=20261014c"></script>
-<script src="assets/js/armazenamento.js?v=20261014c"></script>
-<script src="assets/js/email.js?v=20261014c"></script>
-<script src="assets/js/pdf.js?v=20261014c"></script>
-<script src="assets/js/app.js?v=20261014c"></script>
-<script src="assets/js/abas.js?v=20261014c"></script>
-<script src="assets/js/abnt.js?v=20261014c"></script>
-<script src="assets/js/macros.js?v=20261014c"></script>
-<script src="assets/js/gantt.js?v=20261014c"></script>
-<script src="assets/js/riscos.js?v=20261014c"></script>
-<script src="assets/js/trl.js?v=20261014c"></script>
-<script src="assets/js/produto.js?v=20261014c"></script>
-<script src="assets/js/formulario.js?v=20261014c"></script>
-<script src="assets/js/qfd.js?v=20261014c"></script>
-<script src="assets/js/blocos.js?v=20261014c"></script>
-<script src="assets/js/nedip_relatorio.js?v=20261014c"></script>
-<script src="assets/js/intermediarios.js?v=20261014c"></script>
-<script src="assets/js/pesquisa.js?v=20261014c"></script>
-<script src="assets/js/guia_exemplo.js?v=20261014c"></script>
-<script src="assets/js/relatorios.js?v=20261014c"></script>
+<script src="assets/js/config.js?v=20261014d"></script>
+<script src="assets/js/dfx.js?v=20261014d"></script>
+<script src="assets/js/trl_criterios.js?v=20261014d"></script>
+<script src="assets/js/nedip.js?v=20261014d"></script>
+<script src="assets/js/templates.js?v=20261014d"></script>
+<script src="assets/js/exemplo.js?v=20261014d"></script>
+<script src="assets/js/nucleo.js?v=20261014d"></script>
+<script src="assets/js/armazenamento.js?v=20261014d"></script>
+<script src="assets/js/email.js?v=20261014d"></script>
+<script src="assets/js/pdf.js?v=20261014d"></script>
+<script src="assets/js/app.js?v=20261014d"></script>
+<script src="assets/js/abas.js?v=20261014d"></script>
+<script src="assets/js/abnt.js?v=20261014d"></script>
+<script src="assets/js/macros.js?v=20261014d"></script>
+<script src="assets/js/gantt.js?v=20261014d"></script>
+<script src="assets/js/riscos.js?v=20261014d"></script>
+<script src="assets/js/trl.js?v=20261014d"></script>
+<script src="assets/js/produto.js?v=20261014d"></script>
+<script src="assets/js/formulario.js?v=20261014d"></script>
+<script src="assets/js/qfd.js?v=20261014d"></script>
+<script src="assets/js/blocos.js?v=20261014d"></script>
+<script src="assets/js/nedip_relatorio.js?v=20261014d"></script>
+<script src="assets/js/intermediarios.js?v=20261014d"></script>
+<script src="assets/js/pesquisa.js?v=20261014d"></script>
+<script src="assets/js/guia_exemplo.js?v=20261014d"></script>
+<script src="assets/js/relatorios.js?v=20261014d"></script>
+<script src="assets/js/dicas.js?v=20261014d"></script>
 <script>App.iniciar();</script>
 </body>
 </html>

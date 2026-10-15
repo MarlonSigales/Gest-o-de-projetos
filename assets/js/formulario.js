@@ -304,13 +304,13 @@ const fDec = (x) => (x === null || x === undefined ? '—' : (Math.round(x * 100
 /** Perguntas que viram gráfico (figura): analisadas, de escolha/caixas/escala/grade, com respostas e com "gráfico" marcado. */
 Formulario.perguntasGrafico = (f) => Formulario.analisar(f).analisadas
   .filter((x) => ['escolha', 'caixas', 'escala', 'grade'].includes(x.tipo) && x.p.grafico !== false && x.respondidas).map((x) => x.p);
-Formulario.tituloGrafico = (q) => fLinha(q.rotulo) || fCurto(q.texto);
+Formulario.tituloGrafico = (q) => fLinha(q.rotulo) || fLinha(q.texto).replace(/[:\s]+$/, ''); // título completo da pergunta (sem reticências)
 
 /** Frases com a resposta mais citada (ou o item mais importante) de cada pergunta analisada — o usuário edita depois. */
 Formulario.gerarDestaques = function (f) {
   const an = Formulario.analisar(f), out = [];
   an.analisadas.forEach((x) => {
-    const q = x.p, tema = fCurto(q.texto, 90);
+    const q = x.p, tema = fLinha(q.texto).replace(/[?:.\s]+$/, '');
     let t = '';
     if ((x.tipo === 'escolha' || x.tipo === 'caixas') && x.respondidas) {
       const l = x.contagem.filter((o) => o.n).sort((a, b) => b.n - a.n);
@@ -334,13 +334,16 @@ Formulario.gerarDestaques = function (f) {
 
 const fXml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 /** Quebra um rótulo em até 2 linhas para o eixo dos gráficos. */
-const fLinhasRotulo = (t, n = 44) => {
-  t = fLinha(t);
-  if (t.length <= n) return [t];
-  let i = t.lastIndexOf(' ', n);
-  if (i < 15) i = n;
-  const r = t.slice(i).trim();
-  return [t.slice(0, i).trim(), r.length > n ? r.slice(0, n - 1) + '…' : r];
+const fLinhasRotulo = (t, n = 44, max = 3) => { // quebra em até 3 linhas; só corta textos muito longos
+  const out = [];
+  let r = fLinha(t);
+  while (r.length > n && out.length < max - 1) {
+    let i = r.lastIndexOf(' ', n);
+    if (i < 15) i = n;
+    out.push(r.slice(0, i).trim()); r = r.slice(i).trim();
+  }
+  out.push(r.length > n ? r.slice(0, n - 1) + '…' : r);
+  return out;
 };
 const F_CORES = ['#085357', '#409580', '#8cc9b5', '#e0b84a', '#d9773f', '#b3261e', '#7c3aed', '#4b5563', '#0e7490', '#be185d', '#1d4ed8'];
 
@@ -353,7 +356,7 @@ Formulario.graficoSvg = function (x) {
     const l = x.tipo === 'escala'
       ? Object.keys(x.dist).map(Number).sort((a, b) => a - b).map((k) => ({ op: q.escala.rotulos[k] ? `${k} – ${q.escala.rotulos[k]}` : String(k), n: x.dist[k] }))
       : x.contagem.concat(x.outros.length ? [{ op: `Outras respostas (${x.outros.length})`, n: x.outros.reduce((a, o) => a + o.n, 0) }] : []);
-    const lin = 34, topo = 30, max = Math.max(1, ...l.map((o) => o.n));
+    const lin = Math.max(34, 15 * Math.max(1, ...l.map((o) => fLinhasRotulo(o.op).length)) + 6), topo = 30, max = Math.max(1, ...l.map((o) => o.n));
     const passo = max <= 10 ? 2 : max <= 25 ? 5 : max <= 60 ? 10 : 20, eixo = Math.ceil(max / passo) * passo;
     h = topo + l.length * lin + 30;
     s += `<text x="0" y="16" font-size="15" fill="#555" ${fonte}>${x.respondidas} respostas${x.tipo === 'caixas' ? ' (várias alternativas por pessoa)' : ''}</text>`;
@@ -373,7 +376,7 @@ Formulario.graficoSvg = function (x) {
     const SEQ = ['#e3efeb', '#b5dccf', '#7fbfaa', '#409580', '#1f6f6a', '#085357'];
     const nivel = (ci) => { const t = ci / Math.max(1, cats.length - 1); return Math.round((q.escala.invertida ? 1 - t : t) * 5); }; // 0 = menos importante
     const cor = (ci) => (x.numerica ? SEQ[nivel(ci)] : F_CORES[ci % F_CORES.length]);
-    const lin = 36, topo = 30, legLin = Math.ceil(cats.length / 3);
+    const lin = Math.max(36, 15 * Math.max(1, ...x.itens.map((i) => fLinhasRotulo(i.it.texto).length)) + 6), topo = 30, legLin = Math.ceil(cats.length / 3);
     h = topo + x.itens.length * lin + 18 + legLin * 22;
     s += `<text x="0" y="16" font-size="15" fill="#555" ${fonte}>${x.respondidas} respostas${x.numerica ? ' · à direita, importância de 1 a 5 (5 = mais importante)' : ''}</text>`;
     x.itens.forEach((i, r) => {
@@ -628,7 +631,7 @@ Pdf.blocoQuestionario = function (p, partes, ctx) {
       const n = (ctx.num && ctx.num.fig[`qg_${ctx.blocoId}_${q.id}`]) || ++local;
       const leg = { text: `Figura ${n} – ${Formulario.tituloGrafico(q)}`, style: 'legenda' };
       if (ctx.tocFig) { leg.tocItem = ctx.tocFig; leg.tocStyle = { fontSize: 9.5 }; }
-      c.push({ stack: [...(k ? [] : [ctx.h('Gráficos das respostas')]), leg, { text: `P${x.num}. ${q.texto}`, style: 'muted', alignment: 'center', margin: [0, 0, 0, 3] },
+      c.push({ stack: [...(k ? [] : [ctx.h('Gráficos das respostas')]), leg, ...(fLinha(q.rotulo) ? [{ text: `P${x.num}. ${q.texto}`, style: 'muted', alignment: 'center', margin: [0, 0, 0, 3] }] : []),
         { svg: Formulario.graficoSvg(x), width: Math.min(larg, 440), alignment: 'center' },
         { text: fonteAbnt(`Elaborado pelos autores com dados do questionário (${new Date().getFullYear()})`), style: 'fonte' }], unbreakable: true, margin: [0, 6, 0, 10] });
     });

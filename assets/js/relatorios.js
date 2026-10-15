@@ -8,7 +8,8 @@ App.abas.relatorios = {
 <div class="cartao"><h3 style="margin-top:0">Relatórios em PDF</h3>
   <p class="muted">Gerados no próprio navegador a partir do que está na tela (não é preciso salvar antes).${naPasta ? ' Uma cópia também é gravada em <b>relatorios/</b> na pasta do projeto.' : ''}</p>
   <div class="barra"><button class="btn primario" data-acao="pdf-geral">📊 Relatório geral de andamento</button></div>
-  <div class="barra">${App.p.macroentregas.map((m, i) => `<button class="btn" data-acao="pdf-macro" data-i="${i}">📄 Macroentrega ${i + 1}</button>`).join('')}</div>
+  <div class="barra">${App.p.macroentregas.map((m, i) => `<button class="btn" data-acao="pdf-macro" data-i="${i}">📄 Macroentrega ${i + 1}${m.finalizada ? '' : ' (andamento)'}</button>`).join('')}</div>
+  <p class="muted">Macroentregas em andamento geram o relatório de andamento com o texto atual; as finalizadas, o relatório da macroentrega com o termo de aceite.</p>
   ${App.campo('config.incluirAndamentoNaMacro', 'Incluir a seção "Andamento e TRL" no relatório de cada macroentrega', { tipo: 'checkbox' })}
   ${App.qfdRelatorioHtml()}
 </div>

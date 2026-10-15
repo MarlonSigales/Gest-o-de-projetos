@@ -227,7 +227,9 @@ Pdf.macroentrega = async function (p, mi, armazem) {
   c.push({ stack: Pdf.texto(`**A Macro Entrega ${n}${m.titulo ? ' – ' + m.titulo : ''}** – ${m.descricao || ''}`, num), width: 340, margin: [0, 0, 110, 0] });
 
   // páginas de itens
-  c.push(Object.assign(tituloSecao('secFundamentos', 'Fundamentos e direcionamento do projeto'), { pageBreak: 'before', margin: [0, 0, 0, 6] }));
+  c.push(Object.assign(tituloSecao('secAndamento', 'Próximos passos para o TRL esperado'), { pageBreak: 'before', margin: [0, 0, 0, 6] }));
+  c.push(corpo(Pdf.proximosPassos(p, an, +m.trlEsperado || null, { text: '' }).slice(1)));
+  c.push(tituloSecao('secFundamentos', 'Fundamentos e direcionamento do projeto'));
   c.push(subitem('1. Introdução'), corpo([...Pdf.texto(pj.introducao, num), ...Pdf.anexosSecao(m, 'introducao', num, imgs)]));
   c.push(subitem('2. Objetivo Geral do Projeto'), corpo(Pdf.texto(pj.objetivoGeral, num)));
   const obj = (m.objetivosEtapa || []).filter((o) => String(o).trim());
@@ -264,6 +266,9 @@ Pdf.macroentrega = async function (p, mi, armazem) {
   // referências citadas nos textos desta macroentrega
   const refs = Pdf.referenciasCitadas(p, num);
   if (refs.length) c.push(tituloSecao('secProjecoes', 'Referências'), corpo(refs));
+
+  // apêndices: manuais e documentos individuais, só na última macroentrega (depois das referências)
+  if (mi === p.macroentregas.length - 1) c.push(...await Pdf.apendices(p, armazem));
 
   // equipe
   const eq = [{ text: 'EQUIPE', fontSize: 24, bold: true, color: COR.lima, pageBreak: 'before' }, { text: 'PARTICIPANTES DO PROJETO', fontSize: 10.5, bold: true, color: COR.teal, margin: [0, 0, 0, 24] }];
@@ -317,6 +322,49 @@ Pdf.macroentrega = async function (p, mi, armazem) {
   return doc;
 };
 
+// ------------------------------------------------------------------ PRÓXIMOS PASSOS PARA O TRL ESPERADO
+/**
+ * O que falta para cada item da árvore TRL chegar ao TRL esperado (alvo): critérios do próximo nível (avaliação interna)
+ * e quantos faltam nos níveis seguintes, com a área e os responsáveis a cobrar.
+ */
+Nucleo.proximosPassosTrl = function (p, an, alvo) {
+  if (!an.trl.temDados || !alvo) return { itens: [], semDados: !an.trl.temDados };
+  const flat = Object.values(Nucleo.achatar(an.trl.arvore));
+  const area = (chave) => {
+    let melhor = null;
+    an.trl.areas.forEach((a) => { if (a.vinculado && (chave === a.no || chave.startsWith(a.no + '/')) && (!melhor || a.no.length > melhor.no.length)) melhor = a; });
+    return melhor;
+  };
+  const itens = flat.filter((n) => n.trlInformado === null || n.trlInformado < alvo).map((n) => {
+    const atual = n.trlInformado || 0, c = (n.avaliacao && n.avaliacao.criterios) || {};
+    const interno = n.avaliacao && n.avaliacao.origem === 'interno';
+    const niveis = window.TRL_NIVEIS.filter((l) => l.n > atual && l.n <= alvo).map((l) => ({ n: l.n,
+      faltam: l.criterios.filter(([id]) => !(c[id] && (c[id].r === 'sim' || c[id].r === 'na'))).map(([id, t]) => ({ id, texto: t })) }));
+    const a = area(n.chave);
+    return { chave: n.chave, titulo: n.titulo, tipo: Nucleo.NOME_TIPO[n.tipo] || n.tipo, atual: n.trlInformado, alvo, interno, niveis, area: a ? a.nome : '', responsaveis: a ? a.responsaveis : [] };
+  });
+  // mostra primeiro os itens que limitam o sistema (menor TRL) e, entre eles, os mais detalhados (folhas)
+  itens.sort((x, y) => (x.atual ?? 0) - (y.atual ?? 0) || y.chave.split('/').length - x.chave.split('/').length);
+  return { itens, semDados: false };
+};
+Pdf.proximosPassos = function (p, an, alvo, titulo) {
+  const r = Nucleo.proximosPassosTrl(p, an, alvo), out = [titulo];
+  if (r.semDados) return out.concat(caixa('A maturidade (TRL) ainda não foi avaliada: avalie os itens na aba TRL para que o relatório indique o que falta para atingir o TRL esperado.'));
+  if (!alvo) return out.concat(caixa('Informe o TRL esperado da macroentrega para gerar os próximos passos.'));
+  if (!r.itens.length) return out.concat(caixa(`Todos os itens avaliados já atingiram o TRL esperado (${alvo}).`, 'ok'));
+  out.push({ text: `TRL esperado: ${alvo}. Itens abaixo da meta (${r.itens.length}), começando pelos que limitam o sistema. O TRL de um item é o maior nível com todos os critérios dos níveis anteriores atendidos.`, style: 'corpo', margin: [0, 0, 0, 4] });
+  out.push(Pdf.grade(['Item', 'TRL atual', 'O que falta', 'Área / cobrar'], r.itens.slice(0, 25).map((x) => {
+    const prox = x.niveis[0];
+    const falta = !x.interno && x.atual !== null ? [{ text: 'Avaliado fora do sistema: reavalie pelos critérios na aba TRL.', italics: true }]
+      : [...(prox ? [{ text: `Para o TRL ${prox.n}:`, bold: true }, { ul: prox.faltam.map((f) => `${f.id} ${f.texto}`), fontSize: 7.8 }] : []),
+        ...x.niveis.slice(1).filter((l) => l.faltam.length).map((l) => ({ text: `TRL ${l.n}: ${l.faltam.length} critério(s)`, fontSize: 7.8, color: COR.suave }))];
+    return [{ text: [x.titulo, { text: `  ${x.chave} · ${x.tipo}`, style: 'muted' }] }, trlTxt(x.atual), { stack: falta, fontSize: 8 },
+      { text: [x.area || 'sem área', '\n', { text: x.responsaveis.map((r) => r.nome).filter(Boolean).join('; ') || 'cobrar a coordenação', style: 'muted' }], fontSize: 8 }];
+  }), ['*', 44, '*', 95]));
+  if (r.itens.length > 25) out.push({ text: `… e mais ${r.itens.length - 25} item(ns): veja a aba TRL.`, style: 'muted' });
+  return out;
+};
+
 Pdf.tabelaAreas = function (areas, esperadoPadrao) {
   return Pdf.grade(['Área', 'Item avaliado', 'TRL atual', 'TRL esperado', 'Responsável(is)'],
     areas.map((a) => [a.nome, a.noTitulo || '—', trlTxt(a.trlAtual), String((esperadoPadrao ?? a.trlEsperado) || '—'), pessoas(a.responsaveis)]),
@@ -365,6 +413,9 @@ Pdf.andamento = async function (p, armazem) {
       an.vigencia.termos.map((t) => [t.numero || '—', t.tipo === 'subtrativo' ? 'Subtrativo' : 'Aditivo', `${t.tipo === 'subtrativo' ? '−' : '+'}${t.quantidade} ${t.unidade}`, Nucleo.dataBR(t.dataTermo), Nucleo.dataBR(t.fimDepois), t.justificativa]),
       [50, 55, 55, 55, 65, '*']));
   }
+
+  // próximos passos (TRL esperado na etapa atual ou ao final)
+  c.push(...Pdf.proximosPassos(p, an, an.trl.esperadoEtapa || an.trl.esperadoFinal, { stack: h1('Próximos passos para o TRL esperado') }));
 
   // 2
   c.push(...h1('Quadro das macroentregas'));
@@ -508,8 +559,10 @@ Pdf.andamento = async function (p, armazem) {
   const refsG = Pdf.referenciasCitadas(p, num);
   if (refsG.length) c.push(...h1('Referências'), ...refsG);
 
+  c.push(...await Pdf.apendices(p, armazem, { tocId: 'sum' })); // apêndices depois das referências
+
   // 8
-  c.push(...h1('Equipe'));
+  { const t = h1('Equipe'); t[0].pageBreak = 'before'; c.push(...t); }
   c.push(Pdf.grade(['Nome', 'Função', 'E-mail'], [
     [pj.coordenador.nome, 'Coordenador', pj.coordenador.email], [pj.coordenadorAdjunto.nome, 'Coordenador adjunto', pj.coordenadorAdjunto.email],
     ...pj.equipe.map((e) => [e.nome, e.funcao, e.email])]));
@@ -606,15 +659,15 @@ const secoesNumeradas = () => {
 };
 const recsAplicadas = (p, et) => { const e = p.produto.etapas[et.id]; return et.recomendacoes.filter(([id]) => e.recomendacoes[id]).map(([, t]) => t); };
 
-Pdf.manualProjeto = async function (p, armazem) {
+Pdf.manualProjeto = async function (p, armazem, op = {}) {
   const pj = p.projeto, pr = p.produto, E = pr.etapas, an = Nucleo.analisar(p);
   const num = Nucleo.numerarAbnt(p.macroentregas, undefined, { p, gerar: false }); // manuais: só as figuras de arquivo (os gráficos gerados não entram)
-  const imgs = await Pdf.carregarFiguras(p, armazem);
-  const { h1, h2 } = secoesNumeradas();
+  const imgs = op.apendice ? {} : await Pdf.carregarFiguras(p, armazem);
+  const { h1, h2 } = op.secoes || secoesNumeradas();
   const nomeMacro = (u) => { const i = p.macroentregas.findIndex((m) => m.uid === u); return i >= 0 ? `${i + 1} – ${p.macroentregas[i].titulo}` : ''; };
   const txt = (rot, v) => (String(v || '').trim() ? [h2(rot), ...Pdf.texto(v, num)] : []);
   const c = [];
-  c.push({ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' });
+  if (!op.apendice) c.push({ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' });
   c.push(...h1('Identificação', true));
   c.push(Pdf.kpi([['Projeto', pj.nome], ['Código', pj.codigo], ['Tipo', pr.tipo === 'serviço' ? 'Serviço' : 'Produto'], ['Empresa parceira', pj.empresaParceira],
     ['Coordenação', `${pj.coordenador.nome || ''} ${pj.coordenador.email ? '<' + pj.coordenador.email + '>' : ''}`],
@@ -709,13 +762,44 @@ Pdf.manualProjeto = async function (p, armazem) {
 
   const figs = p.macroentregas.flatMap((m) => (m.figuras || []).map((f) => ({ f, n: num.fig[f.id] }))).filter((x) => x.n).sort((a, b) => a.n - b.n);
   const tabs = p.macroentregas.flatMap((m) => (m.tabelas || []).map((t) => ({ t, n: num.tab[t.id] }))).filter((x) => x.n).sort((a, b) => a.n - b.n);
-  if (figs.length || tabs.length) {
+  if ((figs.length || tabs.length) && !op.apendice) { // no apêndice as figuras já estão no corpo do relatório
     c.push(...h1('Figuras e tabelas do projeto', true));
     figs.forEach((x) => c.push(Pdf.figura(x.f, x.n, imgs)));
     tabs.forEach((x) => c.push(Pdf.tabela(x.t, x.n)));
   }
   c.push(...h1('Referências'), { ul: [NEDIP_REF, PAHL_REF], style: 'corpo', margin: [0, 0, 0, 6] }, ...Pdf.referenciasCitadas(p, num));
+  if (op.apendice) return c;
   return Pdf.documento(p, 'MANUAL DE', 'PROJETO', 'Manual de projeto', c, `Documentação técnica · modelo NeDIP · ${new Date().toLocaleDateString('pt-BR')}`);
+};
+
+// ------------------------------------------------------------------ APÊNDICES (última macroentrega e relatório geral)
+/** Há conteúdo para o manual de projeto? (alguma fase iniciada, com recomendação ou registro) */
+const temManualProjeto = (p) => nedipEtapasAtivas(p).some((et) => { const e = p.produto.etapas[et.id]; return e.status !== 'não iniciada' || Object.values(e.recomendacoes).some(Boolean) || String(e.registro || '').trim(); });
+/**
+ * Documentos individuais como apêndices: manual de projeto, manual de uso, questionário, análise QFD, busca de
+ * anterioridade e lista de documentos do projeto — cada um só quando houver informação. ctx.tocId: sumário do documento.
+ */
+Pdf.apendices = async function (p, armazem, ctx = {}) {
+  const out = [], letras = 'ABCDEFGHIJ';
+  let k = 0;
+  const titulo = (t) => {
+    const no = { text: `APÊNDICE ${letras[k++]} – ${t.toUpperCase()}`, style: 'h1', pageBreak: 'before', margin: [0, 0, 0, 2] };
+    if (ctx.tocId) Object.assign(no, { tocItem: ctx.tocId, tocStyle: { bold: true, fontSize: 10 }, tocMargin: [0, 4, 0, 0] });
+    return [no, { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 470, y2: 0, lineWidth: 2, lineColor: COR.lima }], margin: [0, 0, 0, 8] }];
+  };
+  const sec = { h1: (t) => [{ text: t, style: 'h2' }], h2: (t) => ({ text: t, style: 'h3' }) }, h = (t) => ({ text: t, style: 'h2' });
+  if (temManualProjeto(p)) out.push(...titulo('Manual de projeto'), ...await Pdf.manualProjeto(p, armazem, { apendice: true, secoes: sec }));
+  if (Object.values(p.produto.etapas.detalhado.manualUso).some((x) => String(x || '').trim())) out.push(...titulo('Manual de uso'), ...await Pdf.manualUso(p, { apendice: true, secoes: sec }));
+  const f = p.produto.etapas.informacional.formulario;
+  if (f.perguntas.length) out.push(...titulo('Questionário aos clientes'), ...Pdf.blocoQuestionario(p, ['identificacao', 'destaques', 'roteiro', 'resultados', 'consolidacao'], { h }));
+  if (p.qfdDados) out.push(...titulo('Análise QFD – casa da qualidade'), ...Pdf.blocoQfd(p.qfdDados, Qfd.SECOES.map(([s]) => s), { h, origem: Pdf.qfdOrigem(p) }));
+  if (p.pesquisa && (p.pesquisa.patentes.length || String(p.pesquisa.estrategia.palavras || '').trim())) out.push(...titulo('Busca de anterioridade'), ...Pdf.blocoPesquisa(p, ['estrategia', 'patentes', 'sintese'], { h }));
+  const quebravel = (t) => String(t || '').replace(/([/_.-])/g, '$1​'); // caminhos longos quebram nas barras e sublinhados
+  const docs = NEDIP_ETAPAS.flatMap((et) => p.produto.etapas[et.id].anexos.map((a) => [et.nome, quebravel(a.nome), a.descricao || '—', quebravel(a.arquivo)]));
+  if (p.qfdOrigem && p.qfdOrigem.guardadoEm) docs.push(['Projeto informacional', quebravel(p.qfdOrigem.arquivo || 'backup do QFD'), 'Backup completo do sistema QFD', quebravel(p.qfdOrigem.guardadoEm)]);
+  if (docs.length) out.push(...titulo('Documentos do projeto'), { text: 'Arquivos guardados junto do projeto (vão no ZIP exportado), por fase.', style: 'muted', margin: [0, 0, 0, 4] },
+    Pdf.grade(['Fase', 'Documento', 'Descrição', 'Arquivo no ZIP'], docs, [70, '*', '*', '*']));
+  return out;
 };
 
 Pdf.questionarioConsolidado = function (p) {
@@ -746,10 +830,10 @@ Pdf.questionarioConsolidado = function (p) {
   return Pdf.documento(p, 'QUESTIONÁRIO', 'CONSOLIDADO', 'Questionário – respostas consolidadas', c, `Projeto informacional · ${pj.nome}`);
 };
 
-Pdf.manualUso = async function (p) {
+Pdf.manualUso = async function (p, op = {}) {
   const pj = p.projeto, e = p.produto.etapas.detalhado, mu = e.manualUso;
-  const { h1 } = secoesNumeradas();
-  const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
+  const { h1 } = op.secoes || secoesNumeradas();
+  const c = op.apendice ? [] : [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
   const num = Nucleo.numerarAbnt(p.macroentregas, undefined, { p, gerar: false }); // manuais: só as figuras de arquivo
   let primeira = true;
   NEDIP_MANUAL_USO.forEach(([k, rot]) => {
@@ -761,6 +845,7 @@ Pdf.manualUso = async function (p) {
   });
   if (primeira) c.push(...h1('Conteúdo', true), { text: 'O conteúdo do manual de uso ainda não foi preenchido (projeto detalhado).', style: 'muted' });
   c.push(...h1('Contato'), { text: `${pj.coordenador.nome || ''}${pj.coordenador.email ? ' – ' + pj.coordenador.email : ''}${pj.empresaParceira ? '\n' + pj.empresaParceira : ''}`, style: 'corpo' });
+  if (op.apendice) return c;
   return Pdf.documento(p, 'MANUAL DE', 'USO', 'Manual de uso', c, `${p.produto.tipo === 'serviço' ? 'Serviço' : 'Produto'}: ${pj.nome}`);
 };
 

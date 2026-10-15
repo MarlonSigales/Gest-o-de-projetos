@@ -69,7 +69,7 @@ Nucleo.novo = function (nome = '') {
       aditivos: [],            // termos aditivos/subtrativos de prazo
     },
     gruposEmail: Nucleo.gruposPadrao(),
-    interessados: [], areas: [], macroentregas: [Nucleo.novaMacro(1)],
+    interessados: [], areas: [], macroentregas: Nucleo.MACROS_PADRAO.map((t, i) => Object.assign(Nucleo.novaMacro(i + 1), { titulo: t })), // no mínimo 4, uma por fase
     riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
     qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
     pesquisa: window.pesquisaNormalizar ? window.pesquisaNormalizar({}) : { estrategia: {}, patentes: [], referencias: [] }, // anterioridade e referências
@@ -99,7 +99,9 @@ Nucleo.novaMacro = function (numero) {
     status: 'planejada', percentualConcluido: 0, trlEsperado: 4, areas: [], objetivosEtapa: [],
     resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [],
     blocos: [],              // desenvolvimento em blocos (texto, capítulos, figuras, tabelas, QFD, questionário)
-    relatorios: [],          // relatórios de andamento intermediários (entre macroentregas)
+    relatorios: [],          // histórico de relatórios de andamento (cópias do texto no dia em que foram gerados)
+    finalizada: false,       // false: o texto gera relatórios de andamento; true: gera o relatório da macroentrega (com aceite)
+    andamento: { periodoInicio: '', periodoFim: '' }, // período do próximo relatório de andamento
     aceite: { dataAceite: '', nomeResponsavelEmpresa: '', aceito: false },
   };
 };
@@ -140,9 +142,53 @@ Nucleo.macroDaLista = (m, blocos) => {
   return { uid: m.uid, numero: m.numero, titulo: m.titulo, figuras: (m.figuras || []).filter((f) => refs.fig.has(f.id)), tabelas: (m.tabelas || []).filter((t) => refs.tab.has(t.id)), blocos };
 };
 /** Relatórios de andamento entre macroentregas. */
-Nucleo.novoRelatorio = (n) => ({ id: Nucleo.uid('ri'), titulo: `Relatório de andamento ${n}`, data: Nucleo.hoje(), periodoInicio: '', periodoFim: '', enviar: true, blocos: [], gerado: '' });
+Nucleo.novoRelatorio = (n) => ({ id: Nucleo.uid('ri'), titulo: `Relatório de andamento ${n}`, data: Nucleo.hoje(), periodoInicio: '', periodoFim: '', blocos: [], gerado: '' });
+/**
+ * Figuras e tabelas só existem dentro de blocos (sempre com o texto que as explica). Projetos antigos: o texto de
+ * "Resultados" e as figuras/tabelas soltas viram blocos no início do desenvolvimento, na ordem em que saíam no PDF.
+ */
+Nucleo.migrarSoltas = function (m) {
+  const refs = Nucleo.refsBlocos(m), novos = [];
+  if (String(m.resultados || '').trim()) { novos.push(Object.assign(Nucleo.novoBloco('texto'), { texto: m.resultados })); m.resultados = ''; }
+  Nucleo.SECOES.forEach(([sec]) => {
+    (m.figuras || []).forEach((f) => { if ((f.secao || 'resultados') === sec && !refs.fig.has(f.id)) novos.push(Object.assign(Nucleo.novoBloco('figura'), { ref: f.id })); });
+    (m.tabelas || []).forEach((t) => { if ((t.secao || 'resultados') === sec && !refs.tab.has(t.id)) novos.push(Object.assign(Nucleo.novoBloco('tabela'), { ref: t.id })); });
+  });
+  if (novos.length) m.blocos = novos.concat(m.blocos);
+};
 /** Numeração com o projeto (as figuras geradas pelo sistema — gráficos do questionário, diagrama de funções — entram na conta). */
 Nucleo.numerar = (p, macros, contador) => Nucleo.numerarAbnt(macros, contador, { p });
+
+/** Macroentregas iniciais de um projeto novo: uma por fase da projetação (o usuário renomeia, inclui ou remove). */
+Nucleo.MACROS_PADRAO = ['Projeto informacional – necessidades e especificações', 'Projeto conceitual – funções e concepção',
+  'Projeto preliminar – protótipo e ensaios', 'Projeto detalhado – documentação e validação'];
+/** Seções do projeto de produto por fase: [fase NeDIP, título do bloco, seções]. */
+Nucleo.NEDIP_GRUPOS = [
+  ['informacional', 'Projeto do produto – fase informacional', ['planejamento', 'ciclo', 'necessidades', 'concorrentes', 'normas']],
+  ['conceitual', 'Projeto do produto – fase conceitual', ['funcoes', 'desdobramento', 'concepcoes']],
+  ['preliminar', 'Projeto do produto – fase preliminar', ['preliminar']],
+  ['detalhado', 'Projeto do produto – fase detalhada', ['detalhado']],
+];
+/**
+ * Pré-marca as seções do projeto de produto nas macroentregas (uma vez por projeto): com 4 ou mais macroentregas,
+ * fase informacional na 1ª, conceitual na 2ª, preliminar na 3ª e detalhada na última; com menos, distribui proporcionalmente.
+ * Também liga as fases NeDIP às macroentregas, se ainda não estiverem ligadas.
+ */
+Nucleo.preMarcarNedip = function (p) {
+  if (!p.config || p.config.nedipPreMarcado) return;
+  p.config.nedipPreMarcado = true;
+  const ms = p.macroentregas, n = ms.length;
+  if (!n || ms.some((m) => (m.blocos || []).some((b) => b.tipo === 'nedip'))) return; // já escolhido pelo usuário
+  Nucleo.NEDIP_GRUPOS.forEach(([fase, titulo, secoes], g) => {
+    const mi = n >= 4 ? (g === 3 ? n - 1 : g) : Math.round(g * (n - 1) / 3), m = ms[mi];
+    let b = m.blocos.find((x) => x.tipo === 'nedip');
+    if (b) b.secoes = b.secoes.concat(secoes.filter((s) => !b.secoes.includes(s)));
+    else m.blocos.push(Object.assign(Nucleo.novoBloco('nedip'), { titulo, secoes: secoes.slice() }));
+    const e = p.produto && p.produto.etapas && p.produto.etapas[fase];
+    if (e && !e.macros.length) e.macros = [m.uid];
+    if (fase === 'informacional' && p.produto.etapas.planejamento && !p.produto.etapas.planejamento.macros.length) p.produto.etapas.planejamento.macros = [m.uid];
+  });
+};
 
 function mesclar(base, dados) {
   for (const k of Object.keys(base)) {
@@ -158,6 +204,7 @@ function mesclar(base, dados) {
 Nucleo.normalizar = function (p) {
   p = mesclar(Nucleo.novo(), p || {});
   p.macroentregas = p.macroentregas.map((m, i) => {
+    const finSalvo = m && typeof m.finalizada === 'boolean' ? m.finalizada : null; // projetos antigos não têm o campo
     m = mesclar(Nucleo.novaMacro(i + 1), m || {});
     m.numero = i + 1;
     m.atividades = m.atividades.map((a) => mesclar({ id: Nucleo.uid('at'), nome: '', responsavel: '', inicio: '', fim: '', dependeDe: [], percentual: 0, area: '' }, a || {}));
@@ -166,7 +213,9 @@ Nucleo.normalizar = function (p) {
     m.figuras = m.figuras.map(secOk); m.tabelas = m.tabelas.map(secOk);
     m.blocos = Nucleo.normalizarBlocos(m.blocos);
     m.relatorios = (Array.isArray(m.relatorios) ? m.relatorios : []).filter((r) => r && typeof r === 'object')
-      .map((r, k) => Object.assign(Nucleo.novoRelatorio(k + 1), r, { blocos: Nucleo.normalizarBlocos(r.blocos) }));
+      .map((r, k) => { const x = Object.assign(Nucleo.novoRelatorio(k + 1), r, { blocos: Nucleo.normalizarBlocos(r.blocos) }); delete x.enviar; return x; });
+    m.finalizada = finSalvo !== null ? finSalvo : (['concluída', 'aceita'].includes(m.status) || !!(m.aceite && m.aceite.aceito));
+    Nucleo.migrarSoltas(m);
     return m;
   });
   if (p.qfdDados && (typeof p.qfdDados !== 'object' || !Array.isArray(p.qfdDados.requisitosProjeto))) p.qfdDados = null;
@@ -180,6 +229,7 @@ Nucleo.normalizar = function (p) {
   p.trl.arvore = Nucleo.normalizarArvore(p.trl.arvore || []);
   p.trl.historico = Array.isArray(p.trl.historico) ? p.trl.historico : [];
   p.qualidade = p.qualidade.map((q) => { q.id = q.id || (q.qfd && q.qfd.id ? 'qfd_' + q.qfd.id : Nucleo.uid('q')); q.aspectosIndesejaveis = q.aspectosIndesejaveis || ''; q.valorMedido = q.valorMedido || ''; q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });
+  Nucleo.preMarcarNedip(p);
   p.schemaVersion = '1.0';
   return p;
 };

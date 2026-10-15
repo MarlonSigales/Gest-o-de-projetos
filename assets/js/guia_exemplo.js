@@ -6,7 +6,7 @@
 
 /** [título, explicação, destino {aba, etapa?, macro?, rel?}] */
 App.GUIA_EXEMPLO = [
-  ['Projeto', 'Vigência com termo aditivo, painel de andamento e textos comuns aos relatórios (com listas e negrito).', { aba: 'projeto' }],
+  ['Projeto', 'Vigência com termo aditivo, painel de andamento e textos comuns aos relatórios (com listas e negrito). Dica: pare o mouse sobre qualquer botão, aba ou campo para ver um balão explicando para que serve.', { aba: 'projeto' }],
   ['Equipe e interessados', 'Grupos de e-mail: a gestão recebe o ZIP completo; os demais, os PDFs e o JSON.', { aba: 'equipe' }],
   ['Áreas e responsáveis', 'Cada área ligada a um item da árvore TRL; quem deve ser cobrado quando o TRL estiver baixo.', { aba: 'areas' }],
   ['Projeto informacional', 'Questionário do Google Forms (CSV importado, perguntas editáveis, gráficos e destaques), QFD completo com avaliação competitiva, concorrentes e normas em tabela.', { aba: 'produto', etapa: 'informacional' }],
@@ -14,15 +14,16 @@ App.GUIA_EXEMPLO = [
   ['Projeto conceitual', 'Função global e estrutura de funções → diagrama desenhado pelo sistema; concepções e matriz de decisão.', { aba: 'produto', etapa: 'conceitual' }],
   ['Projeto preliminar e detalhado', 'Protótipos, FMEA (críticos viram riscos), lista de materiais e manuais de projeto e de uso.', { aba: 'produto', etapa: 'preliminar' }],
   ['Macroentrega 1', 'Desenvolvimento em blocos: questionário, contexto do produto e análise QFD. Aceite registrado.', { aba: 'macros', macro: 0 }],
-  ['Macroentrega 2', 'Bloco “Projeto do produto” com o diagrama de funções; figura na Introdução do relatório.', { aba: 'macros', macro: 1 }],
-  ['Macroentrega 3', 'Concluída, mas ainda sem o aceite da empresa (o termo sai em branco para assinar).', { aba: 'macros', macro: 2 }],
-  ['Macroentrega 4 (em andamento)', 'Blocos com capítulo, subcapítulo, seção, figura, tabela e quebra de página; um relatório de andamento intermediário (pré-macroentrega).', { aba: 'macros', macro: 3, rel: true }],
+  ['Macroentrega 2', 'Bloco “Projeto do produto” com o diagrama de funções; figuras e tabelas sempre dentro do texto, junto do parágrafo que as explica.', { aba: 'macros', macro: 1 }],
+  ['Macroentrega 3', 'Finalizada (o texto gera o relatório da macroentrega), mas ainda sem o aceite da empresa: o termo sai em branco para assinar. No histórico fica o relatório de andamento emitido antes de finalizar.', { aba: 'macros', macro: 2 }],
+  ['Macroentrega 4 (em andamento)', 'Um só texto: enquanto “em andamento” (topo da página), ele gera relatórios de andamento — cada um vira uma cópia no histórico, que pode ser corrigida; ao marcar “finalizada”, o mesmo texto vira o relatório da macroentrega. Blocos com capítulo, subcapítulo, seção, figura, tabela e quebra de página.', { aba: 'macros', macro: 3, rel: true }],
+  ['Macroentrega 5 (última)', 'Planejada. Quando finalizada, o relatório da última macroentrega leva os apêndices: manuais de projeto e de uso, questionário, análise QFD, busca de anterioridade e lista de documentos.', { aba: 'macros', macro: 4 }],
   ['Cronograma', 'Gantt com caminho crítico, dependências e uma atividade atrasada (gera alerta).', { aba: 'cronograma' }],
   ['Riscos', 'Matriz probabilidade × impacto; riscos abertos, monitorados e fechados.', { aba: 'riscos' }],
   ['Qualidade / DfX', 'Especificações do QFD e uma manual; não conformidade com PDCA; diretrizes DfX, inclusive uma criada pela equipe.', { aba: 'qualidade' }],
   ['TRL', 'Árvore do produto avaliada por critérios, com histórico das mudanças.', { aba: 'trl' }],
   ['Lições aprendidas', 'Registro por macroentrega.', { aba: 'licoes' }],
-  ['Relatórios e exportação', 'Gere o relatório geral, o de cada macroentrega e exporte o ZIP. Os PDFs mostram tudo o que foi visto acima.', { aba: 'relatorios' }],
+  ['Relatórios e exportação', 'Gere o relatório geral, o de cada macroentrega e exporte o ZIP. Os relatórios começam pelos “próximos passos” (o que falta para o TRL esperado) e o geral termina com os apêndices. Os PDFs mostram tudo o que foi visto acima.', { aba: 'relatorios' }],
 ];
 
 App.guiaExemploHtml = function () {
@@ -41,6 +42,6 @@ App.acoes['guia-ir'] = (el) => {
   App.render(); window.scrollTo(0, 0);
 };
 App.acoes['guia-ocultar'] = () => {
-  if (!confirm('Ocultar o guia do exemplo neste projeto? (Para ver de novo, abra o exemplo outra vez em 📂 Projetos.)')) return;
+  if (!confirm('Ocultar o guia do exemplo neste projeto? (Para ver de novo, abra o exemplo outra vez em 📂 Criar/carregar.)')) return;
   App.p.exemplo = false; App.marcarSujo(true); App.render();
 };

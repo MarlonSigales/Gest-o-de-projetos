@@ -7,7 +7,8 @@ App.novaMacro = function () {
   return {
     uid: Nucleo.uid('me'), numero: App.p.macroentregas.length + 1, titulo: '', descricao: '', dataInicio: '', dataPrevista: '', dataEntrega: '',
     status: 'planejada', percentualConcluido: 0, trlEsperado: 4, areas: [], objetivosEtapa: [''],
-    resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [], blocos: [],
+    resultados: '', conclusao: '', etapasFuturas: '', atividades: [], figuras: [], tabelas: [], blocos: [], relatorios: [],
+    finalizada: false, andamento: { periodoInicio: '', periodoFim: '' },
     aceite: { dataAceite: '', nomeResponsavelEmpresa: '', aceito: false },
   };
 };
@@ -18,17 +19,26 @@ App.abas.macros = {
     if (App.macroSel >= ms.length) App.macroSel = Math.max(0, ms.length - 1);
     const anM = App.an ? App.an.macroentregas : [];
     let h = `<h2>Macroentregas</h2><div class="subabas">` + ms.map((m, i) =>
-      `<button data-acao="sel-macro" data-i="${i}" class="${i === App.macroSel ? 'ativa' : ''} ${anM[i] && anM[i].atrasada ? 'atrasada' : ''}" title="${esc(m.titulo)}">Macroentrega ${i + 1}</button>`).join('')
+      `<button data-acao="sel-macro" data-i="${i}" class="${i === App.macroSel ? 'ativa' : ''} ${anM[i] && anM[i].atrasada ? 'atrasada' : ''}" title="${esc(m.titulo)}">Macroentrega ${i + 1}${m.finalizada ? ' ✓' : ''}</button>`).join('')
       + `<button class="btn" data-acao="add-macro">+ Macroentrega</button></div>`;
     if (!ms.length) return h + '<p class="vazio">Nenhuma macroentrega. Clique em "+ Macroentrega".</p>';
 
-    const mi = App.macroSel, m = ms[mi], b = `macroentregas.${mi}`, c = App.campo;
+    const mi = App.macroSel, m = ms[mi], b = `macroentregas.${mi}`, c = App.campo, fin = m.finalizada;
     const temAtiv = m.atividades.length > 0;
-    h += `<div class="barra" style="justify-content:space-between">
-      <div class="barra" style="margin:0"><span id="statusMacro"></span></div>
+    // situação da escrita: em andamento → relatórios de andamento; finalizada → relatório da macroentrega (com termo de aceite)
+    h += `<div class="cartao situacao-escrita ${fin ? 'fin' : 'and'}"><div class="barra" style="justify-content:space-between;margin:0">
+      <div><b>${fin ? '✅ Finalizada' : '📝 Em andamento'}</b> <span class="muted">${fin
+        ? '— o texto abaixo gera o <b>relatório da macroentrega</b>, com termo de aceite e conclusão.'
+        : '— o texto abaixo gera <b>relatórios de andamento</b> (sem termo de aceite). Quando a macroentrega estiver pronta, marque como finalizada: o mesmo texto vira o relatório final.'}</span>
+        <div><span id="statusMacro"></span></div></div>
       <div class="barra" style="margin:0">
-        <button class="btn primario" data-acao="pdf-macro" data-i="${mi}">📄 Gerar PDF desta macroentrega</button>
-        <button class="btn perigo" data-acao="rem-macro" data-i="${mi}">– Remover macroentrega</button></div></div>
+        ${fin ? `<button class="btn primario" data-acao="pdf-macro" data-i="${mi}">📄 Gerar o relatório da macroentrega</button>
+          <button class="btn" data-acao="macro-finalizar" data-i="${mi}" data-v="0">↺ Voltar para em andamento</button>`
+        : `<button class="btn primario" data-acao="rel-gerar" data-mi="${mi}">📄 Gerar relatório de andamento</button>
+          <button class="btn" data-acao="macro-finalizar" data-i="${mi}" data-v="1">✔ Marcar como finalizada</button>`}
+        <button class="btn perigo" data-acao="rem-macro" data-i="${mi}">– Remover</button></div></div>
+      ${fin ? '' : `<div class="grade-campos" style="margin-top:8px">${c(b + '.andamento.periodoInicio', 'Próximo relatório de andamento: período de', { tipo: 'date' })}${c(b + '.andamento.periodoFim', 'até', { tipo: 'date' })}</div>`}
+    </div>
 
 <div class="cartao"><h3 style="margin-top:0">Macroentrega ${mi + 1}</h3><div class="grade-campos">
   ${c(b + '.titulo', 'Título (conforme plano de trabalho)', { classe: 'largo' })}
@@ -48,21 +58,13 @@ App.abas.macros = {
   ${App.listaTextos(b + '.objetivosEtapa', 'Objetivo', 'Adicionar objetivo')}
 </div>
 
-<div class="cartao"><h3 style="margin-top:0">Resultados e conclusões</h3><div class="grade-campos">
-  ${c(b + '.resultados', 'Resultados', { tipo: 'textarea', classe: 'largo', linhas: 8, ph: 'Cite figuras e tabelas com {{fig:fig_001}} e {{tab:tab_001}}' })}
-  ${c(b + '.conclusao', 'Conclusão', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
-</div></div>
+<div class="cartao nb-cartao"><h3 style="margin-top:0">Resultados — desenvolvimento</h3>${App.blocosHtml(mi, null, { ajuda: 'Escreva o desenvolvimento como num caderno: texto, capítulos, figuras, tabelas e dados do sistema, cada um no seu bloco. Figuras e tabelas só entram por blocos, sempre com o texto que as explica. No PDF, os blocos formam o item <b>3. Resultados</b>, com capítulos numerados (3.1, 3.1.1 …).' })}</div>
 
-<div class="cartao nb-cartao"><h3 style="margin-top:0">Resultados — desenvolvimento em blocos</h3>${App.blocosHtml(mi)}</div>
-
-<div class="cartao"><h3 style="margin-top:0">Relatórios de andamento desta macroentrega (antes da entrega)</h3>${App.intermediariosHtml(mi)}</div>
+${fin ? `<div class="cartao"><h3 style="margin-top:0">Conclusão</h3>${c(b + '.conclusao', '', { tipo: 'textarea', linhas: 4 })}</div>` : ''}
 
 <div class="cartao"><h3 style="margin-top:0">Projeções e próximos passos</h3>
   ${c(b + '.etapasFuturas', 'Etapas futuras', { tipo: 'textarea', classe: 'largo', linhas: 4 })}
 </div>
-
-<div class="cartao"><h3 style="margin-top:0">Figuras soltas (por seção)</h3>${App.editorFiguras(mi)}</div>
-<div class="cartao"><h3 style="margin-top:0">Tabelas soltas (por seção)</h3>${App.editorTabelas(mi)}</div>
 
 <div class="cartao"><h3 style="margin-top:0">Atividades (cronograma desta macroentrega)</h3>
 ${App.tabela(b + '.atividades', [
@@ -76,11 +78,13 @@ ${App.tabela(b + '.atividades', [
   ], { novo: 'atividade', botao: 'Adicionar atividade', vazio: 'Sem atividades: o percentual da macroentrega é informado manualmente.' })}
 </div>
 
-<div class="cartao"><h3 style="margin-top:0">Termo de aceite (2ª página do PDF)</h3><div class="grade-campos">
+<div class="cartao"><h3 style="margin-top:0">Relatórios de andamento gerados (histórico)</h3>${App.intermediariosHtml(mi)}</div>
+
+${fin ? `<div class="cartao"><h3 style="margin-top:0">Termo de aceite (2ª página do PDF)</h3><div class="grade-campos">
   ${c(b + '.aceite.dataAceite', 'Data do aceite', { tipo: 'date' })}
   ${c(b + '.aceite.nomeResponsavelEmpresa', 'Responsável na empresa', { ph: App.p.projeto.responsavelEmpresa || '' })}
   ${c(b + '.aceite.aceito', 'Macroentrega aceita pela empresa', { tipo: 'checkbox' })}
-</div></div>`;
+</div></div>` : ''}`;
     return h;
   },
   analise() {
@@ -89,6 +93,17 @@ ${App.tabela(b + '.atividades', [
     if (!a || !el) return;
     el.innerHTML = `<span class="status ${esc(a.status)}">${esc(a.status)}</span> · ${a.percentual}% concluído${a.automatico ? ' (pelas atividades)' : ''}${a.aceito ? ' · <b>aceite registrado</b>' : ''}`;
   },
+};
+
+App.acoes['macro-finalizar'] = (el) => {
+  const m = App.p.macroentregas[+el.dataset.i], fin = el.dataset.v === '1';
+  if (fin && !confirm('Marcar esta macroentrega como finalizada? O texto passa a gerar o relatório da macroentrega, com termo de aceite e conclusão.')) return;
+  m.finalizada = fin;
+  if (fin && !['concluída', 'aceita'].includes(m.status)) m.status = 'concluída';
+  if (fin && !m.dataEntrega) m.dataEntrega = hojeISO();
+  if (!fin && ['concluída', 'aceita'].includes(m.status) && !m.aceite.aceito) m.status = 'em andamento';
+  App.marcarSujo(true); App.render(); App.agendarAnalise();
+  App.toast(fin ? 'Macroentrega finalizada: gere o relatório da macroentrega e registre o aceite.' : 'Macroentrega de volta a em andamento: o texto gera relatórios de andamento.', 'ok', 7000);
 };
 
 App.listaTextos = function (caminho, rotulo, botao) {

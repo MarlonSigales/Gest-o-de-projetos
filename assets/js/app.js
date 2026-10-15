@@ -51,7 +51,7 @@ App.baixarBlob = function (blob, nome) {
 App.carregarCfg = function () {
   let c = {};
   try { c = JSON.parse(localStorage.getItem('gp-config') || '{}'); } catch (e) { c = {}; }
-  App.cfg = { usuario: c.usuario || '', email: c.email || '' };
+  App.cfg = { usuario: c.usuario || '', email: c.email || '', semDicas: !!c.semDicas };
 };
 App.gravarCfg = function () { try { localStorage.setItem('gp-config', JSON.stringify(App.cfg)); } catch (e) { /* navegação privada */ } };
 /** Primeira abertura: nome (para o log) e e-mail são obrigatórios. */
@@ -295,7 +295,7 @@ App.telaProjetos = async function () {
   const suporta = ArmazemPasta.suportado();
   const recentes = suporta ? await Recentes.listar() : [];
   const nav = await ArmazemNavegador.listar();
-  App.modal(`<h2>Projetos</h2>
+  App.modal(`<h2>Criar ou carregar projeto</h2>
   <div class="grade-campos" style="grid-template-columns:1fr 1fr">
     <div class="cartao" style="margin:0"><h3 style="margin-top:0">📁 Pasta do computador <span class="muted">(recomendado)</span></h3>
       <p class="muted">O JSON e a pasta <b>figuras/</b> ficam juntos na pasta que você escolher. ${suporta ? '' : '<br><b class="gap-neg">Este navegador (Safari, Firefox ou celular) não permite gravar em pastas. Guarde no navegador e exporte o ZIP com frequência — ou use Chrome/Edge no computador.</b>'}</p>
@@ -345,12 +345,10 @@ App.gerarTodosPdfs = async function () {
   out.push({ nome: `Relatório de andamento - ${nomeProj} - ${hojeISO()}.pdf`, arq: `relatorios/relatorio_andamento_${hojeISO()}.pdf`, blob: await Pdf.gerar(await Pdf.andamento(App.p, App.arm)) });
   for (let i = 0; i < App.p.macroentregas.length; i++) {
     App.progresso(`Gerando PDF da macroentrega ${i + 1} de ${App.p.macroentregas.length}…`);
-    out.push({ nome: `Macroentrega ${String(i + 1).padStart(2, '0')} - ${nomeProj}.pdf`, arq: `relatorios/macroentrega_${String(i + 1).padStart(2, '0')}.pdf`, blob: await Pdf.gerar(await Pdf.macroentrega(App.p, i, App.arm)) });
-    for (let ri = 0; ri < App.p.macroentregas[i].relatorios.length; ri++) { // relatórios de andamento intermediários marcados para envio
-      if (!App.p.macroentregas[i].relatorios[ri].enviar) continue;
-      App.progresso(`Gerando o relatório de andamento ${ri + 1} da macroentrega ${i + 1}…`);
-      out.push({ nome: App.relNomePdf(i, ri), arq: App.relCaminhoPdf(i, ri), blob: await Pdf.gerar(await Pdf.relatorioIntermediario(App.p, i, ri, App.arm)) });
-    }
+    const m = App.p.macroentregas[i], nn = String(i + 1).padStart(2, '0');
+    if (m.finalizada) out.push({ nome: `Macroentrega ${nn} - ${nomeProj}.pdf`, arq: `relatorios/macroentrega_${nn}.pdf`, blob: await Pdf.gerar(await Pdf.macroentrega(App.p, i, App.arm)) });
+    else if (m.status !== 'planejada' || m.blocos.length) // em andamento: relatório de andamento com o texto atual
+      out.push({ nome: `Macroentrega ${nn} - andamento - ${nomeProj}.pdf`, arq: `relatorios/macroentrega_${nn}_andamento_atual.pdf`, blob: await Pdf.gerar(await Pdf.relatorioIntermediario(App.p, i, App.relAtual(m), App.arm)) });
   }
   return out;
 };
@@ -442,14 +440,18 @@ App.acoes['baixar-anexos'] = (el) => {
 };
 
 // ------------------------------------------------------------------ PDFs
+/** Relatório de andamento com o texto atual da macroentrega (sem guardar no histórico). */
+App.relAtual = (m) => Object.assign(Nucleo.novoRelatorio(m.relatorios.length + 1), { titulo: `Relatório de andamento (${dataBR(hojeISO())})`,
+  periodoInicio: m.andamento.periodoInicio || '', periodoFim: m.andamento.periodoFim || hojeISO(), blocos: m.blocos, etapasFuturas: m.etapasFuturas });
 App.gerarPdf = async function (tipo, mi) {
-  const doc = tipo === 'macro' ? await Pdf.macroentrega(App.p, mi, App.arm) : await Pdf.andamento(App.p, App.arm);
+  const m = tipo === 'macro' ? App.p.macroentregas[mi] : null, andamento = m && !m.finalizada;
+  const doc = !m ? await Pdf.andamento(App.p, App.arm) : andamento ? await Pdf.relatorioIntermediario(App.p, mi, App.relAtual(m), App.arm) : await Pdf.macroentrega(App.p, mi, App.arm);
   const blob = await Pdf.gerar(doc);
   const nomeProj = Nucleo.nomeSeguro(App.p.projeto.nome);
-  const nome = tipo === 'macro' ? `Macroentrega ${String(mi + 1).padStart(2, '0')} - ${nomeProj}.pdf` : `Relatório de andamento - ${nomeProj} - ${hojeISO()}.pdf`;
+  const nome = m ? `Macroentrega ${String(mi + 1).padStart(2, '0')}${andamento ? ' - andamento' : ''} - ${nomeProj}.pdf` : `Relatório de andamento - ${nomeProj} - ${hojeISO()}.pdf`;
   App.baixarBlob(blob, nome);
   if (App.arm && App.arm.tipo === 'pasta') {
-    try { await App.arm.gravarArquivo('relatorios/' + (tipo === 'macro' ? `macroentrega_${String(mi + 1).padStart(2, '0')}.pdf` : `relatorio_andamento_${hojeISO()}.pdf`), blob); } catch (e) { /* opcional */ }
+    try { await App.arm.gravarArquivo('relatorios/' + (m ? `macroentrega_${String(mi + 1).padStart(2, '0')}${andamento ? '_andamento_atual' : ''}.pdf` : `relatorio_andamento_${hojeISO()}.pdf`), blob); } catch (e) { /* opcional */ }
   }
 };
 
@@ -460,7 +462,8 @@ App.telaConfig = function () {
   App.modal(`<h2>⚙ Configurações</h2>
   <h3>Deste navegador</h3>
   <div class="grade-campos"><label class="campo">Seu nome (registrado no log)<input id="cfgUsuario" value="${esc(App.cfg.usuario)}"></label>
-    <label class="campo">Seu e-mail (entra na gestão de projetos sem gestão)<input id="cfgEmailUsuario" type="email" value="${esc(App.cfg.email)}"></label></div>
+    <label class="campo">Seu e-mail (entra na gestão de projetos sem gestão)<input id="cfgEmailUsuario" type="email" value="${esc(App.cfg.email)}"></label>
+    <label class="campo" style="flex-direction:row;align-items:center;gap:8px;"><input type="checkbox" id="cfgDicas" ${App.cfg.semDicas ? '' : 'checked'}> Mostrar balões explicativos ao parar o mouse sobre botões, abas e campos</label></div>
   <h3>Do projeto (salvas no JSON)</h3>
   <div class="grade-campos">
     <label class="campo">Ao salvar, baixar uma cópia do JSON
@@ -482,6 +485,7 @@ App.acoes['cfg-salvar'] = () => {
   App.cfg.usuario = $('#cfgUsuario').value.trim() || App.cfg.usuario;
   const em = $('#cfgEmailUsuario').value.trim();
   if (Nucleo.emailValido(em)) App.cfg.email = em;
+  App.cfg.semDicas = !$('#cfgDicas').checked;
   App.gravarCfg();
   App.p.config.baixarAoSalvar = $('#cfgBaixar').value;
   Object.assign(App.p.config.email, { modo: $('#cfgModo').value, emailjsServico: $('#cfgServ').value.trim(), emailjsModelo: $('#cfgModelo').value.trim(),

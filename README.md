@@ -28,7 +28,7 @@ O arquivo `.nojekyll` já vem incluído. Não há senhas nem dados de projetos n
 
 ## 2. Onde os projetos ficam guardados
 
-Ao abrir o site, clique em **📂 Projetos** e escolha uma das opções abaixo.
+Ao abrir o site, clique em **📂 Criar/carregar** e escolha uma das opções abaixo.
 
 ### 📁 Pasta do computador (recomendado — Chrome ou Edge no computador)
 Você escolhe uma pasta, e o sistema grava tudo nela diretamente:
@@ -51,7 +51,7 @@ MinhaPasta/
 - **Safari (e Firefox):** os arquivos (figuras, documentos) são guardados como bytes, porque o Safari pode perder arquivos guardados de outro jeito ao recarregar a página. A cada salvamento o sistema **relê o que gravou** e avisa se o navegador não confirmou. Ele também pede ao navegador que **não apague** os dados do site. Mesmo assim, o Safari pode apagar dados de sites sem uso por 7 dias: em ⚙ Configurações, escolha **baixar o ZIP completo a cada salvamento**.
 
 ### Levar para outra máquina
-Use **Exportar ZIP** (JSON + figuras + histórico) e, na outra máquina, **📂 Projetos → Importar**. Também dá para importar o JSON junto com as imagens selecionadas.
+Use **Exportar ZIP** (JSON + figuras + histórico) e, na outra máquina, **📂 Criar/carregar → Importar**. Também dá para importar o JSON junto com as imagens selecionadas.
 
 ---
 
@@ -84,10 +84,10 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 
 **Primeira abertura:** o sistema exige **nome** (registrado no log) e **e-mail**. Esse e-mail entra automaticamente no **grupo de gestão** de qualquer projeto aberto ou criado que ainda não tenha ninguém na gestão (quando o projeto já tem gestão, nada muda). Para trocar, use ⚙.
 
-**Exemplo para aprender:** em 📂 Projetos → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício que usa **todos os recursos** do sistema, e a aba Projeto mostra o **🎓 Guia do exemplo**: um roteiro com o que olhar em cada aba e um botão que leva direto ao recurso. O guia pode ser ocultado. O exemplo traz:
+**Exemplo para aprender:** em 📂 Criar/carregar → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício que usa **todos os recursos** do sistema, e a aba Projeto mostra o **🎓 Guia do exemplo**: um roteiro com o que olhar em cada aba e um botão que leva direto ao recurso. O guia pode ser ocultado. O exemplo traz:
 - vigência com termo aditivo, equipe, grupos de e-mail, interessados e áreas ligadas à árvore TRL;
-- 5 macroentregas em situações diferentes: aceitas, concluída aguardando o aceite, em andamento e planejada;
-- desenvolvimento em blocos com todos os tipos (capítulo, subcapítulo, seção, texto, figura, tabela, QFD, projeto do produto, questionário e quebra de página) e um **relatório de andamento intermediário** na macroentrega em andamento;
+- 5 macroentregas em situações diferentes: finalizadas e aceitas, finalizada aguardando o aceite, em andamento (com relatório de andamento no histórico) e planejada (a última, cujo relatório leva os apêndices);
+- desenvolvimento em blocos com todos os tipos (capítulo, subcapítulo, seção, texto, figura, tabela, QFD, projeto do produto, questionário, pesquisa e quebra de página);
 - questionário do Google Forms com 24 respostas e todos os tipos de pergunta (escolha, caixas, escala, grade, aberta, identificação), gráficos e destaques;
 - QFD completo, com avaliação competitiva de 3 concorrentes;
 - busca de anterioridade com patentes **fictícias** importadas de um CSV no formato do Google Patents (`exemplos/patentes-roda-google-patents.csv`) e referências reais citadas nos textos;
@@ -101,7 +101,7 @@ Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). 
 | **Projeto** (primeira página) | **Vigência: data de início, término original, termos aditivos (+) e subtrativos (−) de prazo e término vigente calculado**; painel com percentual, TRL, alertas e ponto de verificação; identificação, coordenação, introdução e objetivo geral |
 | **Equipe e Interessados** | Equipe (página "Equipe" dos PDFs), **grupos de e-mail** (gestão ★ e demais) e **interessados**, com o resumo de quem recebe o quê |
 | **Áreas / Responsáveis** | Áreas técnicas ligadas a itens da árvore TRL, com **um ou mais responsáveis** (quem cobrar) e TRL esperado |
-| **Macroentregas** | Uma sub-aba por macroentrega, com **+ Macroentrega / – Remover** (a numeração é refeita). Textos do template, figuras, tabelas, atividades, termo de aceite e **PDF da macroentrega** |
+| **Macroentregas** | Uma sub-aba por macroentrega, com **+ Macroentrega / – Remover** (a numeração é refeita). Projetos novos começam com 4. No topo, a situação do texto (**em andamento** ou **finalizada**); desenvolvimento em blocos, atividades, histórico de relatórios de andamento e termo de aceite |
 | **Projeto de produto/serviço** | Modelo **NeDIP** (planejamento, projetação e implementação), tudo opcional: aplicativo externo por fase (QFD no informacional), especificações manuais, desdobramento em funções, matriz de decisão, FMEA → Riscos, manuais de projeto e de uso, documentos no ZIP |
 | **Cronograma** | EAP, Gantt, caminho crítico (CPM) e atividades atrasadas |
 | **Riscos** | Registro e matriz 5×5 (P × I) |
@@ -110,15 +110,17 @@ Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). 
 | **Lições aprendidas** | Registro por macroentrega |
 | **Relatórios e Exportação** | PDFs, prévia e envio do e-mail, JSON, ZIP, histórico e exclusão |
 
-**Salvar:** botão no topo ou **Ctrl+S**. **Tudo o que é preenchido vai para o JSON**, inclusive grupos de e-mail, vigência/aditivos, DfX e configurações de envio. As exceções são o seu nome e e-mail, que ficam neste navegador.
+**Salvar:** botão no menu lateral ou **Ctrl+S**. **Tudo o que é preenchido vai para o JSON**, inclusive grupos de e-mail, vigência/aditivos, DfX e configurações de envio. As exceções são o seu nome e e-mail, que ficam neste navegador.
 
-**Menu lateral → Inserir:** **+ Figura** abre direto a caixa para importar a imagem; depois você escolhe macroentrega, seção, título e fonte. **+ Tabela** cria uma tabela ABNT, em branco ou colada do Excel, na macroentrega e seção escolhidas.
+**Menu lateral:** as abas na ordem do trabalho (Projeto, Áreas, Equipe, Macroentregas, Cronograma, Pesquisa, Projeto de produto, TRL, Qualidade/DfX, Riscos, Lições, Relatórios) e, embaixo, **Arquivo do projeto**: **📂 Criar/carregar**, **💾 Salvar** e **⚙ Configurações**.
+
+**Balões explicativos:** pare o mouse (ou chegue pelo teclado) sobre qualquer botão, aba ou campo para ver para que ele serve. Podem ser desligados em ⚙ Configurações (preferência deste navegador).
 
 ### Projeto de produto/serviço (modelo NeDIP)
 Macrofases e fases do modelo do NeDIP/UFSC (BACK, N. et al. *Projeto integrado de produtos*. Manole, 2008): **planejamento** → **projetação** (informacional, conceitual, preliminar, detalhado) → **implementação** (preparação da produção, lançamento, validação).
 
 **Tudo é opcional.** Em cada projeto você escolhe as fases usadas; em cada fase:
-- **Entrada da fase:** um aplicativo próprio (nome e URL). O botão abre o aplicativo e, na volta, o sistema pede o resultado, que fica nos documentos da fase. No projeto informacional o padrão é o sistema QFD (https://marlonsigales.github.io/QFD/index.html): o backup JSON atualiza requisitos de cliente e especificações. Nenhuma janela obriga a usar o aplicativo.
+- **Entrada da fase:** um aplicativo próprio (nome e URL). O botão abre o aplicativo e, na volta, o sistema pede o resultado, que fica nos documentos da fase. No projeto informacional o aplicativo é fixo: o botão **↗ Ir para o app do projeto informacional (QFD)** abre o sistema QFD (https://marlonsigales.github.io/QFD/index.html), e o backup JSON atualiza requisitos de cliente e especificações. Nenhuma janela obriga a usar o aplicativo.
 - **Ferramentas internas** ligáveis/desligáveis; todas as listas aceitam **linhas manuais**.
 - Situação (incluindo "não se aplica"), macroentregas, **recomendações clicáveis**, registro livre e **documentos da fase** (`produto/<fase>/`, vão no ZIP).
 
@@ -202,8 +204,14 @@ A síntese mostra o que está em domínio público e o que exige atenção. O bl
 - Cite no texto com `{{ref:código}}`, por exemplo `{{ref:back2008}}`, que vira “(BACK et al., 2008)”.
 - Cada relatório ganha a seção **Referências**, em ordem alfabética, só com as obras citadas nele.
 
-### Relatórios de andamento entre macroentregas
-Dentro de cada macroentrega, **+ Relatório de andamento** cria um relatório intermediário ("pré-macroentrega"), com título, data, período coberto e **desenvolvimento em blocos** (o mesmo editor). O PDF tem capa própria, identificação, andamento das atividades e os capítulos numerados 2.1, 2.1.1 …, **sem termo de aceite**. Ele fica em `relatorios/macroentrega_NN_andamento_NN.pdf` e entra no ZIP; se marcado, vai também no e-mail de andamento. O botão **⧉ Copiar para o relatório final** reaproveita os blocos no desenvolvimento da macroentrega. O relatório geral lista os relatórios intermediários.
+### Um só texto: relatórios de andamento e relatório da macroentrega
+Cada macroentrega tem **um só texto** (o desenvolvimento em blocos), sem retrabalho. O topo da página mostra a situação:
+- **📝 Em andamento:** o texto gera **relatórios de andamento** (sem termo de aceite). **Gerar relatório de andamento** guarda uma cópia do texto daquele dia no **histórico** (com período coberto) e gera o PDF em `relatorios/macroentrega_NN_andamento_NN.pdf`; o próximo período começa onde o anterior terminou. Versões do histórico podem ser reabertas (**✎ Corrigir**) e geradas de novo sem mudar o texto atual. No e-mail de andamento vai o relatório com o texto atual (`macroentrega_NN_andamento_atual.pdf`).
+- **✅ Finalizada** (**✔ Marcar como finalizada**): o mesmo texto passa a gerar o **relatório da macroentrega**, com conclusão e termo de aceite. **↺ Voltar para em andamento** desfaz.
+
+Todo relatório começa por **Próximos passos para o TRL esperado**: para cada item da árvore TRL abaixo do esperado, o nível atual, os critérios que faltam para o próximo nível e a área responsável.
+
+**Apêndices:** o relatório da **última macroentrega** e o relatório geral terminam com os documentos individuais, quando houver informação: A Manual de projeto, B Manual de uso, C Questionário, D Análise QFD, E Busca de anterioridade e F Documentos do projeto (as letras seguem a ordem dos que existirem).
 
 ### Texto (Markdown básico)
 Nos campos de texto e nos blocos:
@@ -214,14 +222,16 @@ Nos campos de texto e nos blocos:
 - `{{fig:fig_001}}` e `{{tab:tab_001}}` citam figuras e tabelas; `{{ref:código}}` cita uma referência bibliográfica.
 
 ### Macroentregas: desenvolvimento em blocos
-No cartão **Resultados — desenvolvimento em blocos**, monte o texto como num caderno (Google Colab).
+No cartão **Resultados — desenvolvimento**, monte o texto como num caderno (Google Colab). **Figuras e tabelas só existem dentro dos blocos**, junto do texto que as explica; em projetos antigos, o texto de resultados e as figuras/tabelas soltas viram blocos no início do desenvolvimento, na mesma ordem.
 - Botões **+ Texto, + Capítulo, + Subcapítulo, + Seção, + Figura, + Tabela, + Dados do QFD, + Projeto do produto, + Questionário, + Pesquisa e + Quebra de página**. Ao incluir um bloco, novos botões aparecem abaixo dele.
 - Cada bloco tem **✎ Editar / ✓ Concluir**, **🗑 Excluir** e **↑ ↓** para mover.
 - O texto aceita negrito, listas e citações de figuras e tabelas (botões e seletor).
 - Figura e tabela (importar CSV ou colar do Excel) ficam no próprio bloco, com numeração ABNT.
 - Sem QFD ou sem questionário, o bloco avisa e leva à página de preenchimento.
 
-No PDF, os blocos entram em **3. Resultados**, depois do texto de resultados, com capítulos numerados (3.1, 3.1.1 …). No relatório geral, entram no desenvolvimento de cada macroentrega. Os campos e as figuras e tabelas soltas por seção continuam funcionando como antes.
+No PDF, os blocos entram em **3. Resultados**, com capítulos numerados (3.1, 3.1.1 …). No relatório geral, entram no desenvolvimento de cada macroentrega.
+
+**Projeto de produto pré-marcado:** num projeto novo, cada grupo de fases do NeDIP já vem ligado a uma macroentrega (informacional → 1, conceitual → 2, preliminar → 3, detalhado → última; com menos de 4 macroentregas, a distribuição é proporcional). Basta desmarcar o que não quiser.
 
 ### Qualidade: especificações vindas do QFD
 Os critérios de qualidade são as **especificações de projeto**. No **projeto informacional**, o botão da entrada da fase **abre o sistema QFD** (https://marlonsigales.github.io/QFD/index.html, abre em outra aba; endereço em `CONFIG.urlQfd`). Ao voltar para a aba do sistema, ele **pede o backup JSON do QFD**; o JSON também pode ser importado a qualquer momento pelo botão "Importar resultado do aplicativo" ou na aba Qualidade. **O QFD é opcional**: as especificações podem ser cadastradas à mão no projeto informacional, ao lado das que vierem do QFD. O JSON é o backup completo exportado pelo botão "Backup" do painel do QFD. Também aceita um ZIP que contenha esse JSON.
@@ -304,7 +314,8 @@ assets/js/formulario.js     questionário do Google Forms (CSV, edição, análi
 assets/js/qfd.js            relatório da casa da qualidade a partir do backup do QFD; tabelas que viram a folha
 assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF
 assets/js/nedip_relatorio.js projeto de produto nos relatórios; diagrama da estrutura de funções
-assets/js/intermediarios.js relatórios de andamento entre macroentregas
+assets/js/intermediarios.js relatórios de andamento (histórico de cópias do texto) e seu PDF
+assets/js/dicas.js          balões explicativos (dicionário por ação, aba, bloco e campo)
 assets/js/pesquisa.js       aba Pesquisa: busca de anterioridade (patentes) e referências ABNT
 assets/js/guia_exemplo.js   guia do exemplo (roteiro de aprendizado na aba Projeto)
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js

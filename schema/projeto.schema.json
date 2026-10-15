@@ -412,7 +412,8 @@
             }
           },
           "resultados": {
-            "type": "string"
+            "type": "string",
+            "description": "legado: projetos antigos têm este texto convertido em bloco no início de blocos"
           },
           "conclusao": {
             "type": "string"
@@ -485,7 +486,8 @@
                   "$ref": "#/$defs/secao"
                 }
               }
-            }
+            },
+            "description": "figuras/tabelas usadas pelos blocos (bloco figura/tabela com ref); não há mais figuras soltas"
           },
           "tabelas": {
             "type": "array",
@@ -520,7 +522,8 @@
                   }
                 }
               }
-            }
+            },
+            "description": "figuras/tabelas usadas pelos blocos (bloco figura/tabela com ref); não há mais figuras soltas"
           },
           "aceite": {
             "type": "object",
@@ -601,7 +604,7 @@
           },
           "relatorios": {
             "type": "array",
-            "description": "relatórios de andamento intermediários da macroentrega (antes da entrega); PDF em relatorios/macroentrega_NN_andamento_NN.pdf",
+            "description": "histórico de relatórios de andamento: cópia do texto (blocos) no dia em que cada um foi gerado; PDF em relatorios/macroentrega_NN_andamento_NN.pdf",
             "items": {
               "type": "object",
               "required": [
@@ -623,10 +626,6 @@
                 },
                 "periodoFim": {
                   "type": "string"
-                },
-                "enviar": {
-                  "type": "boolean",
-                  "description": "vai no e-mail de andamento ao salvar"
                 },
                 "gerado": {
                   "type": "string",
@@ -699,7 +698,27 @@
                       }
                     }
                   }
+                },
+                "etapasFuturas": {
+                  "type": "string",
+                  "description": "próximas etapas no dia do relatório"
                 }
+              }
+            }
+          },
+          "finalizada": {
+            "type": "boolean",
+            "description": "false: o texto gera relatórios de andamento (relatorios/macroentrega_NN_andamento_atual.pdf); true: gera o relatório da macroentrega, com conclusão e termo de aceite"
+          },
+          "andamento": {
+            "type": "object",
+            "description": "período do próximo relatório de andamento",
+            "properties": {
+              "periodoInicio": {
+                "type": "string"
+              },
+              "periodoFim": {
+                "type": "string"
               }
             }
           }
@@ -994,6 +1013,10 @@
             ]
           },
           "description": "seções do projeto de produto (NeDIP) incluídas no relatório geral de andamento"
+        },
+        "nedipPreMarcado": {
+          "type": "boolean",
+          "description": "fases do NeDIP já pré-marcadas nas macroentregas conforme o número de macroentregas (feito uma vez)"
         }
       }
     },

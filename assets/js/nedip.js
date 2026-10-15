@@ -165,7 +165,8 @@ window.nedipNormalizar = function (prod) {
     const base = {
       status: window.NEDIP_STATUS.some(([s]) => s === e.status) ? e.status : 'não iniciada',
       macros: nedipLista(e.macros).map(String),
-      app: Object.assign({ nome: (et.appPadrao || {}).nome || '', url: (et.appPadrao || {}).url || '' }, e.app || {}),
+      app: et.id === 'informacional' ? { nome: 'Sistema QFD', url: (window.CONFIG && CONFIG.urlQfd) || '' } // fixo: sempre o sistema QFD
+        : Object.assign({ nome: (et.appPadrao || {}).nome || '', url: (et.appPadrao || {}).url || '' }, e.app || {}),
       ferramentas: Object.fromEntries(et.ferramentas.map(([id, , pad]) => [id, e.ferramentas && id in e.ferramentas ? !!e.ferramentas[id] : pad])),
       recomendacoes: Object.fromEntries(et.recomendacoes.map(([id]) => [id, !!(e.recomendacoes && e.recomendacoes[id])])),
       registro: nedipTxt(e.registro),

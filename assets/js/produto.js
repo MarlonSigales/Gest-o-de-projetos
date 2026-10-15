@@ -78,6 +78,13 @@ App.abas.produto = {
 // ------------------------------------------------------------------ entrada da fase: aplicativo externo + ferramentas opcionais
 App.nedipEntradaHtml = function (et, e, b) {
   const c = App.campo, o = App.p.qfdOrigem || {};
+  if (et.id === 'informacional') { // o app desta fase é sempre o sistema QFD
+    return cartao('Entrada da fase', `<p class="muted" style="margin-top:0">O projeto informacional usa o sistema QFD. Ao voltar de lá, o sistema pede o backup JSON (botão “Backup” do QFD), que preenche requisitos, especificações e o relatório da casa da qualidade.</p>
+  <div class="barra"><button class="btn primario" data-acao="qfd-abrir">↗ Ir para o app do projeto informacional (QFD)</button>
+    <label class="btn">⬆ Importar o backup JSON do QFD<input type="file" hidden id="appResultado" accept=".json,.zip,application/json,application/zip"></label></div>
+  <p class="muted" style="margin:6px 0 0">${o.importadoEm ? `QFD importado em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} (${esc(o.arquivo)}).` : 'Nenhum QFD importado ainda. Sem QFD, use as linhas manuais de requisitos e especificações abaixo.'}</p>
+  <div class="barra nedip-ferr"><span class="muted"><b>Ferramentas internas desta fase:</b></span>${et.ferramentas.map(([id, rot]) => c(`${b}.ferramentas.${id}`, rot, { tipo: 'checkbox', render: true, classe: 'rec' })).join('')}</div>`);
+  }
   const qfdInfo = et.id === 'informacional'
     ? `<p class="muted" style="margin:6px 0 0">${o.importadoEm ? `QFD importado em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} (${esc(o.arquivo)}).` : 'Um backup JSON do sistema QFD, se importado, preenche os requisitos de cliente e as especificações. Sem QFD, use as linhas manuais abaixo.'}</p>` : '';
   return cartao('Entrada da fase (opcional)', `<p class="muted" style="margin-top:0">Se esta fase é feita em um aplicativo próprio, informe-o aqui. Ao voltar dele, o sistema pede o resultado, que fica nos documentos da fase${et.id === 'informacional' ? ' (o JSON do sistema QFD também atualiza requisitos e especificações)' : ''}. Nada disso é obrigatório.</p>
