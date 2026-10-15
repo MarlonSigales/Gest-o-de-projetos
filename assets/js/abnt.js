@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Figuras e tabelas no padrão ABNT: numeração, prévia e operações das tabelas (usadas pelos blocos das macroentregas). */
 'use strict';
 

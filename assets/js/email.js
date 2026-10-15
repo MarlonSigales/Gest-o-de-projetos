@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * E-mail de andamento sem servidor. Três modos (⚙ Configurações):
  *  - "emailjs": envio automático pelo serviço EmailJS (https://www.emailjs.com), com o JSON anexado;

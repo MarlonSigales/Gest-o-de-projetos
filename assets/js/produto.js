@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Aba Projeto de produto/serviço: modelo NeDIP (planejamento, projetação e implementação).
  * Tudo é opcional: cada fase pode ter um aplicativo próprio de entrada, as ferramentas internas
  * podem ser desligadas e as listas aceitam linhas manuais. */

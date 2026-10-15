@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Projeto de produto/serviço pelo modelo do NeDIP/UFSC (PRODIP), com as três macrofases:
  *   planejamento → projetação (informacional, conceitual, preliminar, detalhado) → implementação

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Dados institucionais usados nos relatórios. Edite aqui para outra unidade. */
 'use strict';
 

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Aba TRL: importação da avaliação oficial de maturidade e visualização como TRL. */
 'use strict';
 

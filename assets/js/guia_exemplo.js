@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Guia do exemplo: no projeto de exemplo (roda de bicicleta), a aba Projeto mostra um roteiro para quem está
  * começando — o que olhar em cada aba, com um botão que leva direto ao recurso. Some com "Ocultar o guia".

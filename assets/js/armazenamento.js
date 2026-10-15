@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Armazenamento dos projetos, sem servidor.
  *  - ArmazemPasta: uma PASTA do computador (File System Access API — Chrome/Edge). O JSON e a pasta figuras/

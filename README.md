@@ -324,3 +324,6 @@ assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figur
 exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json, questionario-roda-google-forms.csv e patentes-roda-google-patents.csv
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```
+
+## Licença
+Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar o código exige autorização do autor; veja [LICENSE](LICENSE). As bibliotecas em `lib/` seguem suas próprias licenças (MIT).

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Critérios de avaliação de TRL usados na avaliação interna.
  * Redação própria, baseada nas definições públicas de TRL da NASA (NPR 7123.1, apêndice E)

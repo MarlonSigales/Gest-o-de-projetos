@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Aba Pesquisa: busca de anterioridade (patentes) e referências bibliográficas.
  *  - Patentes: estratégia de busca, botões que abrem a busca pronta nas bases, importação do CSV exportado pelo

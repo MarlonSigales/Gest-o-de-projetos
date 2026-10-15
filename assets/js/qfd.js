@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Relatório do QFD (casa da qualidade) a partir do backup completo exportado pelo sistema QFD, com a identidade
  * visual dos PDFs deste sistema. As seções são escolhidas por macroentrega (bloco "QFD" do desenvolvimento) e para

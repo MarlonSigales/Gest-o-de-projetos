@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Balões explicativos: ao parar o mouse (ou focar pelo teclado) sobre um botão, aba ou campo, aparece um balão
  * dizendo para que serve. Os textos ficam num só dicionário, por ação (data-acao), aba (data-aba), tipo de bloco,

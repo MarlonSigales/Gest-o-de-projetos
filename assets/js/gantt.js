@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Aba Cronograma: EAP/WBS, Gantt (SVG gerado no servidor) e caminho crítico (CPM). */
 'use strict';
 

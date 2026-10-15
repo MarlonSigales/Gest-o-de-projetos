@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Pré-projeto informacional: questionário aplicado no Google Forms (ou em papel).
  *  - importa o CSV de respostas do Google Forms (Respostas → ⋮ → Baixar respostas .csv);

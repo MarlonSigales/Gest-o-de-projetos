@@ -2,9 +2,13 @@ TODO / QA — Gestão de Projetos
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
 Atualizado em 14/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
 
+=== DIRETRIZES PERMANENTES
+- A cada recurso novo, incluí-lo no exemplo da roda e no Guia do exemplo (item 18).
+- Todo arquivo novo do sistema começa com a linha de direitos autorais (item 37); o aviso vale para terceiros, não para o
+  trabalho feito a pedido do autor.
+
 === O QUE FALTA (do mais simples para o mais difícil)
 (nada pendente)
-   Regra permanente: a cada recurso novo, incluí-lo no exemplo da roda e no Guia do exemplo (item 18).
 
 === REJEITADO
 16 [rejeitado] Pesquisar patentes automaticamente direto do navegador: as bases não permitem esse acesso sem servidor; substituído pelo item 15.
@@ -80,3 +84,10 @@ Atualizado em 14/10/2026. Os números são fixos (servem de referência); a orde
    busca de anterioridade e lista de documentos, quando houver informação.
 35 [resolvido] Balões explicativos ao parar o mouse (ou focar pelo teclado) sobre botões, abas e campos; podem ser desligados em
    Configurações. Exemplo, guia, README, schema, ZIP e PDFs do exemplo atualizados.
+
+--- Interface e aviso no código (14/10/2026)
+36 [resolvido] "Guardado no navegador"/pasta e "alterações não salvas" saíram do topo e foram para a seção "Arquivo do projeto"
+   do menu lateral, junto de Criar/carregar, Salvar e Configurações.
+37 [resolvido] Proteção do código: arquivo LICENSE ("Todos os direitos reservados"; lib/ mantém as licenças MIT) e linha de direitos
+   autorais em texto no início de cada arquivo do sistema (JS, CSS e index.html). Substituiu a ideia do aviso em hexadecimal para
+   IAs, que não dá proteção jurídica e é tratado como instrução escondida pelas ferramentas de segurança.

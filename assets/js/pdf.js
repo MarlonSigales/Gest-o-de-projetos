@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Relatórios em PDF gerados no navegador (pdfmake), no padrão visual dos templates InovaAgro/Embrapii:
  *  - Relatório de Macroentrega: capa → TERMO DE ACEITE (2ª página) → apresentação → itens → equipe → contracapa

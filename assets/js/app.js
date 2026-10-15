@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Núcleo da interface: estado, armazenamento (pasta ou navegador), vínculo de campos, listas, salvar. Sem servidor. */
 'use strict';
 

@@ -1,17 +1,16 @@
 <!doctype html>
+<!-- Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gestão de Projetos</title>
 <meta name="description" content="Gestão de projetos com macroentregas, TRL e relatórios — roda inteiramente no navegador.">
-<link rel="stylesheet" href="assets/css/app.css?v=20261014d">
+<link rel="stylesheet" href="assets/css/app.css?v=20261014e">
 </head>
 <body>
 <header class="topo">
   <div class="marca"><img src="assets/templates/logo_inovaagro_embrapii.png" alt=""><span>Gestão de Projetos</span></div>
-  <div class="seletor"><span id="localProjeto"></span></div>
-  <div class="acoes-topo"><span id="estadoSalvo" class="estado"></span></div>
 </header>
 
 <div class="corpo">
@@ -32,6 +31,7 @@
   </nav>
   <div class="inserir">
     <div class="rotulo">Arquivo do projeto</div>
+    <div class="situacao-arquivo"><span id="localProjeto"></span><span id="estadoSalvo" class="estado"></span></div>
     <button class="btn" id="btnProjetos">📂 Criar/carregar</button>
     <button class="btn" id="btnSalvar">💾 Salvar</button>
     <button class="btn" id="btnConfig">⚙ Configurações</button>
@@ -48,37 +48,37 @@
 <noscript><p style="padding:20px">Este sistema precisa de JavaScript habilitado.</p></noscript>
 
 <!-- bibliotecas locais (funcionam sem internet): pdfmake (PDF) e JSZip (ZIP) -->
-<script src="lib/pdfmake.min.js?v=20261014d"></script>
-<script src="lib/vfs_fonts.js?v=20261014d"></script>
-<script src="lib/jszip.min.js?v=20261014d"></script>
+<script src="lib/pdfmake.min.js?v=20261014e"></script>
+<script src="lib/vfs_fonts.js?v=20261014e"></script>
+<script src="lib/jszip.min.js?v=20261014e"></script>
 <!-- sistema -->
-<script src="assets/js/config.js?v=20261014d"></script>
-<script src="assets/js/dfx.js?v=20261014d"></script>
-<script src="assets/js/trl_criterios.js?v=20261014d"></script>
-<script src="assets/js/nedip.js?v=20261014d"></script>
-<script src="assets/js/templates.js?v=20261014d"></script>
-<script src="assets/js/exemplo.js?v=20261014d"></script>
-<script src="assets/js/nucleo.js?v=20261014d"></script>
-<script src="assets/js/armazenamento.js?v=20261014d"></script>
-<script src="assets/js/email.js?v=20261014d"></script>
-<script src="assets/js/pdf.js?v=20261014d"></script>
-<script src="assets/js/app.js?v=20261014d"></script>
-<script src="assets/js/abas.js?v=20261014d"></script>
-<script src="assets/js/abnt.js?v=20261014d"></script>
-<script src="assets/js/macros.js?v=20261014d"></script>
-<script src="assets/js/gantt.js?v=20261014d"></script>
-<script src="assets/js/riscos.js?v=20261014d"></script>
-<script src="assets/js/trl.js?v=20261014d"></script>
-<script src="assets/js/produto.js?v=20261014d"></script>
-<script src="assets/js/formulario.js?v=20261014d"></script>
-<script src="assets/js/qfd.js?v=20261014d"></script>
-<script src="assets/js/blocos.js?v=20261014d"></script>
-<script src="assets/js/nedip_relatorio.js?v=20261014d"></script>
-<script src="assets/js/intermediarios.js?v=20261014d"></script>
-<script src="assets/js/pesquisa.js?v=20261014d"></script>
-<script src="assets/js/guia_exemplo.js?v=20261014d"></script>
-<script src="assets/js/relatorios.js?v=20261014d"></script>
-<script src="assets/js/dicas.js?v=20261014d"></script>
+<script src="assets/js/config.js?v=20261014e"></script>
+<script src="assets/js/dfx.js?v=20261014e"></script>
+<script src="assets/js/trl_criterios.js?v=20261014e"></script>
+<script src="assets/js/nedip.js?v=20261014e"></script>
+<script src="assets/js/templates.js?v=20261014e"></script>
+<script src="assets/js/exemplo.js?v=20261014e"></script>
+<script src="assets/js/nucleo.js?v=20261014e"></script>
+<script src="assets/js/armazenamento.js?v=20261014e"></script>
+<script src="assets/js/email.js?v=20261014e"></script>
+<script src="assets/js/pdf.js?v=20261014e"></script>
+<script src="assets/js/app.js?v=20261014e"></script>
+<script src="assets/js/abas.js?v=20261014e"></script>
+<script src="assets/js/abnt.js?v=20261014e"></script>
+<script src="assets/js/macros.js?v=20261014e"></script>
+<script src="assets/js/gantt.js?v=20261014e"></script>
+<script src="assets/js/riscos.js?v=20261014e"></script>
+<script src="assets/js/trl.js?v=20261014e"></script>
+<script src="assets/js/produto.js?v=20261014e"></script>
+<script src="assets/js/formulario.js?v=20261014e"></script>
+<script src="assets/js/qfd.js?v=20261014e"></script>
+<script src="assets/js/blocos.js?v=20261014e"></script>
+<script src="assets/js/nedip_relatorio.js?v=20261014e"></script>
+<script src="assets/js/intermediarios.js?v=20261014e"></script>
+<script src="assets/js/pesquisa.js?v=20261014e"></script>
+<script src="assets/js/guia_exemplo.js?v=20261014e"></script>
+<script src="assets/js/relatorios.js?v=20261014e"></script>
+<script src="assets/js/dicas.js?v=20261014e"></script>
 <script>App.iniciar();</script>
 </body>
 </html>

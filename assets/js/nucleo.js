@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /* Núcleo de regras (roda no navegador): modelo do projeto, validação, TRL, análise (percentuais, CPM, riscos) e Gantt em SVG. */
 'use strict';
 

@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Desenvolvimento em blocos, no estilo de um caderno (Google Colab): texto, capítulo, subcapítulo, figura,
  * tabela, dados do QFD, projeto do produto, questionário e quebra de página. Entre os blocos ficam os botões

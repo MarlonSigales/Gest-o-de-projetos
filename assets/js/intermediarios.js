@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Relatórios de andamento da macroentrega. A macroentrega tem um só texto (os blocos do desenvolvimento):
  * enquanto não está finalizada, "Gerar relatório de andamento" guarda uma cópia do texto daquele momento

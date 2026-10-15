@@ -1,3 +1,4 @@
+/* Copyright (c) 2026 Marlon Sigales. Todos os direitos reservados. Copiar, reproduzir ou alterar este código exige autorização do autor (ver LICENSE). */
 /*
  * Projeto de produto (NeDIP) nos relatórios: seções escolhidas por macroentrega (bloco "Projeto do produto")
  * e para o relatório geral, como no relatório do QFD. A estrutura de funções do projeto conceitual vira um
