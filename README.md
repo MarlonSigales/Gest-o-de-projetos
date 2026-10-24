@@ -82,6 +82,10 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 
 ## 4. Uso
 
+**Versão do projeto (escolhida ao criar):** ao criar um projeto, o sistema pergunta qual versão usar. Dá para trocar depois em ⚙ Configurações → *Versão do projeto*, sem perder nada.
+- **⚡ Simplificada** — para quem não quer (ou não precisa) preencher muito. O gestor só faz **dois passos** na aba 🎯 **Funções e especificações**: (1) diz em uma frase o que o produto faz e lista as **funções** (dá para colar uma por linha), com o responsável; (2) escreve as **especificações** com a meta e a função que atende cada uma. O sistema monta sozinho o **cronograma** (uma etapa por função + *Integração do sistema* + *Testes e verificação das especificações*, com datas distribuídas na vigência e dependências), a **árvore TRL** (produto → funções + integração), as **áreas e responsáveis** (quem cobrar) e o desdobramento especificação → função dos relatórios. Já vem preenchido: quem está usando como coordenador e no grupo de gestão, início hoje e término em 12 meses, duas macroentregas (*Desenvolvimento das funções* e *Integração, testes e entrega*). A aba Projeto mostra só o básico (o resto fica em *Mais dados (opcional)*); o código é opcional. Ficam ocultas as abas Projeto de produto, Pesquisa e Áreas. Depois é só avaliar o TRL e marcar, na aba Qualidade, se cada meta foi atingida. Renomear ou remover uma função atualiza o cronograma, a árvore e as áreas; datas, percentuais e avaliações já preenchidos são mantidos.
+- **🧭 Completa** — tudo: projeto de produto/serviço pelas fases do NeDIP (QFD, questionários, concepções, protótipos, FMEA, manuais), **análise econômica e de mercado** na fase de lançamento e pesquisa de patentes e referências. Projetos antigos abrem como completos.
+
 **Primeira abertura:** o sistema exige **nome** (registrado no log) e **e-mail**. Esse e-mail entra automaticamente no **grupo de gestão** de qualquer projeto aberto ou criado que ainda não tenha ninguém na gestão (quando o projeto já tem gestão, nada muda). Para trocar, use ⚙.
 
 **Exemplo para aprender:** em 📂 Criar/carregar → *Abrir o exemplo (roda de bicicleta)*. É um projeto fictício que usa **todos os recursos** do sistema, e a aba Projeto mostra o **🎓 Guia do exemplo**: um roteiro com o que olhar em cada aba e um botão que leva direto ao recurso. O guia pode ser ocultado. O exemplo traz:
@@ -91,13 +95,14 @@ Para envio **totalmente automático com anexos grandes** é preciso um servidor:
 - questionário do Google Forms com 24 respostas e todos os tipos de pergunta (escolha, caixas, escala, grade, aberta, identificação), gráficos e destaques;
 - QFD completo, com avaliação competitiva de 3 concorrentes;
 - busca de anterioridade com patentes **fictícias** importadas de um CSV no formato do Google Patents (`exemplos/patentes-roda-google-patents.csv`) e referências reais citadas nos textos;
-- as fases NeDIP preenchidas, com o diagrama de funções, FMEA, lista de materiais e manuais;
+- as fases NeDIP preenchidas, com o diagrama de funções, FMEA, lista de materiais, manuais e a **análise econômica e de mercado** no lançamento;
 - cronograma com dependências e uma atividade atrasada, riscos, especificação manual, PDCA, DfX (inclusive um criado pela equipe), TRL por critérios e lições aprendidas.
 
 Os mesmos dados estão em `exemplos/roda-bicicleta-generica.zip` (importável). O backup do QFD está em `exemplos/qfd-roda-bicicleta.json` e o CSV do Forms em `exemplos/questionario-roda-google-forms.csv`.
 
 | Aba | Conteúdo |
 |---|---|
+| **Funções e especificações** (só na simplificada) | Função global, funções com responsável, especificações com meta e a função que atende; resumo do que o sistema montou (cronograma, TRL, especificações) |
 | **Projeto** (primeira página) | **Vigência: data de início, término original, termos aditivos (+) e subtrativos (−) de prazo e término vigente calculado**; painel com percentual, TRL, alertas e ponto de verificação; identificação, coordenação, introdução e objetivo geral |
 | **Equipe e Interessados** | Equipe (página "Equipe" dos PDFs), **grupos de e-mail** (gestão ★ e demais) e **interessados**, com o resumo de quem recebe o quê |
 | **Áreas / Responsáveis** | Áreas técnicas ligadas a itens da árvore TRL, com **um ou mais responsáveis** (quem cobrar) e TRL esperado |
@@ -132,10 +137,18 @@ Macrofases e fases do modelo do NeDIP/UFSC (BACK, N. et al. *Projeto integrado d
 | Preliminar | Leiaute e viabilidade | Leiaute e viabilidade; protótipos e ensaios; **FMEA** (S×O×D; críticos com RPN ≥ 100 ou S ≥ 9 vão para a aba Riscos, sem duplicar); **análise de qualidade** com situação e medido editáveis |
 | Detalhado | Documentação | Lista de materiais; conteúdo do manual de uso; **manuais gerados** (projeto e uso) **ou próprios** (documento importado); importação de documentos para o ZIP |
 | Preparação da produção | Liberação | Processos, fornecedores, lote piloto, data de liberação |
-| Lançamento | Produto lançado | Plano, canais, treinamentos, certificações, data |
+| Lançamento | Produto lançado | **Análise econômica e de mercado** (ver abaixo); plano, canais, treinamentos, certificações, data |
 | Validação | Validado e encerrado | Questionários de satisfação, desempenho em campo, melhorias, encerramento; atalho para Lições aprendidas |
 
 O **manual de projeto** compila as fases usadas; o relatório de andamento traz o resumo das fases.
+
+### Análise econômica e de mercado (fase de lançamento, versão completa)
+Na fase de mercado (Implementação → **Lançamento**), a ferramenta *Análise econômica e de mercado* recebe:
+- **premissas:** moeda, unidade de venda, horizonte (1 a 15 anos), TMA, impostos sobre a venda, comissões/royalties/frete, IR + CSLL, capital de giro (% da receita), valor residual (% do CAPEX), reajustes anuais de preço e de custos e margem de contribuição-alvo;
+- **mercado e demanda:** TAM, SAM e SOM, fontes, preço e volume por ano (ou preenchidos pelo crescimento, ou pelo SOM);
+- **custo variável por unidade** (itens por categoria, marcando os insumos de terceiros; pode trazer os itens da lista de materiais), **CAPEX** (valor, ano e vida útil) e **OPEX** (custos fixos anuais).
+
+Resultados (na hora, ao digitar): parecer de viabilidade, premissas não informadas e alertas (preço abaixo do custo variável, volume acima do SAM/SOM, ano 1 abaixo do ponto de equilíbrio); **VPL, TIR, payback simples e descontado, índice de lucratividade, ROI, margem de contribuição, pontos de equilíbrio operacional, contábil e econômico, custo pleno unitário, preço para a margem-alvo, preço mínimo, EVA/MVA e valor adicionado bruto**; composição do custo variável; DRE e fluxo de caixa livre por ano com gráfico; **sensibilidade do VPL** (±10 % e ±20 % em preço, volume, custo variável, OPEX, CAPEX e TMA) e o preço e o volume que zeram o VPL. Simplificações: fluxos no fim de cada ano, depreciação linear, IR só sobre lucro positivo, sem financiamento. Tudo vai para o manual de projeto e pode entrar no relatório geral e nas macroentregas (seção *Análise econômica e de mercado* em “Projeto de produto nos relatórios”).
 
 ### Pré-projeto informacional: questionário do Google Forms
 No projeto informacional, cartão **Questionários aos clientes**:
@@ -310,6 +323,8 @@ assets/js/email.js         e-mail (mailto / EmailJS)
 assets/js/app.js           núcleo da interface
 assets/js/nedip.js          fases NeDIP: recomendações, roteiro de questionário, funções → TRL
 assets/js/produto.js        aba Projeto de produto/serviço (anexos e manuais)
+assets/js/economia.js       análise econômica e de mercado da fase de lançamento (VPL, TIR, EVA, sensibilidade) e seu PDF
+assets/js/simplificada.js   versão simplificada: aba Funções e especificações e geração automática de cronograma, TRL e áreas
 assets/js/formulario.js     questionário do Google Forms (CSV, edição, análise, PDF)
 assets/js/qfd.js            relatório da casa da qualidade a partir do backup do QFD; tabelas que viram a folha
 assets/js/blocos.js         desenvolvimento das macroentregas em blocos (caderno) e seu PDF

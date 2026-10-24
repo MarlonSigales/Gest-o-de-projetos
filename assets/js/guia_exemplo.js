@@ -14,6 +14,7 @@ App.GUIA_EXEMPLO = [
   ['Pesquisa', 'Busca de anterioridade (patentes fictícias importadas de um CSV do Google Patents, com situação e risco) e referências bibliográficas em ABNT, citadas nos textos com {{ref:código}}.', { aba: 'pesquisa' }],
   ['Projeto conceitual', 'Função global e estrutura de funções → diagrama desenhado pelo sistema; concepções e matriz de decisão.', { aba: 'produto', etapa: 'conceitual' }],
   ['Projeto preliminar e detalhado', 'Protótipos, FMEA (críticos viram riscos), lista de materiais e manuais de projeto e de uso.', { aba: 'produto', etapa: 'preliminar' }],
+  ['Lançamento – análise econômica', 'Fase de mercado: TAM/SAM/SOM, volumes, custo variável por unidade, CAPEX e OPEX → VPL, TIR, payback, ponto de equilíbrio, EVA, valor adicionado, fluxo de caixa e sensibilidade (também no relatório geral).', { aba: 'produto', etapa: 'lancamento' }],
   ['Macroentrega 1', 'Desenvolvimento em blocos: questionário, contexto do produto e análise QFD. Aceite registrado.', { aba: 'macros', macro: 0 }],
   ['Macroentrega 2', 'Bloco “Projeto do produto” com o diagrama de funções; figuras e tabelas sempre dentro do texto, junto do parágrafo que as explica.', { aba: 'macros', macro: 1 }],
   ['Macroentrega 3', 'Finalizada (o texto gera o relatório da macroentrega), mas ainda sem o aceite da empresa: o termo sai em branco para assinar. No histórico fica o relatório de andamento emitido antes de finalizar.', { aba: 'macros', macro: 2 }],

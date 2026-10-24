@@ -8,7 +8,7 @@ Atualizado em 14/10/2026. Os números são fixos (servem de referência); a orde
   trabalho feito a pedido do autor.
 
 === O QUE FALTA (do mais simples para o mais difícil)
-(nada pendente)
+40 [futuro] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
 === REJEITADO
 16 [rejeitado] Pesquisar patentes automaticamente direto do navegador: as bases não permitem esse acesso sem servidor; substituído pelo item 15.
@@ -91,3 +91,14 @@ Atualizado em 14/10/2026. Os números são fixos (servem de referência); a orde
 37 [resolvido] Proteção do código: arquivo LICENSE ("Todos os direitos reservados"; lib/ mantém as licenças MIT) e linha de direitos
    autorais em texto no início de cada arquivo do sistema (JS, CSS e index.html). Substituiu a ideia do aviso em hexadecimal para
    IAs, que não dá proteção jurídica e é tratado como instrução escondida pelas ferramentas de segurança.
+
+--- Versão simplificada e análise econômica (24/10/2026)
+38 [resolvido] Versão do projeto escolhida ao criar (simplificada ou completa), trocável em ⚙ Configurações sem perder dados.
+   Simplificada: aba 🎯 Funções e especificações (o que o produto faz, funções com responsável, especificações com meta e função);
+   cronograma (uma etapa por função + integração e testes), árvore TRL, áreas/responsáveis e desdobramento gerados sozinhos;
+   coordenador, gestão, datas e duas macroentregas pré-preenchidos; aba Projeto enxuta; código opcional; ocultas Projeto de
+   produto, Pesquisa e Áreas; relatórios só com funções e desdobramento.
+39 [resolvido] Análise econômica e de mercado na fase de lançamento (completa): TAM/SAM/SOM, volumes, custo variável, CAPEX, OPEX,
+   DRE e fluxo de caixa, VPL, TIR, paybacks, IL, ROI, pontos de equilíbrio, custo pleno, preços-alvo e mínimo, EVA/MVA, valor
+   adicionado e sensibilidade; no manual de projeto, no relatório geral e nos blocos; exemplo da roda e guia atualizados.
+   VPL e TIR conferidos com um cálculo independente.

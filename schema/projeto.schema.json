@@ -1017,6 +1017,13 @@
         "nedipPreMarcado": {
           "type": "boolean",
           "description": "fases do NeDIP já pré-marcadas nas macroentregas conforme o número de macroentregas (feito uma vez)"
+        },
+        "versao": {
+          "enum": [
+            "completa",
+            "simplificada"
+          ],
+          "description": "versão do projeto: completa (NeDIP, análise econômica e pesquisa) ou simplificada (só especificações e funções; cronograma, TRL e áreas gerados das funções). Ausente = completa"
         }
       }
     },
@@ -2301,6 +2308,216 @@
                 },
                 "data": {
                   "type": "string"
+                },
+                "economia": {
+                  "type": "object",
+                  "description": "Análise econômica e de mercado (fase de lançamento). Percentuais em %; valores na moeda informada.",
+                  "properties": {
+                    "moeda": {
+                      "type": "string"
+                    },
+                    "unidade": {
+                      "type": "string"
+                    },
+                    "horizonte": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 15
+                    },
+                    "tma": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "impostos": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "comissao": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "ir": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "capitalGiro": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "residual": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "reajustePreco": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "reajusteCustos": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "margemAlvo": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "preco": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "volAno1": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "crescimento": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "volumes": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "description": "volume vendido em cada ano (1..horizonte)"
+                    },
+                    "mercado": {
+                      "type": "object",
+                      "properties": {
+                        "tam": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "sam": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "som": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "fonte": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "custosVariaveis": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "string"
+                          },
+                          "categoria": {
+                            "type": "string"
+                          },
+                          "quantidade": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "unidade": {
+                            "type": "string"
+                          },
+                          "custo": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "terceiros": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "capex": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "string"
+                          },
+                          "categoria": {
+                            "type": "string"
+                          },
+                          "valor": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "ano": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "vida": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "opex": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "item": {
+                            "type": "string"
+                          },
+                          "categoria": {
+                            "type": "string"
+                          },
+                          "valor": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "conclusao": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             },

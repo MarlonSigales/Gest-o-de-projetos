@@ -491,13 +491,14 @@ Pdf.andamento = async function (p, armazem) {
   else c.push(caixa('Nenhum risco alto ou crítico em aberto.', 'ok'));
 
   // projeto de produto/serviço (NeDIP): seções escolhidas no cartão "Projeto de produto nos relatórios"
-  const secNedip = (p.config && p.config.nedipRelatorio) || [];
+  const simpRel = Nucleo.simplificado(p);
+  const secNedip = ((p.config && p.config.nedipRelatorio) || []).filter((s) => NedipRel.secoesDe(p).some(([k]) => k === s) && NedipRel.disponivel(p, s).ok);
   if (p.produto && p.produto.etapas && p.produto.etapas.informacional && secNedip.length) {
-    c.push(...h1(`Projeto de ${p.produto.tipo === 'serviço' ? 'serviço' : 'produto'} (fases NeDIP)`));
+    c.push(...h1(simpRel ? 'Funções e especificações' : `Projeto de ${p.produto.tipo === 'serviço' ? 'serviço' : 'produto'} (fases NeDIP)`));
     c.push(...Pdf.blocoNedip(p, secNedip, { h: h2, num, figId: 'nd_rel_funcoes', tocFig: 'fig' }));
     const conc = p.produto.etapas.conceitual.concepcoes.find((x) => x.selecionada);
-    if (conc) c.push({ text: [{ text: 'Concepção selecionada: ', bold: true }, conc.nome], style: 'corpo', margin: [0, 0, 0, 6] });
-    c.push({ text: 'Referência: ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 8] });
+    if (conc && !simpRel) c.push({ text: [{ text: 'Concepção selecionada: ', bold: true }, conc.nome], style: 'corpo', margin: [0, 0, 0, 6] });
+    if (!simpRel) c.push({ text: 'Referência: ' + NEDIP_REF, style: 'muted', margin: [0, 0, 0, 8] });
   }
 
   // análise QFD (seções escolhidas no projeto informacional ou na aba Relatórios)
@@ -734,7 +735,12 @@ Pdf.manualProjeto = async function (p, armazem, op = {}) {
     },
     producao: (e) => { c.push(...txt('Processos, recursos e controle de qualidade', e.processos), ...txt('Fornecedores homologados', e.fornecedores), ...txt('Lote piloto', e.lotePiloto));
       if (e.liberacao) c.push({ text: [{ text: 'Liberação da produção: ', bold: true }, Nucleo.dataBR(e.liberacao)], style: 'corpo' }); },
-    lancamento: (e) => { c.push(...txt('Plano de lançamento', e.plano), ...txt('Canais', e.canais), ...txt('Treinamentos', e.treinamento), ...txt('Registros e certificações', e.certificacoes));
+    lancamento: (e) => {
+      if (e.ferramentas.economia !== false && window.Economia && Economia.temDados(e.economia)) {
+        c.push(h2('Análise econômica e de mercado'));
+        Economia.pdf(Economia.normalizar(e.economia), { h: (t) => c.push({ text: t, style: 'h3' }), add: (n) => c.push(n), tab: (cab, l, larg) => c.push(Pdf.grade(cab, l, larg.map((x) => x.w || x.min))) });
+      }
+      c.push(...txt('Plano de lançamento', e.plano), ...txt('Canais', e.canais), ...txt('Treinamentos', e.treinamento), ...txt('Registros e certificações', e.certificacoes));
       if (e.data) c.push({ text: [{ text: 'Lançamento: ', bold: true }, Nucleo.dataBR(e.data)], style: 'corpo' }); },
     validacao: (e) => {
       if (e.questionarios.length) c.push(h2('Questionários de satisfação'), Pdf.grade(['Público', 'Meio', 'Resp.', 'Data', 'Principais achados'], e.questionarios.map((q) => [q.publico, q.meio, q.respondentes ?? '—', Nucleo.dataBR(q.data), q.observacao]), [90, 70, 35, 50, '*']));
@@ -789,7 +795,7 @@ Pdf.apendices = async function (p, armazem, ctx = {}) {
     return [no, { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 470, y2: 0, lineWidth: 2, lineColor: COR.lima }], margin: [0, 0, 0, 8] }];
   };
   const sec = { h1: (t) => [{ text: t, style: 'h2' }], h2: (t) => ({ text: t, style: 'h3' }) }, h = (t) => ({ text: t, style: 'h2' });
-  if (temManualProjeto(p)) out.push(...titulo('Manual de projeto'), ...await Pdf.manualProjeto(p, armazem, { apendice: true, secoes: sec }));
+  if (!Nucleo.simplificado(p) && temManualProjeto(p)) out.push(...titulo('Manual de projeto'), ...await Pdf.manualProjeto(p, armazem, { apendice: true, secoes: sec }));
   if (Object.values(p.produto.etapas.detalhado.manualUso).some((x) => String(x || '').trim())) out.push(...titulo('Manual de uso'), ...await Pdf.manualUso(p, { apendice: true, secoes: sec }));
   const f = p.produto.etapas.informacional.formulario;
   if (f.perguntas.length) out.push(...titulo('Questionário aos clientes'), ...Pdf.blocoQuestionario(p, ['identificacao', 'destaques', 'roteiro', 'resultados', 'consolidacao'], { h }));

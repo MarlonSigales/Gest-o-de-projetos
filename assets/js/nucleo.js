@@ -58,7 +58,17 @@ Nucleo.slug = (t) => (String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').t
 Nucleo.nomeArquivo = (p) => PREFIXO_ARQ + Nucleo.nomeSeguro(p.projeto.nome) + '.json';
 
 // ================================================================== modelo
-Nucleo.novo = function (nome = '') {
+/**
+ * Versão do projeto, escolhida ao criá-lo (pode ser trocada em ⚙ Configurações sem perder dados):
+ * - completa: projeto de produto/serviço pelo NeDIP (com a análise econômica na fase de lançamento) e pesquisa;
+ * - simplificada: só especificações, funções e desdobramento (aba Especificações e funções) para acompanhar TRL e qualidade.
+ * Projetos antigos (sem o campo) são completos.
+ */
+Nucleo.VERSOES = [['completa', 'Completa'], ['simplificada', 'Simplificada']];
+Nucleo.simplificado = (p) => !!(p && p.config && p.config.versao === 'simplificada');
+
+Nucleo.novo = function (nome = '', versao = 'completa') {
+  const simp = versao === 'simplificada';
   return {
     schemaVersion: '1.0',
     id: Nucleo.uid('prj'),
@@ -70,7 +80,7 @@ Nucleo.novo = function (nome = '') {
       aditivos: [],            // termos aditivos/subtrativos de prazo
     },
     gruposEmail: Nucleo.gruposPadrao(),
-    interessados: [], areas: [], macroentregas: Nucleo.MACROS_PADRAO.map((t, i) => Object.assign(Nucleo.novaMacro(i + 1), { titulo: t })), // no mínimo 4, uma por fase
+    interessados: [], areas: [], macroentregas: (simp ? Nucleo.MACROS_SIMPLES : Nucleo.MACROS_PADRAO).map((t, i) => Object.assign(Nucleo.novaMacro(i + 1), { titulo: t })), // no mínimo 4, uma por fase
     riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
     qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
     pesquisa: window.pesquisaNormalizar ? window.pesquisaNormalizar({}) : { estrategia: {}, patentes: [], referencias: [] }, // anterioridade e referências
@@ -78,8 +88,9 @@ Nucleo.novo = function (nome = '') {
     trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
     produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
     config: {
+      versao: simp ? 'simplificada' : 'completa',
       incluirAndamentoNaMacro: true,
-      nedipRelatorio: ['fases', 'funcoes'], // seções do projeto de produto no relatório geral de andamento
+      nedipRelatorio: simp ? ['funcoes', 'desdobramento'] : ['fases', 'funcoes', 'economia'], // seções do projeto de produto no relatório geral de andamento
       qfdRelatorio: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [], // seções do QFD no relatório geral de andamento
       baixarAoSalvar: 'auto',
       email: { modo: 'mailto', emailjsServico: '', emailjsModelo: '', emailjsChave: '', limiteAnexoKb: 45, gerarPdfsAoSalvar: true },
@@ -163,6 +174,8 @@ Nucleo.numerar = (p, macros, contador) => Nucleo.numerarAbnt(macros, contador, {
 /** Macroentregas iniciais de um projeto novo: uma por fase da projetação (o usuário renomeia, inclui ou remove). */
 Nucleo.MACROS_PADRAO = ['Projeto informacional – necessidades e especificações', 'Projeto conceitual – funções e concepção',
   'Projeto preliminar – protótipo e ensaios', 'Projeto detalhado – documentação e validação'];
+/** Versão simplificada: duas macroentregas — o desenvolvimento das funções e a integração (o usuário pode incluir outras). */
+Nucleo.MACROS_SIMPLES = ['Desenvolvimento das funções', 'Integração, testes e entrega']; // funções na 1ª; integração e testes na última
 /** Seções do projeto de produto por fase: [fase NeDIP, título do bloco, seções]. */
 Nucleo.NEDIP_GRUPOS = [
   ['informacional', 'Projeto do produto – fase informacional', ['planejamento', 'ciclo', 'necessidades', 'concorrentes', 'normas']],
@@ -176,7 +189,7 @@ Nucleo.NEDIP_GRUPOS = [
  * Também liga as fases NeDIP às macroentregas, se ainda não estiverem ligadas.
  */
 Nucleo.preMarcarNedip = function (p) {
-  if (!p.config || p.config.nedipPreMarcado) return;
+  if (!p.config || p.config.nedipPreMarcado || Nucleo.simplificado(p)) return; // na simplificada não há fases NeDIP para distribuir
   p.config.nedipPreMarcado = true;
   const ms = p.macroentregas, n = ms.length;
   if (!n || ms.some((m) => (m.blocos || []).some((b) => b.tipo === 'nedip'))) return; // já escolhido pelo usuário
@@ -204,6 +217,7 @@ function mesclar(base, dados) {
 /** Completa campos ausentes (projetos antigos/importados), sem apagar nada. */
 Nucleo.normalizar = function (p) {
   p = mesclar(Nucleo.novo(), p || {});
+  if (!Nucleo.VERSOES.some(([v]) => v === p.config.versao)) p.config.versao = 'completa';
   p.macroentregas = p.macroentregas.map((m, i) => {
     const finSalvo = m && typeof m.finalizada === 'boolean' ? m.finalizada : null; // projetos antigos não têm o campo
     m = mesclar(Nucleo.novaMacro(i + 1), m || {});
@@ -238,7 +252,7 @@ Nucleo.normalizar = function (p) {
 Nucleo.validar = function (p) {
   const e = [];
   if (!String(p.projeto.nome || '').trim()) e.push('Informe o nome do projeto (aba Projeto).');
-  if (!String(p.projeto.codigo || '').trim()) e.push('Informe o código do projeto, ex.: PINV-2210.0006 (aba Projeto).');
+  if (!String(p.projeto.codigo || '').trim() && !Nucleo.simplificado(p)) e.push('Informe o código do projeto, ex.: PINV-2210.0006 (aba Projeto).'); // na simplificada é opcional
   let validos = 0;
   (p.interessados || []).forEach((x) => {
     const em = String(x.email || '').trim();

@@ -20,7 +20,11 @@ NedipRel.SECOES = [
   ['concepcoes', 'Concepções e matriz de decisão', 'conceitual'],
   ['preliminar', 'Leiaute, protótipos e FMEA', 'preliminar'],
   ['detalhado', 'Lista de materiais', 'detalhado'],
+  ['economia', 'Análise econômica e de mercado', 'lancamento'],
 ];
+/** Seções que o projeto usa: na versão simplificada, só funções e desdobramento (o resto fica oculto e fora dos PDFs). */
+NedipRel.SO_SIMPLIFICADA = ['funcoes', 'desdobramento'];
+NedipRel.secoesDe = (p) => (Nucleo.simplificado(p) ? NedipRel.SECOES.filter(([s]) => NedipRel.SO_SIMPLIFICADA.includes(s)) : NedipRel.SECOES);
 NedipRel.nome = (s) => (NedipRel.SECOES.find(([k]) => k === s) || [, s])[1];
 NedipRel.etapa = (s) => (NedipRel.SECOES.find(([k]) => k === s) || [, , 'informacional'])[2];
 
@@ -43,6 +47,7 @@ NedipRel.disponivel = function (p, s) {
     case 'concepcoes': return ok(C.concepcoes.length, 'sem concepções');
     case 'preliminar': return ok(ndTxt(P.leiaute) || P.prototipos.length || P.fmea.length, 'leiaute, protótipos e FMEA vazios');
     case 'detalhado': return ok(E.detalhado.bom.length, 'lista de materiais vazia');
+    case 'economia': return ok(window.Economia && E.lancamento.ferramentas.economia !== false && Economia.temDados(E.lancamento.economia), 'análise econômica sem preço e volumes');
     default: return { ok: true };
   }
 };
@@ -204,8 +209,11 @@ Pdf.blocoNedip = function (p, secoes, ctx) {
       tab(['Item', 'Descrição', 'Qtd.', 'Material / especificação', 'Origem', 'Fornecedor'], E.detalhado.bom.map((x) => [x.item, x.descricao, `${x.quantidade ?? ''} ${x.unidade || ''}`.trim(), x.material, x.origem, x.fornecedor]),
         [{ min: 30 }, { min: 110, w: '*' }, { min: 40 }, { min: 100, w: '*' }, { min: 55 }, { min: 70 }]);
     },
+    economia() {
+      Economia.pdf(Economia.normalizar(E.lancamento.economia), { h: (t) => cola({ text: t, bold: true, color: COR.escuro, margin: [0, 6, 0, 2] }), add: (n) => add(n), tab: (cab, l, larg, op) => tab(cab, l, larg, op) });
+    },
   };
-  NedipRel.SECOES.filter(([s]) => secoes.includes(s)).forEach(([s, nome]) => {
+  NedipRel.secoesDe(p).filter(([s]) => secoes.includes(s)).forEach(([s, nome]) => {
     const d = NedipRel.disponivel(p, s);
     if (!d.ok) return; // seção sem dados não entra no relatório (a tela avisa e leva à fase)
     cola(ctx.h(nome));
@@ -219,13 +227,14 @@ App.nedipBlocoDaMacro = (m) => (m.blocos || []).find((b) => b.tipo === 'nedip');
 App.nedipIntegracaoHtml = function () {
   const p = App.p, ms = p.macroentregas, rel = p.config.nedipRelatorio || [];
   const cab = ms.map((m, i) => `<th class="centro" title="${esc(m.titulo)}">Macro ${i + 1}<br><button class="btn pequeno" data-acao="nedip-int-todas" data-macro="${esc(m.uid)}">todas</button></th>`).join('');
-  const linhas = NedipRel.SECOES.map(([s, nome]) => {
+  const simp = Nucleo.simplificado(p);
+  const linhas = NedipRel.secoesDe(p).map(([s, nome]) => {
     const d = NedipRel.disponivel(p, s);
     const chk = (uid, marcado) => `<td class="centro"><input type="checkbox" data-acao="nedip-int" data-sec="${s}" data-macro="${esc(uid)}" ${marcado ? 'checked' : ''}></td>`;
-    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">${esc(d.motivo)}</span> <button class="btn pequeno" data-acao="sel-etapa" data-etapa="${d.etapa}">preencher em ${esc(NEDIP_ETAPAS.find((x) => x.id === d.etapa).curto)}</button>`}</td>
+    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">${esc(d.motivo)}</span>${simp ? ' <span class="muted">(preencha acima)</span>' : ` <button class="btn pequeno" data-acao="sel-etapa" data-etapa="${d.etapa}">preencher em ${esc(NEDIP_ETAPAS.find((x) => x.id === d.etapa).curto)}</button>`}`}</td>
       ${ms.map((m) => { const b = App.nedipBlocoDaMacro(m); return chk(m.uid, b && b.secoes.includes(s)); }).join('')}${chk('__rel', rel.includes(s))}</tr>`;
   }).join('');
-  return cartao('Projeto de produto nos relatórios', `<p class="muted" style="margin-top:0">Marque o que do projeto de produto entra em cada macroentrega (vira o bloco “Projeto do produto” no desenvolvimento, que pode ser movido ou editado lá) e no relatório geral.
+  return cartao(simp ? 'Especificações e funções nos relatórios' : 'Projeto de produto nos relatórios', `<p class="muted" style="margin-top:0">Marque o que ${simp ? 'das funções' : 'do projeto de produto'} entra em cada macroentrega (vira o bloco “${simp ? 'Especificações e funções' : 'Projeto do produto'}” no desenvolvimento, que pode ser movido ou editado lá) e no relatório geral.
     A estrutura de funções sai como figura (diagrama desenhado pelo sistema) e tabela. Seções sem dados não entram no PDF.</p>
   <div class="rolagem"><table class="tab-edit qfd-int"><thead><tr><th>Informação</th>${cab}<th class="centro">Relatório geral<br><button class="btn pequeno" data-acao="nedip-int-todas" data-macro="__rel">todas</button></th></tr></thead><tbody>${linhas}</tbody></table></div>
   ${nedipTemFuncoes(p) ? `<details class="form-det"><summary>Prévia do diagrama de funções</summary><div class="nd-previa">${NedipRel.diagramaFuncoes(p)}</div></details>` : ''}`);
@@ -241,7 +250,7 @@ App.nedipAlternar = function (uid, sec, ligar) {
   const m = App.p.macroentregas.find((x) => x.uid === uid);
   if (!m) return;
   let b = App.nedipBlocoDaMacro(m);
-  if (!b && ligar) { b = Object.assign(Nucleo.novoBloco('nedip'), { secoes: [] }); m.blocos.push(b); }
+  if (!b && ligar) { b = Object.assign(Nucleo.novoBloco('nedip'), { secoes: [] }, Nucleo.simplificado(App.p) ? { titulo: 'Especificações e funções' } : {}); m.blocos.push(b); }
   if (!b) return;
   const l = new Set(b.secoes);
   if (ligar) l.add(sec); else l.delete(sec);
@@ -250,7 +259,7 @@ App.nedipAlternar = function (uid, sec, ligar) {
 };
 App.acoes['nedip-int'] = (el) => { App.nedipAlternar(el.dataset.macro, el.dataset.sec, el.checked); App.marcarSujo(true); App.render(); };
 App.acoes['nedip-int-todas'] = (el) => {
-  const uid = el.dataset.macro, disp = NedipRel.SECOES.map(([s]) => s).filter((s) => NedipRel.disponivel(App.p, s).ok);
+  const uid = el.dataset.macro, disp = NedipRel.secoesDe(App.p).map(([s]) => s).filter((s) => NedipRel.disponivel(App.p, s).ok);
   const m = App.p.macroentregas.find((x) => x.uid === uid);
   const atuais = uid === '__rel' ? (App.p.config.nedipRelatorio || []) : ((m && App.nedipBlocoDaMacro(m)) || { secoes: [] }).secoes;
   const ligar = !disp.every((s) => atuais.includes(s));

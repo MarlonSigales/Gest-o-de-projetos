@@ -333,3 +333,11 @@ a.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .balao.visivel { opacity: 1; transform: none; }
 .balao.cima { transform: translateY(3px); }
 .balao.cima.visivel { transform: none; }
+
+/* ---------- versão do projeto (simplificada × completa) ---------- */
+.versao-proj { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: 12px; background: #e7eeec; color: var(--escuro); font-weight: 600; margin-top: 4px; }
+.versao-proj.simp { background: var(--lima); color: #1d2b2b; }
+h2 .versao-proj { vertical-align: middle; margin: 0 0 0 8px; }
+.lateral .situacao-arquivo .versao-proj { display: block; }
+details.cartao > summary { cursor: pointer; }
+table.eco-fc td, table.eco-fc th { font-size: 12.5px; }

@@ -2,7 +2,7 @@
 /*
  * Projeto de produto/serviço pelo modelo do NeDIP/UFSC (PRODIP), com as três macrofases:
  *   planejamento → projetação (informacional, conceitual, preliminar, detalhado) → implementação
- *   (preparação da produção, lançamento, validação).
+ *   (preparação da produção, lançamento — com a análise econômica e de mercado —, validação).
  * Referência: BACK, N.; OGLIARI, A.; DIAS, A.; SILVA, J. C. Projeto integrado de produtos:
  * planejamento, concepção e modelagem. Barueri: Manole, 2008. Funções, princípios de solução e
  * concepção: PAHL, G. et al. Engineering Design: A Systematic Approach. 3. ed. Springer, 2007.
@@ -104,9 +104,13 @@ window.NEDIP_ETAPAS = [
       ['pro_lib', 'Liberar a produção (ou a operação do serviço)'],
     ] },
   { id: 'lancamento', macro: 'implementacao', nome: 'Lançamento', curto: 'Lançamento', saida: 'Produto/serviço lançado',
-    objetivo: 'Colocar o produto/serviço no mercado: plano de lançamento, canais, treinamento, certificações e documentação ao cliente.',
-    ferramentas: [['plano', 'Plano de lançamento', true]],
+    objetivo: 'Colocar o produto/serviço no mercado: análise econômica e de mercado, plano de lançamento, canais, treinamento, certificações e documentação ao cliente.',
+    ferramentas: [['plano', 'Plano de lançamento', true], ['economia', 'Análise econômica e de mercado (custos, CAPEX, OPEX, VPL, TIR, EVA…)', true]],
     recomendacoes: [
+      ['lan_mercado', 'Dimensionar o mercado (TAM, SAM, SOM) e projetar a demanda por ano'],
+      ['lan_custos', 'Levantar o custo variável unitário, os investimentos (CAPEX) e os custos fixos (OPEX)'],
+      ['lan_viab', 'Avaliar a viabilidade: fluxo de caixa, VPL, TIR, payback, ponto de equilíbrio, EVA e sensibilidade'],
+      ['lan_preco', 'Definir o preço de venda (margem de contribuição e preço mínimo)'],
       ['lan_plano', 'Elaborar o plano de lançamento e de comunicação/marketing'],
       ['lan_canais', 'Definir canais de venda, distribuição e assistência'],
       ['lan_trein', 'Treinar vendas, assistência técnica e usuários'],
@@ -204,7 +208,8 @@ window.nedipNormalizar = function (prod) {
         manuais: Object.assign({ projeto: '', uso: '', geradoEm: '', projetoAnexo: '', usoAnexo: '' }, e.manuais || {}),
       }),
       producao: () => ({ processos: nedipTxt(e.processos), fornecedores: nedipTxt(e.fornecedores), lotePiloto: nedipTxt(e.lotePiloto), liberacao: nedipTxt(e.liberacao) }),
-      lancamento: () => ({ plano: nedipTxt(e.plano), canais: nedipTxt(e.canais), treinamento: nedipTxt(e.treinamento), certificacoes: nedipTxt(e.certificacoes), data: nedipTxt(e.data) }),
+      lancamento: () => ({ plano: nedipTxt(e.plano), canais: nedipTxt(e.canais), treinamento: nedipTxt(e.treinamento), certificacoes: nedipTxt(e.certificacoes), data: nedipTxt(e.data),
+        economia: window.Economia ? Economia.normalizar(e.economia) : (e.economia || {}) }), // análise econômica e de mercado (economia.js)
       validacao: () => ({ campo: nedipTxt(e.campo), satisfacao: nedipTxt(e.satisfacao), melhorias: nedipTxt(e.melhorias), encerramento: nedipTxt(e.encerramento),
         questionarios: nedipLista(e.questionarios).map((q) => Object.assign({ publico: '', meio: '', respondentes: null, data: '', observacao: '' }, q)) }),
     };

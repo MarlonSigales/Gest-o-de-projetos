@@ -181,13 +181,16 @@ App.abas.qualidade = {
   render() {
     const o = App.p.qfdOrigem || {};
     const nQfd = App.p.qualidade.filter((q) => q.qfd && q.qfd.id && !q.qfd.removidoDoQfd).length;
+    const simp = Nucleo.simplificado(App.p);
     let h = `<h2>Gestão da qualidade</h2>
-<div class="cartao ${o.importadoEm ? '' : 'qfd-pedido'}"><h3 style="margin-top:0">Especificações do QFD</h3>
+${simp ? `<div class="info-box">Para cada especificação, anote o <b>valor medido</b> e marque a <b>situação</b> (conforme = meta atingida). Se não atingiu, preencha o PDCA que aparece embaixo.
+  As especificações são cadastradas em <button class="btn pequeno" data-acao="ir-aba" data-aba="especificacoes">🎯 Funções e especificações</button>.</div>` : ''}
+${simp ? '' : `<div class="cartao ${o.importadoEm ? '' : 'qfd-pedido'}"><h3 style="margin-top:0">Especificações do QFD</h3>
   <p>Os critérios de qualidade são as <b>especificações de projeto</b>, obtidas com o QFD no <b>projeto informacional</b> (aba Projeto de produto/serviço). O <b>backup completo (JSON)</b> do sistema QFD traz: requisitos de projeto na ordem de importância, valor-meta com o sentido de melhoria, forma de avaliação, aspectos indesejáveis e o valor medido do produto. A situação é calculada como no QFD: atingida ⇒ conforme; não atingida ⇒ não conforme; sem medição ⇒ pendente.</p>
   <div class="barra"><button class="btn ${o.importadoEm ? '' : 'primario'}" data-acao="ir-aba" data-aba="produto" data-etapa="informacional">🛠 Ir ao projeto informacional (QFD)</button>
   <label class="btn">⬆ ${o.importadoEm ? 'Reimportar' : 'Importar'} JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfd"></label>
   <span class="muted">${o.importadoEm ? `Última importação: ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} · ${esc(o.arquivo)} · ${nQfd} requisito(s) de projeto` : '<b class="gap-neg">Nenhum QFD importado neste projeto.</b>'}</span></div>
-  <p class="muted">Na reimportação, os requisitos são atualizados pelo identificador do QFD; o PDCA e os requisitos cadastrados à mão são mantidos, e a situação só muda quando o QFD traz medição.</p></div>
+  <p class="muted">Na reimportação, os requisitos são atualizados pelo identificador do QFD; o PDCA e os requisitos cadastrados à mão são mantidos, e a situação só muda quando o QFD traz medição.</p></div>`}
 <div class="cartao"><h3 style="margin-top:0">Requisitos, critérios de aceite e verificação</h3>
 ${App.tabela('qualidade', [
     { campo: 'requisito', rotulo: 'Requisito', tipo: 'textarea' },
@@ -210,7 +213,7 @@ ${App.tabela('qualidade', [
       });
       h += '</div>';
     }
-    return h + App.dfxHtml();
+    return h + (simp ? `<details class="cartao"><summary><b>Design for X (DfX)</b> — opcional</summary>${App.dfxHtml()}</details>` : App.dfxHtml());
   },
 };
 

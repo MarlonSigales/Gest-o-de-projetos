@@ -18,7 +18,14 @@ App.novos.prototipo = () => ({ nome: '', data: hojeISO(), descricao: '', resulta
 App.novos.fmea = () => ({ id: uid('fm'), item: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '', responsavel: '', riscoId: '' });
 App.novos.bom = () => ({ item: '', descricao: '', quantidade: 1, unidade: 'un', material: '', origem: 'fabricado', fornecedor: '' });
 
-App.acoes['ir-aba'] = (el) => { App.aba = el.dataset.aba; if (el.dataset.etapa) App.etapaSel = el.dataset.etapa; App.render(); window.scrollTo(0, 0); };
+App.acoes['ir-aba'] = (el) => {
+  let aba = el.dataset.aba;
+  if (!App.abaVisivel(aba)) { // versão simplificada: o projeto de produto vira a aba Especificações e funções
+    if (aba === 'produto' && App.abaVisivel('especificacoes')) aba = 'especificacoes';
+    else { App.toast('Este recurso faz parte da versão completa (⚙ Configurações → Versão do projeto).', 'aviso', 7000); return; }
+  }
+  App.aba = aba; if (el.dataset.etapa) App.etapaSel = el.dataset.etapa; App.render(); window.scrollTo(0, 0);
+};
 App.acoes['sel-etapa'] = (el) => { App.etapaSel = el.dataset.etapa; App.render(); window.scrollTo(0, 0); };
 
 const ferr = (e, id) => !!(e.ferramentas && e.ferramentas[id]);
@@ -74,6 +81,7 @@ App.abas.produto = {
     if (App.etapaSel === 'informacional') App.formularioDepois();
     const d = $('.nedip-fases'); if (d) d.addEventListener('toggle', () => { App.nedipFasesAberto = d.open; });
   },
+  analise() { if (App.etapaSel === 'lancamento' && window.Economia) Economia.atualizarTela(); }, // resultados econômicos ao digitar
 };
 
 // ------------------------------------------------------------------ entrada da fase: aplicativo externo + ferramentas opcionais
@@ -215,7 +223,7 @@ App.nedipEspecifico = {
         <table class="tab-edit"><thead><tr><th style="width:26%">Subfunção</th><th>Princípios de solução (um por linha)</th><th style="width:26%">Escolhido</th><th class="acoes"></th></tr></thead><tbody>
         ${fn.subfuncoes.map((s, k) => `<tr><td>${c(`${bf}.subfuncoes.${k}.nome`, '', { ph: 'ex.: Individualizar sementes' })}</td>
           <td>${c(`${bf}.subfuncoes.${k}.principios`, '', { tipo: 'textarea', linhas: 2, render: true })}</td>
-          <td>${c(`${bf}.subfuncoes.${k}.escolhido`, '', { tipo: 'select', render: true, opcoes: [['', '—']].concat(nedipPrincipios(s).map((x) => [x, x])) })}</td>
+          <td>${c(`${bf}.subfuncoes.${k}.escolhido`, '', { tipo: 'select', render: true, opcoes: [['', '—']].concat(nedipPrincipios(s).map((x) => [x, x]), s.escolhido && !nedipPrincipios(s).includes(s.escolhido) ? [[s.escolhido, s.escolhido + ' (solução informada)']] : []) })}</td>
           <td class="acoes"><button class="btn pequeno perigo" data-acao="rem-linha" data-lista="${bf}.subfuncoes" data-i="${k}">✕</button></td></tr>`).join('') || '<tr><td colspan="4" class="vazio">Nenhuma subfunção.</td></tr>'}
         </tbody></table>
         <div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="${bf}.subfuncoes" data-novo="subfuncao">+ subfunção</button></div></div>`;
@@ -230,22 +238,7 @@ App.nedipEspecifico = {
       }
       h += cartao('Estrutura de funções e princípios de solução', f);
     }
-    if (ferr(e, 'desdobramento')) {
-      const opF = e.funcoes.flatMap((fn) => [[fn.id, fn.nome || '(função sem nome)']].concat(fn.subfuncoes.map((s) => [s.id, `  ↳ ${s.nome || '(subfunção)'}`])));
-      if (!q.length) h += cartao('Desdobramento das especificações em funções', '<p class="vazio">Sem especificações. Cadastre-as no projeto informacional (manualmente ou pelo QFD).</p>');
-      else {
-        const semF = q.filter((x) => !((e.desdobramento[nedipIdEspec(x)] || {}).funcoes || []).length);
-        const usadas = new Set(Object.values(e.desdobramento).flatMap((d) => d.funcoes));
-        const fSemE = opF.filter(([id]) => !usadas.has(id));
-        h += cartao('Desdobramento das especificações em funções', `<p class="muted" style="margin-top:0">Para cada especificação, indique as funções/subfunções que a atendem (Ctrl+clique para várias) e como.${opF.length ? '' : ' <b>Cadastre as funções no cartão acima para poder ligá-las.</b>'}</p>
-  <div class="rolagem"><table class="tab-edit"><thead><tr><th>Especificação</th><th style="width:30%">Funções que atendem</th><th style="width:30%">Como / observação</th></tr></thead><tbody>
-  ${q.map((x) => { const id = nedipIdEspec(x); return `<tr><td>${esc(x.requisito)}<br><span class="muted">${esc(x.criterioAceite)}</span></td>
-    <td>${opF.length ? c(`${b}.desdobramento.${id}.funcoes`, '', { tipo: 'multi', opcoes: opF, render: true }) : '—'}</td>
-    <td>${c(`${b}.desdobramento.${id}.obs`, '', { tipo: 'textarea', linhas: 2 })}</td></tr>`; }).join('')}</tbody></table></div>
-  ${opF.length && semF.length ? `<p class="gap-neg"><b>${semF.length}</b> especificação(ões) sem função: ${semF.map((x) => esc(x.requisito)).join('; ')}.</p>` : ''}
-  ${opF.length && fSemE.length && q.length ? `<p class="muted">Funções que não atendem a nenhuma especificação: ${fSemE.map(([, n]) => esc(n.trim())).join('; ')}.</p>` : ''}`);
-      }
-    }
+    if (ferr(e, 'desdobramento')) h += App.nedipDesdobramentoHtml(e, b);
     if (ferr(e, 'concepcoes')) h += cartao('Concepções alternativas', App.tabela(b + '.concepcoes', [{ campo: 'nome', rotulo: 'Concepção', largura: '18%' }, { campo: 'descricao', rotulo: 'Combinação de princípios / descrição', tipo: 'textarea' },
       { campo: 'avaliacao', rotulo: 'Avaliação / justificativa', tipo: 'textarea' }, { campo: 'selecionada', rotulo: 'Selecionada', tipo: 'checkbox', largura: '90px' }],
       { novo: 'concepcao', botao: 'Adicionar concepção', vazio: 'Nenhuma concepção.' }));
@@ -317,12 +310,15 @@ App.nedipEspecifico = {
 
   lancamento(e, b) {
     const c = App.campo;
-    return ferr(e, 'plano') ? cartao('Plano de lançamento', `<div class="grade-campos">
+    let h = '';
+    if (ferr(e, 'economia') && window.Economia) { e.economia = Economia.normalizar(e.economia); h += Economia.html(e, b); } // fase de mercado: análise econômica
+    if (ferr(e, 'plano')) h += cartao('Plano de lançamento', `<div class="grade-campos">
   ${c(b + '.plano', 'Plano de lançamento e comunicação', { tipo: 'textarea', classe: 'largo', linhas: 3 })}
   ${c(b + '.canais', 'Canais de venda, distribuição e assistência', { tipo: 'textarea', linhas: 3 })}
   ${c(b + '.treinamento', 'Treinamentos', { tipo: 'textarea', linhas: 3 })}
   ${c(b + '.certificacoes', 'Registros e certificações', { tipo: 'textarea', linhas: 3 })}
-  ${c(b + '.data', 'Data de lançamento', { tipo: 'date' })}</div>`) : '';
+  ${c(b + '.data', 'Data de lançamento', { tipo: 'date' })}</div>`);
+    return h;
   },
 
   validacao(e, b) {
@@ -340,10 +336,27 @@ App.nedipEspecifico = {
   },
 };
 
+// ------------------------------------------------------------------ desdobramento especificação → funções (conceitual e versão simplificada)
+App.nedipDesdobramentoHtml = function (e, b) {
+  const c = App.campo, q = App.p.qualidade, simp = Nucleo.simplificado(App.p);
+  const opF = e.funcoes.flatMap((fn) => [[fn.id, fn.nome || '(função sem nome)']].concat(fn.subfuncoes.map((s) => [s.id, `  ↳ ${s.nome || '(subfunção)'}`])));
+  if (!q.length) return cartao('Desdobramento das especificações em funções', `<p class="vazio">Sem especificações. Cadastre-as ${simp ? 'no cartão “Especificações” acima' : 'no projeto informacional'} (manualmente ou pelo QFD).</p>`);
+  const semF = q.filter((x) => !((e.desdobramento[nedipIdEspec(x)] || {}).funcoes || []).length);
+  const usadas = new Set(Object.values(e.desdobramento).flatMap((d) => d.funcoes));
+  const fSemE = opF.filter(([id]) => !usadas.has(id));
+  return cartao('Desdobramento das especificações em funções', `<p class="muted" style="margin-top:0">Para cada especificação, indique as funções/subfunções que a atendem (Ctrl+clique para várias) e como.${opF.length ? '' : ' <b>Cadastre as funções no cartão acima para poder ligá-las.</b>'}</p>
+  <div class="rolagem"><table class="tab-edit"><thead><tr><th>Especificação</th><th style="width:30%">Funções que atendem</th><th style="width:30%">Como / observação</th></tr></thead><tbody>
+  ${q.map((x) => { const id = nedipIdEspec(x); return `<tr><td>${esc(x.requisito)}<br><span class="muted">${esc(x.criterioAceite)}</span></td>
+    <td>${opF.length ? c(`${b}.desdobramento.${id}.funcoes`, '', { tipo: 'multi', opcoes: opF, render: true }) : '—'}</td>
+    <td>${c(`${b}.desdobramento.${id}.obs`, '', { tipo: 'textarea', linhas: 2 })}</td></tr>`; }).join('')}</tbody></table></div>
+  ${opF.length && semF.length ? `<p class="gap-neg"><b>${semF.length}</b> especificação(ões) sem função: ${semF.map((x) => esc(x.requisito)).join('; ')}.</p>` : ''}
+  ${opF.length && fSemE.length && q.length ? `<p class="muted">Funções que não atendem a nenhuma especificação: ${fSemE.map(([, n]) => esc(n.trim())).join('; ')}.</p>` : ''}`);
+};
+
 // ------------------------------------------------------------------ especificações: QFD + linhas manuais
-App.nedipEspecHtml = function () {
+App.nedipEspecHtml = function (op = {}) {
   const q = App.p.qualidade, c = App.campo;
-  return cartao('Especificações de projeto', `<p class="muted" style="margin-top:0">São os critérios de qualidade do projeto. Linhas do QFD (<span class="selo">QFD</span>) são atualizadas na reimportação; as <b>manuais</b> podem ser editadas aqui. Situação, medido e PDCA ficam no projeto preliminar e na aba Qualidade.</p>
+  return cartao(op.titulo || 'Especificações de projeto', `<p class="muted" style="margin-top:0">São os critérios de qualidade do projeto. Linhas do QFD (<span class="selo">QFD</span>) são atualizadas na reimportação; as <b>manuais</b> podem ser editadas aqui. ${op.nota || 'Situação, medido e PDCA ficam no projeto preliminar e na aba Qualidade.'}</p>${op.topo || ''}
   <div class="rolagem"><table class="tab-edit"><thead><tr><th>Requisito de projeto</th><th style="width:15%">Valor-meta (critério de aceite)</th><th>Forma de avaliação</th><th>Aspectos indesejáveis</th><th class="acoes"></th></tr></thead><tbody>
   ${q.map((x, i) => (x.qfd && x.qfd.id)
     ? `<tr class="qfd"><td><span class="selo">QFD</span> ${esc(x.requisito)}</td><td>${esc(x.criterioAceite)}</td><td>${esc(x.metodoVerificacao)}</td><td>${esc(x.aspectosIndesejaveis || '')}</td><td class="acoes"></td></tr>`
@@ -351,7 +364,7 @@ App.nedipEspecHtml = function () {
       <td>${c(`qualidade.${i}.metodoVerificacao`, '', { tipo: 'textarea', linhas: 2 })}</td><td>${c(`qualidade.${i}.aspectosIndesejaveis`, '', { tipo: 'textarea', linhas: 2 })}</td>
       <td class="acoes"><button class="btn pequeno perigo" data-acao="rem-linha" data-lista="qualidade" data-i="${i}">✕</button></td></tr>`).join('') || '<tr><td colspan="5" class="vazio">Nenhuma especificação.</td></tr>'}
   </tbody></table></div>
-  <div class="barra"><button class="btn" data-acao="add-linha" data-lista="qualidade" data-novo="qualidade">+ Especificação manual</button></div>`);
+  <div class="barra"><button class="btn" data-acao="add-linha" data-lista="qualidade" data-novo="qualidade">+ Especificação manual</button>${op.botoes || ''}</div>`);
 };
 
 // ------------------------------------------------------------------ matriz de decisão ponderada

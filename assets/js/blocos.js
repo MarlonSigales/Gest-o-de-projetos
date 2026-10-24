@@ -11,6 +11,10 @@
 App.blocoEdit = new Set(); // blocos abertos para edição (não vai para o JSON)
 App.BLOCOS_MENU = [['texto', '¶ Texto'], ['titulo:1', 'Capítulo'], ['titulo:2', 'Subcapítulo'], ['titulo:3', 'Seção'], ['figura', '🖼 Figura'],
   ['tabela', '▦ Tabela'], ['qfd', '🏠 Dados do QFD'], ['nedip', '🛠 Projeto do produto'], ['questionario', '📋 Questionário'], ['pesquisa', '📚 Pesquisa'], ['quebra', '⤓ Quebra de página']];
+/** Menu de blocos conforme a versão: a simplificada não tem questionário nem pesquisa, e o projeto de produto vira "Especificações e funções". */
+App.blocosMenu = () => (Nucleo.simplificado(App.p)
+  ? App.BLOCOS_MENU.filter(([t]) => !['questionario', 'pesquisa'].includes(t)).map(([t, r]) => [t, t === 'nedip' ? '🧾 Especificações e funções' : r])
+  : App.BLOCOS_MENU);
 App.PARTES_PESQ = [['estrategia', 'Estratégia de busca'], ['patentes', 'Tabela de patentes'], ['sintese', 'Síntese (domínio público × vigentes)']];
 App.NIVEIS = [[1, 'Capítulo'], [2, 'Subcapítulo'], [3, 'Seção']];
 App.PARTES_QUEST = [['identificacao', 'Identificação da pesquisa'], ['destaques', 'Principais resultados (destaques)'], ['roteiro', 'Roteiro aplicado'],
@@ -56,14 +60,14 @@ App.blocosHtml = function (mi, lp, op = {}) {
 };
 const dl = (x) => `data-mi="${x.mi}" data-lp="${esc(x.lp)}"`;
 
-App.blocoInserirHtml = (x, pos, fixo) => `<div class="nb-inserir ${fixo ? 'fixo' : ''}"><span class="nb-linha"></span><div class="nb-botoes">${App.BLOCOS_MENU.map(([t, r]) =>
+App.blocoInserirHtml = (x, pos, fixo) => `<div class="nb-inserir ${fixo ? 'fixo' : ''}"><span class="nb-linha"></span><div class="nb-botoes">${App.blocosMenu().map(([t, r]) =>
   `<button class="btn pequeno" data-acao="bloco-add" ${dl(x)} data-pos="${pos}" data-tipo="${t}">+ ${r}</button>`).join('')}</div><span class="nb-linha"></span></div>`;
 
 const ROTULO_BLOCO = { texto: 'Texto', titulo: 'Título', figura: 'Figura', tabela: 'Tabela', qfd: 'Dados do QFD', nedip: 'Projeto do produto', questionario: 'Questionário', pesquisa: 'Pesquisa (anterioridade)', quebra: 'Quebra de página' };
 
 App.blocoHtml = function (x, i) {
   const b = x.bl[i], ed = App.blocoEdit.has(b.id), bp = `${x.lp}.${i}`;
-  const rot = b.tipo === 'titulo' ? App.NIVEIS.find(([n]) => n === b.nivel)[1] : ROTULO_BLOCO[b.tipo];
+  const rot = b.tipo === 'titulo' ? App.NIVEIS.find(([n]) => n === b.nivel)[1] : (b.tipo === 'nedip' && Nucleo.simplificado(App.p) ? 'Especificações e funções' : ROTULO_BLOCO[b.tipo]);
   const fer = `<div class="nb-ferr"><span class="nb-tipo">${esc(rot)}</span><span class="nb-esp"></span>
     <button class="btn pequeno" data-acao="bloco-mover" ${dl(x)} data-i="${i}" data-d="-1" title="Mover para cima" ${i ? '' : 'disabled'}>↑</button>
     <button class="btn pequeno" data-acao="bloco-mover" ${dl(x)} data-i="${i}" data-d="1" title="Mover para baixo" ${i < x.bl.length - 1 ? '' : 'disabled'}>↓</button>
@@ -104,7 +108,8 @@ App.blocoPrevia = function (x, b) {
       const falta = b.secoes.map((s) => NedipRel.disponivel(App.p, s)).filter((d) => !d.ok);
       return `<div class="nb-resumo"><b>${esc(b.titulo)}</b> <span class="muted">· seções sem dados não entram no PDF</span>
         ${listaSecoes(b, NedipRel.nome, (s) => NedipRel.disponivel(App.p, s))}
-        ${[...new Set(falta.map((d) => d.etapa))].map((et) => `<button class="btn pequeno" data-acao="ir-aba" data-aba="produto" data-etapa="${et}">Preencher em ${esc(NEDIP_ETAPAS.find((y) => y.id === et).curto)}</button>`).join(' ')}</div>`;
+        ${Nucleo.simplificado(App.p) ? (falta.length ? '<button class="btn pequeno" data-acao="ir-aba" data-aba="especificacoes">Preencher em Especificações e funções</button>' : '')
+          : [...new Set(falta.map((d) => d.etapa))].map((et) => `<button class="btn pequeno" data-acao="ir-aba" data-aba="produto" data-etapa="${et}">Preencher em ${esc(NEDIP_ETAPAS.find((y) => y.id === et).curto)}</button>`).join(' ')}</div>`;
     }
     case 'questionario': {
       const f = App.p.produto.etapas.informacional.formulario;
@@ -163,7 +168,7 @@ App.blocoEditor = function (x, b, bp) {
     }
     case 'nedip': return `${c(bp + '.titulo', 'Título do bloco', { attrs: 'data-foco="1"' })}
         <p class="muted">Informações do projeto de produto neste bloco (mesma escolha do cartão “Projeto de produto nos relatórios”). Seções sem dados não entram no PDF.</p>
-        ${caixasLista(x, b, 'secoes', NedipRel.SECOES, (s) => NedipRel.disponivel(App.p, s))}`;
+        ${caixasLista(x, b, 'secoes', NedipRel.secoesDe(App.p), (s) => NedipRel.disponivel(App.p, s))}`;
     case 'questionario': {
       const f = App.p.produto.etapas.informacional.formulario;
       return `${c(bp + '.titulo', 'Título do bloco', { attrs: 'data-foco="1"' })}
@@ -230,7 +235,10 @@ App.acoes['bloco-add'] = (el) => {
     m.tabelas.push(t); b.ref = t.id;
   }
   if (tipo === 'qfd' && App.p.qfdDados) { const a = Qfd.analisar(App.p.qfdDados); b.secoes = b.secoes.filter((s) => Qfd.disponivel(a, s).ok); }
-  if (tipo === 'nedip') { const disp = NedipRel.SECOES.map(([s]) => s).filter((s) => s !== 'fases' && NedipRel.disponivel(App.p, s).ok); if (disp.length) b.secoes = disp; }
+  if (tipo === 'nedip') {
+    const disp = NedipRel.secoesDe(App.p).map(([s]) => s).filter((s) => s !== 'fases' && NedipRel.disponivel(App.p, s).ok);
+    if (Nucleo.simplificado(App.p)) { b.titulo = 'Especificações e funções'; b.secoes = disp.length ? disp : NedipRel.SO_SIMPLIFICADA.slice(); } else if (disp.length) b.secoes = disp;
+  }
   l.splice(pos, 0, b);
   if (tipo !== 'quebra') App.blocoEdit.add(b.id);
   App.marcarSujo(true); App.render();

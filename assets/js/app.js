@@ -38,7 +38,39 @@ App.toast = function (msg, tipo = '', ms = 5000) {
   setTimeout(() => t.remove(), ms);
 };
 App.modal = function (html, largo) { $('#modalCorpo').innerHTML = html; $('#modal').classList.remove('oculto'); $('.modal-caixa').style.maxWidth = largo ? '1000px' : ''; };
-App.fecharModal = function () { if (App._identOk) return; $('#modal').classList.add('oculto'); $('#modalCorpo').innerHTML = ''; };
+App.fecharModal = function () {
+  if (App._identOk) return;
+  $('#modal').classList.add('oculto'); $('#modalCorpo').innerHTML = '';
+  if (App._versaoOk) { const r = App._versaoOk; App._versaoOk = null; r(null); } // fechou a escolha da versão: cancela a criação
+};
+
+// ------------------------------------------------------------------ versão do projeto (simplificada × completa)
+App.ABAS_SO_COMPLETA = ['produto', 'pesquisa', 'areas']; // na simplificada, as áreas são geradas das funções
+App.ABAS_SO_SIMPLIFICADA = ['especificacoes'];
+App.abaVisivel = function (aba) {
+  const simp = Nucleo.simplificado(App.p);
+  return simp ? !App.ABAS_SO_COMPLETA.includes(aba) : !App.ABAS_SO_SIMPLIFICADA.includes(aba);
+};
+App.DESCR_VERSAO = {
+  simplificada: 'Só o estritamente necessário: dados do projeto, equipe, macroentregas e cronograma, <b>especificações e funções</b> (sem passar pelo projeto de produto), TRL, qualidade, riscos e relatórios.',
+  completa: 'Tudo da simplificada mais o <b>projeto de produto/serviço</b> pelas fases do NeDIP (QFD, questionários, concepções, protótipos, FMEA, manuais), a <b>análise econômica e de mercado</b> no lançamento e a <b>pesquisa</b> de patentes e referências.',
+};
+/** Pergunta a versão ao criar um projeto. Resolve 'simplificada', 'completa' ou null (cancelado). */
+App.escolherVersao = function () {
+  return new Promise((ok) => {
+    if (App._versaoOk) App._versaoOk(null);
+    App.modal(`<h2>Versão do projeto</h2>
+      <p class="muted">Escolha quanto o gerente de projeto precisa preencher. Dá para trocar depois em ⚙ Configurações, sem perder nada do que foi preenchido.</p>
+      <div class="grade-campos" style="grid-template-columns:1fr 1fr">
+        <div class="cartao" style="margin:0"><h3 style="margin-top:0">⚡ Simplificada</h3><p>${App.DESCR_VERSAO.simplificada}</p>
+          <div class="barra"><button class="btn primario" data-acao="versao-escolher" data-v="simplificada">Usar a versão simplificada</button></div></div>
+        <div class="cartao" style="margin:0"><h3 style="margin-top:0">🧭 Completa</h3><p>${App.DESCR_VERSAO.completa}</p>
+          <div class="barra"><button class="btn primario" data-acao="versao-escolher" data-v="completa">Usar a versão completa</button></div></div>
+      </div>`, true);
+    App._versaoOk = ok;
+  });
+};
+App.acoes['versao-escolher'] = (el) => { const ok = App._versaoOk; App._versaoOk = null; if (ok) ok(el.dataset.v); };
 
 App.baixarBlob = function (blob, nome) {
   const a = document.createElement('a');
@@ -182,13 +214,16 @@ App.marcarSujo = function (sujo = true) {
 App.atualizarTopo = function () {
   const l = $('#localProjeto');
   if (!App.arm) { l.innerHTML = ''; return; }
-  l.innerHTML = App.arm.tipo === 'pasta'
+  const simp = Nucleo.simplificado(App.p);
+  l.innerHTML = (App.arm.tipo === 'pasta'
     ? `<span class="local pasta" title="Arquivos gravados diretamente nesta pasta do computador">📁 pasta: <b>${esc(App.arm.nome)}</b></span>`
-    : '<span class="local nav" title="Guardado no navegador deste computador. Exporte o ZIP para levar a outra máquina.">🌐 guardado no navegador</span>';
+    : '<span class="local nav" title="Guardado no navegador deste computador. Exporte o ZIP para levar a outra máquina.">🌐 guardado no navegador</span>')
+    + `<span class="versao-proj ${simp ? 'simp' : ''}" title="Versão do projeto (troque em ⚙ Configurações)">${simp ? '⚡ versão simplificada' : '🧭 versão completa'}</span>`;
 };
 
 App.render = function () {
-  $$('#abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.aba === App.aba));
+  if (App.p && !App.abaVisivel(App.aba)) App.aba = App.aba === 'produto' && App.abaVisivel('especificacoes') ? 'especificacoes' : 'projeto';
+  $$('#abas button').forEach((b) => { b.hidden = !!App.p && !App.abaVisivel(b.dataset.aba); b.classList.toggle('ativa', b.dataset.aba === App.aba); });
   const aba = App.abas[App.aba];
   const y = window.scrollY;
   $('#conteudo').innerHTML = (aba && App.p) ? aba.render() : '';
@@ -202,6 +237,7 @@ App.agendarAnalise = function (ms = 400) { clearTimeout(App._timer); App._timer 
 App.analisar = function () {
   if (!App.p) return;
   try {
+    if (window.Simples && Nucleo.simplificado(App.p) && Simples.sincronizar(App.p)) App.marcarSujo(true); // cronograma, TRL e áreas seguem as funções
     App.an = Nucleo.analisar(App.p);
     App.gantt = Nucleo.ganttSvg(App.an, 1100);
     const aba = App.abas[App.aba];
@@ -262,11 +298,14 @@ App.abrirPasta = async function (handle) {
     let novo = false;
     if (!p) {
       if (!confirm(`A pasta "${handle.name}" não tem um projeto. Criar um projeto novo nela?`)) return;
-      p = Nucleo.novo(handle.name); novo = true;
+      const versao = await App.escolherVersao();
+      if (!versao) return;
+      p = Nucleo.novo(handle.name, versao); novo = true;
+      if (versao === 'simplificada' && window.Simples) Simples.preencher(p, { nome: App.cfg.usuario, email: App.cfg.email });
     }
     await Recentes.lembrar(handle, p.projeto.nome);
     App.carregarEstado(p, arm);
-    if (novo) { App.marcarSujo(true); App.toast('Projeto novo na pasta. Preencha nome, código e um interessado e clique em Salvar.'); }
+    if (novo) { App.marcarSujo(true); App.toast(`Projeto novo na pasta, versão ${p.config.versao}. Preencha nome, código e um interessado e clique em Salvar.`); }
   } catch (e) {
     if (e.name !== 'AbortError') App.toast('Não foi possível abrir a pasta: ' + esc(e.message), 'erro', 8000);
   }
@@ -282,13 +321,17 @@ App.abrirNavegador = async function (id) {
   App.carregarEstado(p, arm);
 };
 
-App.novoNavegador = function () {
+App.novoNavegador = async function () {
   if (!App.confirmarDescartar()) return;
-  const p = Nucleo.novo();
+  const versao = await App.escolherVersao();
+  if (!versao) return;
+  const p = Nucleo.novo('', versao);
+  if (versao === 'simplificada' && window.Simples) Simples.preencher(p, { nome: App.cfg.usuario, email: App.cfg.email });
   App.carregarEstado(p, new ArmazemNavegador(p.id, ''));
   App.marcarSujo(true);
   App.aba = 'projeto'; App.render();
-  App.toast('Projeto novo (guardado no navegador). Preencha nome, código e um interessado e clique em Salvar.');
+  App.toast(versao === 'simplificada' ? 'Projeto novo (versão simplificada). Dê um nome ao projeto, liste as funções e as especificações e clique em Salvar.'
+    : 'Projeto novo, versão completa (guardado no navegador). Preencha nome, código e um interessado e clique em Salvar.', 'ok', 8000);
 };
 
 /** Tela inicial: pastas recentes, projetos do navegador, criar, importar, exemplo. */
@@ -467,6 +510,9 @@ App.telaConfig = function () {
     <label class="campo" style="flex-direction:row;align-items:center;gap:8px;"><input type="checkbox" id="cfgDicas" ${App.cfg.semDicas ? '' : 'checked'}> Mostrar balões explicativos ao parar o mouse sobre botões, abas e campos</label></div>
   <h3>Do projeto (salvas no JSON)</h3>
   <div class="grade-campos">
+    <label class="campo largo">Versão do projeto
+      <select id="cfgVersao">${App.opcoes([['simplificada', 'Simplificada — só especificações e funções para TRL e qualidade'], ['completa', 'Completa — projeto de produto (NeDIP), análise econômica e pesquisa']], App.p.config.versao)}</select>
+      <span class="dica">Trocar não apaga dados: na simplificada, o projeto de produto e a pesquisa ficam ocultos e fora dos relatórios; voltam ao trocar para a completa.</span></label>
     <label class="campo">Ao salvar, baixar uma cópia do JSON
       <select id="cfgBaixar">${App.opcoes([['auto', 'JSON, automático (só quando guardado no navegador)'], ['sempre', 'JSON, sempre'], ['zip', 'ZIP completo (JSON + figuras + documentos) — recomendado no Safari/Firefox'], ['nunca', 'nunca']], App.p.config.baixarAoSalvar)}</select></label>
     <label class="campo">Envio do e-mail de andamento<select id="cfgModo">${App.opcoes([['mailto', 'Programa de e-mail do computador (anexos manuais)'], ['emailjs', 'Automático pelo EmailJS'], ['nenhum', 'Não enviar']], e.modo)}</select></label>
@@ -489,6 +535,13 @@ App.acoes['cfg-salvar'] = () => {
   App.cfg.semDicas = !$('#cfgDicas').checked;
   App.gravarCfg();
   App.p.config.baixarAoSalvar = $('#cfgBaixar').value;
+  const versao = $('#cfgVersao').value;
+  if (versao !== App.p.config.versao) {
+    App.p.config.versao = versao;
+    App.p.log.push({ dataHora: Nucleo.agoraIso(), acao: `Versão do projeto alterada para ${versao}`, usuario: App.cfg.usuario || '' });
+    if (versao === 'completa') Nucleo.preMarcarNedip(App.p);
+    App.atualizarTopo();
+  }
   Object.assign(App.p.config.email, { modo: $('#cfgModo').value, emailjsServico: $('#cfgServ').value.trim(), emailjsModelo: $('#cfgModelo').value.trim(),
     emailjsChave: $('#cfgChave').value.trim(), limiteAnexoKb: +$('#cfgLimite').value || 45 });
   App.marcarSujo(true); App.fecharModal(); App.render();
