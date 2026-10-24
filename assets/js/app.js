@@ -61,7 +61,7 @@ App.escolherVersao = function () {
     if (App._versaoOk) App._versaoOk(null);
     App.modal(`<h2>Versão do projeto</h2>
       <p class="muted">Escolha quanto o gerente de projeto precisa preencher. Dá para trocar depois em ⚙ Configurações, sem perder nada do que foi preenchido.</p>
-      <div class="grade-campos" style="grid-template-columns:1fr 1fr">
+      <div class="grade-campos grade-2">
         <div class="cartao" style="margin:0"><h3 style="margin-top:0">⚡ Simplificada</h3><p>${App.DESCR_VERSAO.simplificada}</p>
           <div class="barra"><button class="btn primario" data-acao="versao-escolher" data-v="simplificada">Usar a versão simplificada</button></div></div>
         <div class="cartao" style="margin:0"><h3 style="margin-top:0">🧭 Completa</h3><p>${App.DESCR_VERSAO.completa}</p>
@@ -209,6 +209,7 @@ App.marcarSujo = function (sujo = true) {
   const e = $('#estadoSalvo');
   e.textContent = sujo ? '● alterações não salvas' : '✓ salvo';
   e.classList.toggle('sujo', sujo);
+  const b = $('#btnSalvar'); if (b) b.classList.toggle('pendente', sujo); // no celular a situação some; o botão mostra que falta salvar
 };
 
 App.atualizarTopo = function () {
@@ -225,7 +226,10 @@ App.render = function () {
   if (App.p && !App.abaVisivel(App.aba)) App.aba = App.aba === 'produto' && App.abaVisivel('especificacoes') ? 'especificacoes' : 'projeto';
   $$('#abas button').forEach((b) => { b.hidden = !!App.p && !App.abaVisivel(b.dataset.aba); b.classList.toggle('ativa', b.dataset.aba === App.aba); });
   const aba = App.abas[App.aba];
-  const y = window.scrollY;
+  // mesma tela (só redesenhada após uma edição): mantém a rolagem; tela nova (aba, macroentrega ou fase): começa no topo
+  const tela = [App.aba, App.macroSel, App.etapaSel].join('|'), mesma = tela === App._telaAtual;
+  App._telaAtual = tela;
+  const y = mesma ? window.scrollY : 0;
   $('#conteudo').innerHTML = (aba && App.p) ? aba.render() : '';
   if (aba && App.p && aba.depois) aba.depois();
   if (aba && App.p && aba.analise && App.an) aba.analise();
@@ -268,6 +272,7 @@ App.carregarEstado = function (p, arm) {
   App.arm = arm;
   App.p = Nucleo.normalizar(p);
   App.macroSel = 0;
+  App._telaAtual = null; // outro projeto: começa no topo
   App.aba = 'projeto';
   App.relAberto = null; if (App.blocoEdit) App.blocoEdit.clear(); // estado da tela não passa de um projeto para outro
   App.fecharModal();
@@ -340,7 +345,7 @@ App.telaProjetos = async function () {
   const recentes = suporta ? await Recentes.listar() : [];
   const nav = await ArmazemNavegador.listar();
   App.modal(`<h2>Criar ou carregar projeto</h2>
-  <div class="grade-campos" style="grid-template-columns:1fr 1fr">
+  <div class="grade-campos grade-2">
     <div class="cartao" style="margin:0"><h3 style="margin-top:0">📁 Pasta do computador <span class="muted">(recomendado)</span></h3>
       <p class="muted">O JSON e a pasta <b>figuras/</b> ficam juntos na pasta que você escolher. ${suporta ? '' : '<br><b class="gap-neg">Este navegador (Safari, Firefox ou celular) não permite gravar em pastas. Guarde no navegador e exporte o ZIP com frequência — ou use Chrome/Edge no computador.</b>'}</p>
       <div class="barra"><button class="btn primario" data-acao="abrir-pasta" ${suporta ? '' : 'disabled'}>Abrir ou criar em uma pasta…</button></div>

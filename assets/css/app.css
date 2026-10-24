@@ -341,3 +341,76 @@ h2 .versao-proj { vertical-align: middle; margin: 0 0 0 8px; }
 .lateral .situacao-arquivo .versao-proj { display: block; }
 details.cartao > summary { cursor: pointer; }
 table.eco-fc td, table.eco-fc th { font-size: 12.5px; }
+
+/* ---------- responsividade: nada pode sair da tela em nenhum tamanho ----------
+   Grades com coluna mínima nunca maior que o contêiner; botões quebram linha em telas estreitas; tabelas e
+   diagramas largos rolam dentro do próprio cartão; o menu do arquivo (Salvar) fica sempre visível. */
+body { overflow-x: clip; }                 /* corta sobras sem virar área de rolagem (hidden quebraria o menu fixo) */
+h2, h3, h4, p, li, td, th, label, .muted { overflow-wrap: break-word; }
+img { max-width: 100%; height: auto; }
+.grade-campos { grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
+.grade-campos.grade-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.kpis { grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); }
+.dfx-recs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+.nedip-recs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.nb-checks { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.lista-figs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.trl-editor { grid-template-columns: minmax(min(100%, 280px), 38%) minmax(0, 1fr); }
+.dfx-nome, .ref-abnt { min-width: min(100%, 260px); }
+.nedip-funcao .barra input { min-width: min(100%, 320px); }
+.guia-passos .btn { min-width: min(100%, 210px); }
+.nb-fig .prev { max-width: 100%; }
+.cartao, .modal-caixa, .trl-item, .dfx-card, .nb-bloco, .nb-corpo { min-width: 0; }
+.cartao { overflow-x: auto; }                 /* rede de segurança: o que for largo rola dentro do cartão */
+.btn { max-width: 100%; }
+label.btn { white-space: normal; }
+.toasts { max-width: min(420px, calc(100vw - 36px)); }
+.balao { max-width: min(320px, calc(100vw - 16px)); }
+.matriz { grid-template-columns: 36px repeat(5, minmax(44px, 1fr)); max-width: 100%; }
+.gantt-box svg { max-width: none; }
+
+/* menu lateral (computador): a lista de abas rola sozinha e o bloco "Arquivo do projeto" fica fixo embaixo, sempre visível */
+@media (min-width: 861px) {
+  .lateral { overflow: hidden; }
+  .lateral .abas { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  .lateral .inserir { flex: none; }
+}
+@media (min-width: 861px) and (max-height: 640px) {
+  .lateral .abas button { padding: 6px 16px; }
+  .lateral .inserir { flex-direction: row; flex-wrap: wrap; gap: 6px; padding: 8px 10px 10px; }
+  .lateral .inserir .rotulo, .lateral .situacao-arquivo { flex-basis: 100%; }
+  .lateral .inserir .btn { flex: 1 1 auto; padding: 5px 8px; font-size: 12.5px; }
+}
+
+/* tablets e celulares: o topo rola junto e o menu (abas + Salvar) fica preso no alto da tela */
+@media (max-width: 860px) {
+  .corpo { align-items: stretch; }          /* a coluna tem a largura da tela, não a da tabela mais larga */
+  .corpo .conteudo { width: 100%; }
+  .topo { position: static; padding: 6px 12px; }
+  .lateral { top: 0; max-height: none; }
+  .lateral .inserir { position: static; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .lateral .inserir .btn { flex: 1 1 auto; padding: 6px 10px; text-align: center; }
+  .lateral .situacao-arquivo { flex-basis: 100%; flex-wrap: wrap; }
+  .corpo .conteudo { padding: 16px 14px 70px; }
+  .cartao { padding: 14px 14px; }
+  .modal { padding: 16px 8px; }
+  .modal-caixa { padding: 18px 14px; }
+  .trl-crit { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .btn { white-space: normal; }               /* texto longo quebra em vez de sair da tela */
+  .marca span { font-size: 14px; }
+  h2 { font-size: 17px; }
+  .toasts { left: 10px; right: 10px; bottom: 10px; max-width: none; }
+  .vig-resumo .v, .kpi .v { font-size: 20px; }
+  .guia-passos { padding-left: 16px; }
+}
+@media (max-width: 1100px) { .trl-editor { grid-template-columns: minmax(0, 1fr); } }
+.tab-edit td a, .tab-edit td .muted { overflow-wrap: anywhere; } /* caminhos de arquivo longos quebram */
+@media (max-width: 600px) {                   /* celular: menu do arquivo numa só faixa, para sobrar tela */
+  .lateral .inserir { flex-wrap: nowrap; padding: 4px 8px 6px; }
+  .lateral .inserir .btn { flex: 1 1 0; min-width: 0; padding: 5px 4px; font-size: 12px; }
+  .lateral .situacao-arquivo { display: none; }
+  .lateral .abas button { padding: 9px 12px; }
+}
+#btnSalvar.pendente::after { content: " ●"; color: #b7791f; }

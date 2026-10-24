@@ -102,3 +102,11 @@ Atualizado em 14/10/2026. Os números são fixos (servem de referência); a orde
    DRE e fluxo de caixa, VPL, TIR, paybacks, IL, ROI, pontos de equilíbrio, custo pleno, preços-alvo e mínimo, EVA/MVA, valor
    adicionado e sensibilidade; no manual de projeto, no relatório geral e nos blocos; exemplo da roda e guia atualizados.
    VPL e TIR conferidos com um cálculo independente.
+
+--- Responsividade (24/10/2026)
+41 [resolvido] Nada sai da tela em nenhum tamanho (testado de 320×568 a 1920×1080): caixas de criar/carregar e de versão em uma
+   coluna nas telas estreitas; grades, KPIs e listas com coluna mínima limitada à largura disponível; botões quebram linha no
+   celular; tabelas largas rolam dentro do cartão; coluna do conteúdo com a largura da tela (não a da tabela mais larga).
+42 [resolvido] Salvar sempre visível: no computador, a lista de abas rola sozinha e "Arquivo do projeto" fica fixo embaixo; no
+   tablet/celular, o menu (abas + Salvar) fica preso no alto e o topo rola junto; o botão Salvar mostra ● quando falta salvar.
+43 [resolvido] Trocar de aba, de macroentrega ou de fase começa no topo da página; redesenhar a mesma tela mantém a rolagem.
