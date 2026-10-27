@@ -22,6 +22,8 @@ window.CONFIG = {
   // Sistema QFD: aberto na etapa de qualidade; ao voltar, o sistema pede o backup JSON exportado lá
   anexoMaxMb: 50,        // documentos das fases do projeto de produto (produto/<fase>/)
   urlQfd: 'https://marlonsigales.github.io/QFD/index.html',
+  // Sistema de Projeto Conceitual: aberto na fase conceitual; o arquivo que ele exporta traz o QFD, as funções e a concepção
+  urlConceitual: 'https://marlonsigales.github.io/ProjetoConceitual/',
   uploadMaxMb: 10,
   // Limite de anexo do EmailJS (plano gratuito). Acima disso o e-mail vai sem o JSON anexado, com aviso.
   emailjsLimiteAnexoKb: 45,

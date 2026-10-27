@@ -50,6 +50,7 @@ window.NEDIP_ETAPAS = [
     ] },
   { id: 'conceitual', macro: 'projetacao', nome: 'Projeto conceitual', curto: 'Conceitual', saida: 'Concepção do produto/serviço',
     objetivo: 'Desdobrar as especificações em funções e princípios de solução, gerar concepções alternativas e selecionar a que melhor atende às especificações.',
+    appPadrao: { nome: 'Sistema de Projeto Conceitual', url: typeof CONFIG !== 'undefined' ? (CONFIG.urlConceitual || '') : '' },
     ferramentas: [['desdobramento', 'Desdobramento das especificações em funções', true], ['funcoes', 'Função global, estrutura de funções e matriz morfológica', true],
       ['concepcoes', 'Concepções alternativas', true], ['decisao', 'Matriz de decisão ponderada', true], ['trl', 'Exportar funções para a árvore TRL', true]],
     recomendacoes: [
@@ -171,7 +172,12 @@ window.nedipNormalizar = function (prod) {
       status: window.NEDIP_STATUS.some(([s]) => s === e.status) ? e.status : 'não iniciada',
       macros: nedipLista(e.macros).map(String),
       app: et.id === 'informacional' ? { nome: 'Sistema QFD', url: (window.CONFIG && CONFIG.urlQfd) || '' } // fixo: sempre o sistema QFD
-        : Object.assign({ nome: (et.appPadrao || {}).nome || '', url: (et.appPadrao || {}).url || '' }, e.app || {}),
+        : (() => { // sem endereço salvo, vale o aplicativo padrão da fase (ex.: Sistema de Projeto Conceitual)
+          const d = { nome: (et.appPadrao || {}).nome || '', url: (et.appPadrao || {}).url || '' };
+          const a = Object.assign({}, d, e.app || {});
+          if (!a.url) { a.url = d.url; if (!a.nome) a.nome = d.nome; }
+          return a;
+        })(),
       ferramentas: Object.fromEntries(et.ferramentas.map(([id, , pad]) => [id, e.ferramentas && id in e.ferramentas ? !!e.ferramentas[id] : pad])),
       recomendacoes: Object.fromEntries(et.recomendacoes.map(([id]) => [id, !!(e.recomendacoes && e.recomendacoes[id])])),
       registro: nedipTxt(e.registro),
@@ -237,7 +243,9 @@ window.nedipArvoreFuncoes = function (p) {
   c.funcoes.forEach((f) => {
     const s = Object.assign(noT(f.nome || 'Função', 'subsystem', 'Função parcial (projeto conceitual)'), { origemFuncao: f.id });
     f.subfuncoes.forEach((sf) => s.filhos.push(noT(sf.escolhido ? `${sf.nome} — ${sf.escolhido}` : (sf.nome || 'Subfunção'), 'assembly',
-      'Subfunção (projeto conceitual)' + (sf.escolhido ? '; princípio de solução escolhido: ' + sf.escolhido : ''), sf.escolhido || 'Nenhum')));
+      'Subfunção (projeto conceitual)' + (sf.escolhido ? '; princípio de solução escolhido: ' + sf.escolhido : '')
+        + (sf.maturidadeTexto ? `; maturidade: ${sf.maturidadeTexto}${sf.trlFaixa ? ` (TRL provável ${sf.trlFaixa})` : ''}` : '')
+        + (sf.concorrentes && sf.concorrentes.length ? '; usado por: ' + sf.concorrentes.join(', ') : ''), sf.escolhido || 'Nenhum')));
     raiz.filhos.push(s);
   });
   return raiz;

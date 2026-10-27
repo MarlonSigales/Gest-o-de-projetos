@@ -724,6 +724,56 @@ Nucleo.importarQfd = function (dados) {
   return { itens, avisos, clientes, meta: { schemaVersion: (dados.metadata || {}).schemaVersion ?? null, requisitosCliente: (dados.requisitosCliente || []).length, requisitosProjeto: itens.length } };
 };
 /** Mescla: itens do QFD são atualizados pelo id do requisito; situação só muda quando o QFD tem medição; PDCA e itens manuais são mantidos. */
+/**
+ * Resultado do Sistema de Projeto Conceitual (arquivo "…-para-gestao.json" ou gestao-conceitual.json do ZIP):
+ * substitui funções, subfunções, princípios, desdobramento e concepções da fase conceitual. Funções e subfunções
+ * com o mesmo nome mantêm o id (e, com ele, responsável, ligações da versão simplificada e da árvore TRL).
+ * Especificações manuais do conceitual entram na Qualidade se ainda não existirem. Devolve um resumo.
+ */
+Nucleo.ehConceitual = (d) => !!(d && typeof d === 'object' && d.formato === 'projeto-conceitual-gestao' && d.conceitual && Array.isArray(d.conceitual.funcoes));
+Nucleo.importarConceitual = function (p, d) {
+  if (!Nucleo.ehConceitual(d)) throw new Error('O arquivo não é a exportação do Sistema de Projeto Conceitual.');
+  const c = p.produto.etapas.conceitual, k = d.conceitual;
+  const t = (x) => String(x ?? '').trim();
+  const norm = (x) => t(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const antigas = new Map(c.funcoes.map((f) => [norm(f.nome), f]));
+  const mapa = {}; // id do conceitual → id aqui
+  c.funcoes = k.funcoes.map((fx) => {
+    const ant = antigas.get(norm(fx.nome));
+    const subAnt = new Map(((ant && ant.subfuncoes) || []).map((s) => [norm(s.nome), s]));
+    const f = Object.assign({}, ant || {}, { id: ant ? ant.id : t(fx.id) || Nucleo.uid('fn'), nome: t(fx.nome), codigo: t(fx.codigo) });
+    mapa[fx.id] = f.id;
+    f.subfuncoes = (fx.subfuncoes || []).map((sx) => {
+      const sa = subAnt.get(norm(sx.nome));
+      const sf = Object.assign({}, sa || {}, { id: sa ? sa.id : t(sx.id) || Nucleo.uid('sf'), nome: t(sx.nome), codigo: t(sx.codigo), principios: t(sx.principios),
+        escolhido: t(sx.escolhido), maturidade: t(sx.maturidade), maturidadeTexto: t(sx.maturidadeTexto), trlFaixa: t(sx.trlFaixa),
+        concorrentes: Array.isArray(sx.concorrentes) ? sx.concorrentes.map(t) : [], fonte: t(sx.fonte) });
+      mapa[sx.id] = sf.id;
+      return sf;
+    });
+    return f;
+  });
+  if (k.funcaoGlobal) c.funcaoGlobal = Object.assign({}, c.funcaoGlobal, { nome: t(k.funcaoGlobal.nome) || c.funcaoGlobal.nome, entradas: t(k.funcaoGlobal.entradas) || c.funcaoGlobal.entradas, saidas: t(k.funcaoGlobal.saidas) || c.funcaoGlobal.saidas });
+  let manuais = 0;
+  (d.especificacoesManuais || []).forEach((e) => {
+    if (!t(e.requisito) || p.qualidade.some((q) => q.id === e.id || norm(q.requisito) === norm(e.requisito))) return;
+    p.qualidade.push({ id: t(e.id), requisito: t(e.requisito), criterioAceite: t(e.criterioAceite), metodoVerificacao: '', status: 'pendente', pdca: { planejar: '', executar: '', verificar: '', agir: '' }, aspectosIndesejaveis: '', valorMedido: '' });
+    manuais++;
+  });
+  Object.entries(k.desdobramento || {}).forEach(([esp, v]) => {
+    const ids = ((v && v.funcoes) || []).map((id) => mapa[id]).filter(Boolean);
+    if (ids.length) c.desdobramento[esp] = { funcoes: [...new Set(ids)], obs: t(v.obs) || ((c.desdobramento[esp] || {}).obs || '') };
+  });
+  const outras = c.concepcoes.filter((x) => !String(x.id).startsWith('pc_'));
+  const vindas = (k.concepcoes || []).map((x) => ({ id: t(x.id), nome: t(x.nome), descricao: t(x.descricao), avaliacao: t(x.avaliacao), selecionada: !!x.selecionada }));
+  if (vindas.some((x) => x.selecionada)) outras.forEach((x) => { x.selecionada = false; });
+  c.concepcoes = vindas.concat(outras);
+  c.conceitualImportadoEm = Nucleo.agoraIso();
+  ['con_global', 'con_estr', 'con_desd', 'con_variantes', 'con_aval', 'con_sel'].forEach((r) => { if (c.recomendacoes && r in c.recomendacoes) c.recomendacoes[r] = true; });
+  if (c.status === 'não iniciada') c.status = 'em andamento';
+  return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, desdobramento: Object.keys(k.desdobramento || {}).length };
+};
+
 Nucleo.mesclarQfd = function (atual, novos) {
   const porId = new Map((atual || []).filter((q) => q.qfd && q.qfd.id).map((q) => [q.qfd.id, q]));
   const saida = novos.map((n) => {

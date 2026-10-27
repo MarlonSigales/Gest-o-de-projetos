@@ -289,7 +289,41 @@ const qfdVoltou = () => { if (App.qfdAguardando && document.visibilityState === 
 document.addEventListener('visibilitychange', qfdVoltou);
 window.addEventListener('focus', qfdVoltou);
 
+/** Lê o arquivo do Sistema de Projeto Conceitual (JSON "…-para-gestao.json" ou o ZIP do projeto). Devolve os dados ou null. */
+App.lerConceitual = async function (arquivo) {
+  try {
+    if (/\.zip$/i.test(arquivo.name)) {
+      const z = await JSZip.loadAsync(arquivo);
+      const f = z.file('gestao-conceitual.json');
+      if (!f) return null;
+      const d = JSON.parse((await f.async('string')).replace(/^\uFEFF/, ''));
+      return Nucleo.ehConceitual(d) ? d : null;
+    }
+    const d = JSON.parse((await arquivo.text()).replace(/^\uFEFF/, ''));
+    return Nucleo.ehConceitual(d) ? d : null;
+  } catch (e) { return null; }
+};
+
+/** Importa o resultado do projeto conceitual: o QFD que vem junto, as funções/concepções e, se não houver, a árvore TRL. */
+App.importarConceitual = async function (d, nomeArquivo) {
+  try {
+    if (d.qfd && Array.isArray(d.qfd.requisitosProjeto)) await App.importarQfd(new File([JSON.stringify(d.qfd)], 'qfd-do-projeto-conceitual.json', { type: 'application/json' }));
+    const r = Nucleo.importarConceitual(App.p, d);
+    const quando = Nucleo.agoraIso();
+    const cam = `produto/conceitual/projeto-conceitual_${quando.replace('T', '_').replace(/:/g, '')}.json`;
+    await App.arm.gravarArquivo(cam, new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
+    App.p.log.push({ dataHora: quando, acao: `Projeto conceitual importado (${nomeArquivo}): ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)`, usuario: App.cfg.usuario || '' });
+    App.appAguardando = null;
+    App.fecharModal(); App.marcarSujo(true); App.render(); App.agendarAnalise();
+    App.toast(`Projeto conceitual importado: ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)${r.manuais ? `, ${r.manuais} especificação(ões) manual(is)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
+    // árvore TRL: vazia → monta sozinha; já existe → pergunta como exportar
+    if (r.funcoes) { if (!App.p.trl.arvore.length) App.nedipAplicarTrl('substituir'); else App.acoes['nedip-trl'](); }
+  } catch (e) { App.toast('Projeto conceitual: ' + esc(e.message), 'erro', 9000); }
+};
+
 App.importarQfd = async function (arquivo) {
+  const conc = await App.lerConceitual(arquivo);
+  if (conc) { await App.importarConceitual(conc, arquivo.name); return; }
   try {
     let texto;
     if (/\.zip$/i.test(arquivo.name)) {

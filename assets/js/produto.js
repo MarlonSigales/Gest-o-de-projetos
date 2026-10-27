@@ -129,6 +129,8 @@ App.acoes['nedip-app-depois'] = () => { App.appAguardando = null; App.fecharModa
 /** Resultado de aplicativo externo: backup do QFD atualiza requisitos/especificações; o resto vira documento da fase. */
 App.nedipImportarResultado = async function (arquivo, etapa) {
   App.appAguardando = null;
+  const conc = await App.lerConceitual(arquivo);
+  if (conc) { App.fecharModal(); await App.importarConceitual(conc, arquivo.name); return; }
   let ehQfd = false;
   try {
     if (/\.json$/i.test(arquivo.name)) { const d = JSON.parse((await arquivo.text()).replace(/^﻿/, '')); ehQfd = !!(d && Array.isArray(d.requisitosProjeto)); }
@@ -245,6 +247,7 @@ App.nedipEspecifico = {
       { novo: 'concepcao', botao: 'Adicionar concepção', vazio: 'Nenhuma concepção.' }));
     if (ferr(e, 'decisao')) h += App.nedipDecisaoHtml(e, b);
     if (ferr(e, 'trl')) h += cartao('Exportar para a árvore TRL', `<p>Gera na aba TRL: <b>produto</b> (função global) → <b>subsistemas</b> (funções parciais) → <b>montagens</b> (subfunções com o princípio escolhido). É opcional: a árvore também pode ser montada à mão na aba TRL.</p>
+  <p class="muted">Usou o <b>Sistema de Projeto Conceitual</b>? Importe o arquivo “…-para-gestao.json” (ou o ZIP do projeto) em <b>Entrada da fase → Importar resultado do aplicativo</b>: funções, princípios, concepção escolhida e maturidade entram aqui e a árvore TRL é montada.</p>
   <div class="barra"><button class="btn primario" data-acao="nedip-trl">📈 Exportar funções para o TRL</button>
   <button class="btn" data-acao="ir-aba" data-aba="trl">Montar/editar na aba TRL</button>
   <span class="muted">${e.trlExportadoEm ? 'Última exportação: ' + esc(e.trlExportadoEm.replace('T', ' ').slice(0, 16)) : 'Ainda não exportado.'}</span></div>`);
