@@ -7,7 +7,7 @@ App.abas.projeto = {
   render() {
     const c = App.campo;
     return `
-<h2>${esc(App.p.projeto.nome || 'Novo projeto')}</h2>
+<h2>${esc(App.p.projeto.nome || 'Novo projeto')} ${App.seloVersao()}</h2>
 ${App.guiaExemploHtml ? App.guiaExemploHtml() : ''}
 <div class="cartao vigencia"><h3 style="margin-top:0">Vigência do projeto</h3><div class="grade-campos">
   ${c('projeto.dataInicio', 'Data de início', { tipo: 'date' })}

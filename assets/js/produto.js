@@ -22,7 +22,7 @@ App.acoes['ir-aba'] = (el) => {
   let aba = el.dataset.aba;
   if (!App.abaVisivel(aba)) { // versão simplificada: o projeto de produto vira a aba Especificações e funções
     if (aba === 'produto' && App.abaVisivel('especificacoes')) aba = 'especificacoes';
-    else { App.toast('Este recurso faz parte da versão completa (⚙ Configurações → Versão do projeto).', 'aviso', 7000); return; }
+    else { App.toast('Este recurso faz parte da versão completa. <button class="btn pequeno" data-acao="versao-trocar" data-v="completa">Trocar para a completa</button>', 'aviso', 9000); return; }
   }
   App.aba = aba; if (el.dataset.etapa) App.etapaSel = el.dataset.etapa; App.render(); window.scrollTo(0, 0);
 };
@@ -219,6 +219,7 @@ App.nedipEspecifico = {
       e.funcoes.forEach((fn, i) => {
         const bf = `${b}.funcoes.${i}`;
         f += `<div class="nedip-funcao"><div class="barra" style="margin-top:0">${c(bf + '.nome', '', { ph: `Função parcial ${i + 1}` })}
+        ${c(bf + '.responsavel', '', { ph: 'responsável', attrs: 'title="Responsável pela função (o mesmo da versão simplificada)" style="max-width:220px"' })}
         <button class="btn pequeno perigo" data-acao="rem-linha" data-lista="${b}.funcoes" data-i="${i}">✕ função</button></div>
         <table class="tab-edit"><thead><tr><th style="width:26%">Subfunção</th><th>Princípios de solução (um por linha)</th><th style="width:26%">Escolhido</th><th class="acoes"></th></tr></thead><tbody>
         ${fn.subfuncoes.map((s, k) => `<tr><td>${c(`${bf}.subfuncoes.${k}.nome`, '', { ph: 'ex.: Individualizar sementes' })}</td>
@@ -555,6 +556,7 @@ App.nedipAplicarTrl = function (modo) {
   const raiz = nedipArvoreFuncoes(App.p);
   if (modo === 'substituir') {
     App.p.areas.forEach((a) => { if (a.noImatec) a.vinculoPerdido = true; });
+    raiz.origemFuncao = '__raiz';
     App.p.trl.arvore = [raiz];
   } else App.p.trl.arvore.push(raiz);
   c.trlExportadoEm = Nucleo.agoraIso();

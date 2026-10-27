@@ -232,9 +232,10 @@ window.nedipArvoreFuncoes = function (p) {
   const conc = c.concepcoes.find((x) => x.selecionada);
   const noT = (titulo, tipo, just, key) => ({ chave: '', idOriginal: null, stringId: '', titulo, tipo, nivel: 0, visivel: true, keyTechItems: key || 'Nenhum',
     justification: just, implementationMethod: 'Indefinido', supplier: 'Não Aplicável', trlInformado: null, filhos: [], avaliacao: { origem: 'interno', criterios: {}, atualizado: '' } });
-  const raiz = noT(c.funcaoGlobal.nome || p.projeto.nome || 'Produto', 'product', 'Gerado da estrutura de funções (projeto conceitual)' + (conc ? ` – concepção: ${conc.nome}` : ''));
+  const raiz = Object.assign(noT(c.funcaoGlobal.nome || p.projeto.nome || 'Produto', 'product', 'Gerado da estrutura de funções (projeto conceitual)' + (conc ? ` – concepção: ${conc.nome}` : '')),
+    p.trl.arvore.some((n) => n.origemFuncao === '__raiz') ? {} : { origemFuncao: '__raiz' }); // a versão simplificada reconhece esta árvore
   c.funcoes.forEach((f) => {
-    const s = noT(f.nome || 'Função', 'subsystem', 'Função parcial (projeto conceitual)');
+    const s = Object.assign(noT(f.nome || 'Função', 'subsystem', 'Função parcial (projeto conceitual)'), { origemFuncao: f.id });
     f.subfuncoes.forEach((sf) => s.filhos.push(noT(sf.escolhido ? `${sf.nome} — ${sf.escolhido}` : (sf.nome || 'Subfunção'), 'assembly',
       'Subfunção (projeto conceitual)' + (sf.escolhido ? '; princípio de solução escolhido: ' + sf.escolhido : ''), sf.escolhido || 'Nenhum')));
     raiz.filhos.push(s);

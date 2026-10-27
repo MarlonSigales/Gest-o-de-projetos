@@ -49,7 +49,38 @@ App.ABAS_SO_COMPLETA = ['produto', 'pesquisa', 'areas']; // na simplificada, as 
 App.ABAS_SO_SIMPLIFICADA = ['especificacoes'];
 App.abaVisivel = function (aba) {
   const simp = Nucleo.simplificado(App.p);
+  // áreas cadastradas à mão (projeto que veio da versão completa) continuam editáveis na simplificada
+  if (simp && aba === 'areas') return (App.p.areas || []).some((a) => !a.origemFuncao || a.adotada);
   return simp ? !App.ABAS_SO_COMPLETA.includes(aba) : !App.ABAS_SO_SIMPLIFICADA.includes(aba);
+};
+App.NOME_VERSAO = { simplificada: '⚡ versão simplificada', completa: '🧭 versão completa' };
+/** Selo da versão: clicar nele oferece a troca. */
+App.seloVersao = () => {
+  const simp = Nucleo.simplificado(App.p);
+  return `<button type="button" class="versao-proj ${simp ? 'simp' : ''}" data-acao="versao-trocar" title="Clique para trocar para a versão ${simp ? 'completa' : 'simplificada'} (nada é apagado)">${App.NOME_VERSAO[simp ? 'simplificada' : 'completa']} ⇄</button>`;
+};
+/** Pergunta e troca a versão. Nada é apagado: o que só existe numa versão fica guardado e volta ao trocar de novo. */
+App.acoes['versao-trocar'] = (el) => {
+  if (!App.p) return;
+  const atual = App.p.config.versao, nova = (el && el.dataset.v) || (atual === 'simplificada' ? 'completa' : 'simplificada');
+  if (nova === atual) return;
+  App.modal(`<h2>Trocar para a ${App.NOME_VERSAO[nova]}?</h2>
+    <p>${App.DESCR_VERSAO[nova]}</p>
+    <div class="ok-box"><b>Nada é apagado.</b> ${nova === 'simplificada'
+      ? 'Funções, especificações (com a função que atende), cronograma, árvore TRL já avaliada, áreas e responsáveis continuam valendo e aparecem na aba 🎯 Funções e especificações. O projeto de produto, a análise econômica e a pesquisa ficam guardados, ocultos, e voltam ao trocar para a completa.'
+      : 'Tudo o que foi preenchido na simplificada continua: as funções aparecem no projeto conceitual (com o responsável), as especificações e o desdobramento, o cronograma, a árvore TRL e as áreas.'}</div>
+    <div class="barra"><button class="btn primario" data-acao="versao-confirmar" data-v="${nova}">Trocar para a ${App.NOME_VERSAO[nova]}</button>
+      <button class="btn" data-acao="fechar-modal">Cancelar</button></div>`);
+};
+App.acoes['versao-confirmar'] = (el) => { App.fecharModal(); App.trocarVersao(el.dataset.v); };
+App.acoes['fechar-modal'] = App.acoes['fechar-modal'] || (() => App.fecharModal());
+App.trocarVersao = function (versao) {
+  if (!App.p || versao === App.p.config.versao || !Nucleo.VERSOES.some(([v]) => v === versao)) return;
+  App.p.config.versao = versao;
+  App.p.log.push({ dataHora: Nucleo.agoraIso(), acao: `Versão do projeto alterada para ${versao}`, usuario: App.cfg.usuario || '' });
+  if (versao === 'completa') Nucleo.preMarcarNedip(App.p);
+  App.marcarSujo(true); App.analisar(); App.atualizarTopo(); App.render();
+  App.toast(`Agora na ${App.NOME_VERSAO[versao]}. Nada foi apagado. Salve para gravar a troca.`, 'ok', 7000);
 };
 App.DESCR_VERSAO = {
   simplificada: 'Só o estritamente necessário: dados do projeto, equipe, macroentregas e cronograma, <b>especificações e funções</b> (sem passar pelo projeto de produto), TRL, qualidade, riscos e relatórios.',
@@ -219,7 +250,7 @@ App.atualizarTopo = function () {
   l.innerHTML = (App.arm.tipo === 'pasta'
     ? `<span class="local pasta" title="Arquivos gravados diretamente nesta pasta do computador">📁 pasta: <b>${esc(App.arm.nome)}</b></span>`
     : '<span class="local nav" title="Guardado no navegador deste computador. Exporte o ZIP para levar a outra máquina.">🌐 guardado no navegador</span>')
-    + `<span class="versao-proj ${simp ? 'simp' : ''}" title="Versão do projeto (troque em ⚙ Configurações)">${simp ? '⚡ versão simplificada' : '🧭 versão completa'}</span>`;
+    + App.seloVersao();
 };
 
 App.render = function () {
@@ -541,16 +572,11 @@ App.acoes['cfg-salvar'] = () => {
   App.gravarCfg();
   App.p.config.baixarAoSalvar = $('#cfgBaixar').value;
   const versao = $('#cfgVersao').value;
-  if (versao !== App.p.config.versao) {
-    App.p.config.versao = versao;
-    App.p.log.push({ dataHora: Nucleo.agoraIso(), acao: `Versão do projeto alterada para ${versao}`, usuario: App.cfg.usuario || '' });
-    if (versao === 'completa') Nucleo.preMarcarNedip(App.p);
-    App.atualizarTopo();
-  }
   Object.assign(App.p.config.email, { modo: $('#cfgModo').value, emailjsServico: $('#cfgServ').value.trim(), emailjsModelo: $('#cfgModelo').value.trim(),
     emailjsChave: $('#cfgChave').value.trim(), limiteAnexoKb: +$('#cfgLimite').value || 45 });
   App.marcarSujo(true); App.fecharModal(); App.render();
   App.toast('Configurações aplicadas. Clique em Salvar para gravá-las no JSON.', 'ok');
+  if (versao !== App.p.config.versao) App.trocarVersao(versao); // mesma troca do selo da versão: nada é apagado
 };
 
 // ------------------------------------------------------------------ eventos

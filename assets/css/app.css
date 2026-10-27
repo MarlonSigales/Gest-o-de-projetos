@@ -414,3 +414,6 @@ label.btn { white-space: normal; }
   .lateral .abas button { padding: 9px 12px; }
 }
 #btnSalvar.pendente::after { content: " ●"; color: #b7791f; }
+button.versao-proj { border: 0; cursor: pointer; font-family: inherit; line-height: 1.4; }
+button.versao-proj:hover { box-shadow: 0 0 0 2px var(--teal); }
+.toast .btn { margin-left: 6px; }

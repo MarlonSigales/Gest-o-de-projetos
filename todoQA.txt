@@ -110,3 +110,12 @@ Atualizado em 14/10/2026. Os números são fixos (servem de referência); a orde
 42 [resolvido] Salvar sempre visível: no computador, a lista de abas rola sozinha e "Arquivo do projeto" fica fixo embaixo; no
    tablet/celular, o menu (abas + Salvar) fica preso no alto e o topo rola junto; o botão Salvar mostra ● quando falta salvar.
 43 [resolvido] Trocar de aba, de macroentrega ou de fase começa no topo da página; redesenhar a mesma tela mantém a rolagem.
+
+--- Troca de versão sem perda (26/10/2026)
+44 [resolvido] Trocar entre simplificada e completa não perde nem duplica nada (testado ida e volta 3 vezes no exemplo, num projeto
+   simplificado novo e num completo com funções exportadas ao TRL): a simplificada reaproveita árvore TRL avaliada, áreas e
+   responsáveis, cronograma e o desdobramento da completa; especificação → função passou a morar só no desdobramento (projetos de
+   24/10 migram sozinhos); responsável da função visível no conceitual.
+45 [resolvido] Troca de versão clicando no selo da versão (menu lateral e título da aba Projeto) e no aviso de recurso da versão
+   completa, com confirmação dizendo o que é mantido.
+

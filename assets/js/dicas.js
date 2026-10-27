@@ -59,6 +59,8 @@ App.DICAS = {
     'txt-fmt': 'Aplica a formatação ao texto selecionado.',
     'add-linha': 'Acrescenta uma linha.',
     'simp-lote': 'Acrescenta as funções escritas no quadro (uma por linha). O cronograma, a árvore TRL e os responsáveis são atualizados sozinhos.',
+    'versao-trocar': 'Troca entre a versão simplificada e a completa. Nada é apagado: o que só existe numa versão fica guardado e volta ao trocar de novo.',
+    'simp-gerar-cron': 'Acrescenta ao cronograma uma etapa por função, mais integração e testes; atividades com o mesmo nome são reaproveitadas.',
     'versao-escolher': 'Define a versão do projeto. Dá para trocar depois em Configurações, sem perder dados.',
     'eco-volumes': 'Preenche o volume de todos os anos a partir do volume do ano 1 e do crescimento anual.',
     'eco-volumes-som': 'Usa o mercado alcançável (SOM) como volume de vendas de todos os anos.',
