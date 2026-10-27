@@ -54,7 +54,7 @@ Nucleo.trocarRefs = (s, num) => String(s).replace(/\{\{(fig|tab|ref):([A-Za-z0-9
 Nucleo.clonar = (o) => (typeof structuredClone === 'function' ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
 Nucleo.emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || '').trim());
 Nucleo.nomeSeguro = (n) => (String(n || '').replace(/[\\/:*?"<>|\x00-\x1F]+/g, '').replace(/\s+/g, ' ').trim().replace(/^\.+|\.+$/g, '').slice(0, 120)) || 'sem nome';
-Nucleo.slug = (t) => (String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80)) || 'projeto';
+Nucleo.slug = (t) => (String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80)) || 'projeto';
 Nucleo.nomeArquivo = (p) => PREFIXO_ARQ + Nucleo.nomeSeguro(p.projeto.nome) + '.json';
 
 // ================================================================== modelo
@@ -441,6 +441,34 @@ Nucleo.revincularAreas = function (areas, novaArvore) {
   });
 };
 
+/**
+ * Área responsável por um item da árvore TRL, para saber quem cobrar. Ordem:
+ * 1) área vinculada ao próprio item; 2) área gerada da mesma função (versão simplificada / projeto conceitual);
+ * 3) área com o mesmo nome do item; 4) área vinculada ao item de cima mais próximo — menos à raiz, que é o produto
+ * inteiro: herdar a área da raiz fazia todos os itens sem vínculo mostrarem a mesma área e as mesmas pessoas.
+ * Devolve { area, como: 'propria' | 'funcao' | 'nome' | 'herdada' } ou null.
+ */
+Nucleo.areaDoItem = function (areas, flat, chave) {
+  const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+—\s+.*$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const direta = (ch) => {
+    const a = areas.find((x) => (x.vinculado || x.no) && x.no === ch);
+    if (a) return { area: a, como: 'propria' };
+    const n = flat[ch];
+    if (n && n.origemFuncao) { const b = areas.find((x) => x.origemFuncao && x.origemFuncao === n.origemFuncao); if (b) return { area: b, como: 'funcao' }; }
+    const t = n ? norm(n.titulo) : '';
+    const c = t && areas.find((x) => norm(x.nome) === t);
+    return c ? { area: c, como: 'nome' } : null;
+  };
+  const r = direta(chave);
+  if (r) return r;
+  const partes = chave.split('/');
+  for (let i = partes.length - 1; i >= 2; i--) { // i >= 2: não sobe até a raiz (o produto inteiro)
+    const h = direta(partes.slice(0, i).join('/'));
+    if (h) return { area: h.area, como: 'herdada' };
+  }
+  return null;
+};
+
 // ================================================================== análise
 Nucleo.risco = function (p, i) {
   const n = Math.max(1, Math.min(5, +p || 1)) * Math.max(1, Math.min(5, +i || 1));
@@ -517,14 +545,10 @@ Nucleo.analisar = function (p) {
     const resp = (ar.responsaveis || []).filter((r) => String((r.nome || '') + (r.email || '')).trim());
     const atual = no ? no.trlEfetivo : null, esp = +ar.trlEsperado || null;
     if (k && !no) alertas.push(`Área "${ar.nome}" está vinculada a um item que não existe mais na árvore TRL.`);
-    return { id: ar.id, nome: ar.nome, no: k, noTitulo: no ? no.titulo : (ar.noImatecTitulo || ''), vinculado: !!no,
+    return { id: ar.id, nome: ar.nome, no: k, noTitulo: no ? no.titulo : (ar.noImatecTitulo || ''), vinculado: !!no, origemFuncao: ar.origemFuncao || '',
       trlAtual: atual ?? null, trlEsperado: esp, gap: (atual !== null && atual !== undefined && esp) ? esp - atual : null, responsaveis: resp };
   });
-  const areaDoNo = (chave) => {
-    let melhor = null;
-    areas.forEach((a) => { if (a.vinculado && (chave === a.no || chave.startsWith(a.no + '/')) && (!melhor || a.no.length > melhor.no.length)) melhor = a; });
-    return melhor;
-  };
+  const areaDoNo = (chave) => { const r = Nucleo.areaDoItem(areas, flat, chave); return r ? r.area : null; };
   const comTrl = areas.filter((a) => a.trlAtual !== null);
   const minArea = comTrl.length ? Math.min(...comTrl.map((a) => a.trlAtual)) : null;
   const pontos = comTrl.filter((a) => a.trlAtual === minArea).map((a) => Object.assign({}, a, {

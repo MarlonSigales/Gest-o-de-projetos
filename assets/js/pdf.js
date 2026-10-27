@@ -331,11 +331,8 @@ Pdf.macroentrega = async function (p, mi, armazem) {
 Nucleo.proximosPassosTrl = function (p, an, alvo) {
   if (!an.trl.temDados || !alvo) return { itens: [], semDados: !an.trl.temDados };
   const flat = Object.values(Nucleo.achatar(an.trl.arvore));
-  const area = (chave) => {
-    let melhor = null;
-    an.trl.areas.forEach((a) => { if (a.vinculado && (chave === a.no || chave.startsWith(a.no + '/')) && (!melhor || a.no.length > melhor.no.length)) melhor = a; });
-    return melhor;
-  };
+  const flatTodos = Nucleo.achatar(an.trl.arvore);
+  const area = (chave) => { const r = Nucleo.areaDoItem(an.trl.areas, flatTodos, chave); return r ? r.area : null; };
   const itens = flat.filter((n) => n.trlInformado === null || n.trlInformado < alvo).map((n) => {
     const atual = n.trlInformado || 0, c = (n.avaliacao && n.avaliacao.criterios) || {};
     const interno = n.avaliacao && n.avaliacao.origem === 'interno';
@@ -360,7 +357,7 @@ Pdf.proximosPassos = function (p, an, alvo, titulo) {
       : [...(prox ? [{ text: `Para o TRL ${prox.n}:`, bold: true }, { ul: prox.faltam.map((f) => `${f.id} ${f.texto}`), fontSize: 7.8 }] : []),
         ...x.niveis.slice(1).filter((l) => l.faltam.length).map((l) => ({ text: `TRL ${l.n}: ${l.faltam.length} critério(s)`, fontSize: 7.8, color: COR.suave }))];
     return [{ text: [x.titulo, { text: `  ${x.chave} · ${x.tipo}`, style: 'muted' }] }, trlTxt(x.atual), { stack: falta, fontSize: 8 },
-      { text: [x.area || 'sem área', '\n', { text: x.responsaveis.map((r) => r.nome).filter(Boolean).join('; ') || 'cobrar a coordenação', style: 'muted' }], fontSize: 8 }];
+      { text: [x.area || 'sem área', '\n', { text: x.responsaveis.map((r) => r.nome).filter(Boolean).join('; ') || (x.area ? 'área sem responsável — cobrar a coordenação' : 'vincule o item a uma área (aba Equipe) — cobrar a coordenação'), style: 'muted' }], fontSize: 8 }];
   }), ['*', 44, '*', 95]));
   if (r.itens.length > 25) out.push({ text: `… e mais ${r.itens.length - 25} item(ns): veja a aba TRL.`, style: 'muted' });
   return out;

@@ -132,3 +132,11 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 45 [resolvido] Troca de versão clicando no selo da versão (menu lateral e título da aba Projeto) e no aviso de recurso da versão
    completa, com confirmação dizendo o que é mantido.
 
+
+--- Próximos passos do TRL (27/10/2026)
+46 [resolvido] "Área / cobrar" dos próximos passos (relatórios) e dos itens de menor TRL: o item sem área própria herdava a área
+   vinculada à raiz da árvore (o produto inteiro), então todos mostravam a mesma área e as mesmas pessoas quando o TRL ainda não
+   estava preenchido. Agora a área é procurada nesta ordem: vinculada ao próprio item → gerada da mesma função (simplificada /
+   conceitual) → com o mesmo nome do item → vinculada ao item de cima mais próximo, sem subir até a raiz. Sem nenhuma: "vincule
+   o item a uma área (aba Equipe) — cobrar a coordenação". Testado: exemplo (igual ao de antes), áreas sem vínculo mas com o nome
+   dos itens, versão simplificada nova; t1/t2/t3 sem erros.
