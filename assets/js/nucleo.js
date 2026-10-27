@@ -764,6 +764,16 @@ Nucleo.importarConceitual = function (p, d) {
     const ids = ((v && v.funcoes) || []).map((id) => mapa[id]).filter(Boolean);
     if (ids.length) c.desdobramento[esp] = { funcoes: [...new Set(ids)], obs: t(v.obs) || ((c.desdobramento[esp] || {}).obs || '') };
   });
+  // FMEA da concepção → FMEA do projeto preliminar (linhas vindas do conceitual são substituídas; as da equipe ficam)
+  let fmea = 0;
+  if (Array.isArray(d.fmea) && p.produto.etapas.preliminar) {
+    const pre = p.produto.etapas.preliminar, n10 = (x) => Math.min(10, Math.max(1, Math.round(+x) || 5));
+    const antigas = new Map(pre.fmea.filter((x) => String(x.id).startsWith('pc_')).map((x) => [x.id, x]));
+    const vindas = d.fmea.filter((x) => x && t(x.modo)).map((x) => Object.assign({ responsavel: '', riscoId: '' }, antigas.get(t(x.id)) || {}, {
+      id: t(x.id) || Nucleo.uid('fm'), item: t(x.item), modo: t(x.modo), efeito: t(x.efeito), causa: t(x.causa), s: n10(x.s), o: n10(x.o), d: n10(x.d), acao: t(x.acao) }));
+    pre.fmea = vindas.concat(pre.fmea.filter((x) => !String(x.id).startsWith('pc_')));
+    fmea = vindas.length;
+  }
   const outras = c.concepcoes.filter((x) => !String(x.id).startsWith('pc_'));
   const vindas = (k.concepcoes || []).map((x) => ({ id: t(x.id), nome: t(x.nome), descricao: t(x.descricao), avaliacao: t(x.avaliacao), selecionada: !!x.selecionada }));
   if (vindas.some((x) => x.selecionada)) outras.forEach((x) => { x.selecionada = false; });
@@ -771,7 +781,7 @@ Nucleo.importarConceitual = function (p, d) {
   c.conceitualImportadoEm = Nucleo.agoraIso();
   ['con_global', 'con_estr', 'con_desd', 'con_variantes', 'con_aval', 'con_sel'].forEach((r) => { if (c.recomendacoes && r in c.recomendacoes) c.recomendacoes[r] = true; });
   if (c.status === 'não iniciada') c.status = 'em andamento';
-  return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, desdobramento: Object.keys(k.desdobramento || {}).length };
+  return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, fmea, desdobramento: Object.keys(k.desdobramento || {}).length };
 };
 
 Nucleo.mesclarQfd = function (atual, novos) {

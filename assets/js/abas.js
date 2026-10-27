@@ -188,7 +188,7 @@ ${simp ? `<div class="info-box">Para cada especificação, anote o <b>valor medi
 ${simp ? '' : `<div class="cartao ${o.importadoEm ? '' : 'qfd-pedido'}"><h3 style="margin-top:0">Especificações do QFD</h3>
   <p>Os critérios de qualidade são as <b>especificações de projeto</b>, obtidas com o QFD no <b>projeto informacional</b> (aba Projeto de produto/serviço). O <b>backup completo (JSON)</b> do sistema QFD traz: requisitos de projeto na ordem de importância, valor-meta com o sentido de melhoria, forma de avaliação, aspectos indesejáveis e o valor medido do produto. A situação é calculada como no QFD: atingida ⇒ conforme; não atingida ⇒ não conforme; sem medição ⇒ pendente.</p>
   <div class="barra"><button class="btn ${o.importadoEm ? '' : 'primario'}" data-acao="ir-aba" data-aba="produto" data-etapa="informacional">🛠 Ir ao projeto informacional (QFD)</button>
-  <label class="btn">⬆ ${o.importadoEm ? 'Reimportar' : 'Importar'} JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfd"></label>
+  ${App.botaoQfdNavegador()}<label class="btn">⬆ ${o.importadoEm ? 'Reimportar' : 'Importar'} JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfd"></label>
   <span class="muted">${o.importadoEm ? `Última importação: ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} · ${esc(o.arquivo)} · ${nQfd} requisito(s) de projeto` : '<b class="gap-neg">Nenhum QFD importado neste projeto.</b>'}</span></div>
   <p class="muted">Na reimportação, os requisitos são atualizados pelo identificador do QFD; o PDCA e os requisitos cadastrados à mão são mantidos, e a situação só muda quando o QFD traz medição.</p></div>`}
 <div class="cartao"><h3 style="margin-top:0">Requisitos, critérios de aceite e verificação</h3>
@@ -272,7 +272,7 @@ App.pedirJsonQfd = function () {
   App.modal(`<h2>Importar o JSON do QFD</h2>
     <p>Terminou o QFD? Exporte o <b>backup completo (JSON)</b> no sistema QFD (botão “Backup”) e selecione o arquivo aqui.
     As especificações passam a ser os critérios de qualidade deste projeto.</p>
-    <div class="barra"><label class="btn primario">Selecionar JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdVolta"></label>
+    <div class="barra">${App.botaoQfdNavegador()}<label class="btn ${App.doNavegador.qfd() ? '' : 'primario'}">Selecionar JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdVolta"></label>
     <button class="btn" data-acao="qfd-abrir">↗ Voltar ao sistema QFD</button>
     <button class="btn" data-acao="qfd-depois">Importar depois</button></div>`);
   $('#arqQfdVolta').addEventListener('change', (ev) => { const f = ev.target.files[0]; if (f) { App.qfdAguardando = false; App.importarQfd(f); } });
@@ -288,6 +288,33 @@ App.acoes['qfd-depois'] = () => { App.qfdAguardando = false; App.fecharModal(); 
 const qfdVoltou = () => { if (App.qfdAguardando && document.visibilityState === 'visible' && App.p && !$('#arqQfdVolta')) App.pedirJsonQfd(); };
 document.addEventListener('visibilitychange', qfdVoltou);
 window.addEventListener('focus', qfdVoltou);
+
+/**
+ * QFD e Projeto Conceitual abertos NESTE navegador: os três sistemas ficam em marlonsigales.github.io e dividem o
+ * armazenamento do navegador, então dá para trazer os dados sem baixar arquivo.
+ */
+App.doNavegador = {
+  qfd() {
+    try {
+      const t = localStorage.getItem('qfd_data'); if (!t) return null;
+      const d = JSON.parse(t);
+      if (!d || !Array.isArray(d.requisitosProjeto) || !d.requisitosProjeto.length) return null;
+      return { texto: t, nome: (d.projeto && d.projeto.nome) || 'sem nome', quando: (d.metadata && d.metadata.lastModified) || '' };
+    } catch (e) { return null; }
+  },
+  conceitual() {
+    try {
+      const d = JSON.parse(localStorage.getItem('pc_para_gestao') || 'null');
+      return Nucleo.ehConceitual(d) ? { d, nome: (d.projeto && d.projeto.nome) || 'sem nome', quando: d.geradoEm || '' } : null;
+    } catch (e) { return null; }
+  },
+};
+App.quandoCurto = (iso) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+/** Botão "Usar o QFD deste navegador" (vazio se não houver QFD aqui). */
+App.botaoQfdNavegador = () => { const q = App.doNavegador.qfd(); return q ? `<button class="btn primario" data-acao="qfd-navegador" title="Traz o QFD aberto neste navegador, sem baixar arquivo">📥 Usar o QFD deste navegador (${esc(q.nome)}${q.quando ? ', ' + esc(App.quandoCurto(q.quando)) : ''})</button>` : ''; };
+App.botaoConceitualNavegador = () => { const c = App.doNavegador.conceitual(); return c ? `<button class="btn primario" data-acao="conceitual-navegador" title="Traz o projeto conceitual aberto neste navegador, sem baixar arquivo">📥 Usar o projeto conceitual deste navegador (${esc(c.nome)}${c.quando ? ', ' + esc(App.quandoCurto(c.quando)) : ''})</button>` : ''; };
+App.acoes['qfd-navegador'] = () => { const q = App.doNavegador.qfd(); if (!q) { App.toast('Não há QFD neste navegador.', 'aviso'); return; } App.importarQfd(new File([q.texto], `QFD deste navegador (${q.nome}).json`, { type: 'application/json' })); };
+App.acoes['conceitual-navegador'] = () => { const c = App.doNavegador.conceitual(); if (!c) { App.toast('Não há projeto conceitual neste navegador.', 'aviso'); return; } App.importarConceitual(c.d, `projeto conceitual deste navegador (${c.nome})`); };
 
 /** Lê o arquivo do Sistema de Projeto Conceitual (JSON "…-para-gestao.json" ou o ZIP do projeto). Devolve os dados ou null. */
 App.lerConceitual = async function (arquivo) {
@@ -315,7 +342,7 @@ App.importarConceitual = async function (d, nomeArquivo) {
     App.p.log.push({ dataHora: quando, acao: `Projeto conceitual importado (${nomeArquivo}): ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)`, usuario: App.cfg.usuario || '' });
     App.appAguardando = null;
     App.fecharModal(); App.marcarSujo(true); App.render(); App.agendarAnalise();
-    App.toast(`Projeto conceitual importado: ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)${r.manuais ? `, ${r.manuais} especificação(ões) manual(is)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
+    App.toast(`Projeto conceitual importado: ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)${r.manuais ? `, ${r.manuais} especificação(ões) manual(is)` : ''}${r.fmea ? `, ${r.fmea} linha(s) de FMEA no projeto preliminar (os críticos podem ir para Riscos)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
     // árvore TRL: vazia → monta sozinha; já existe → pergunta como exportar
     if (r.funcoes) { if (!App.p.trl.arvore.length) App.nedipAplicarTrl('substituir'); else App.acoes['nedip-trl'](); }
   } catch (e) { App.toast('Projeto conceitual: ' + esc(e.message), 'erro', 9000); }

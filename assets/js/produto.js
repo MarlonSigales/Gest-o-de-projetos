@@ -89,7 +89,7 @@ App.nedipEntradaHtml = function (et, e, b) {
   const c = App.campo, o = App.p.qfdOrigem || {};
   if (et.id === 'informacional') { // o app desta fase é sempre o sistema QFD
     return cartao('Entrada da fase', `<p class="muted" style="margin-top:0">O projeto informacional usa o sistema QFD. Ao voltar de lá, o sistema pede o backup JSON (botão “Backup” do QFD), que preenche requisitos, especificações e o relatório da casa da qualidade.</p>
-  <div class="barra"><button class="btn primario" data-acao="qfd-abrir">↗ Ir para o app do projeto informacional (QFD)</button>
+  <div class="barra">${App.botaoQfdNavegador()}<button class="btn ${App.doNavegador.qfd() ? '' : 'primario'}" data-acao="qfd-abrir">↗ Ir para o app do projeto informacional (QFD)</button>
     <label class="btn">⬆ Importar o backup JSON do QFD<input type="file" hidden id="appResultado" accept=".json,.zip,application/json,application/zip"></label></div>
   <p class="muted" style="margin:6px 0 0">${o.importadoEm ? `QFD importado em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} (${esc(o.arquivo)}).` : 'Nenhum QFD importado ainda. Sem QFD, use as linhas manuais de requisitos e especificações abaixo.'}</p>
   <div class="barra nedip-ferr"><span class="muted"><b>Ferramentas internas desta fase:</b></span>${et.ferramentas.map(([id, rot]) => c(`${b}.ferramentas.${id}`, rot, { tipo: 'checkbox', render: true, classe: 'rec' })).join('')}</div>`);
@@ -99,7 +99,7 @@ App.nedipEntradaHtml = function (et, e, b) {
   return cartao('Entrada da fase (opcional)', `<p class="muted" style="margin-top:0">Se esta fase é feita em um aplicativo próprio, informe-o aqui. Ao voltar dele, o sistema pede o resultado, que fica nos documentos da fase${et.id === 'informacional' ? ' (o JSON do sistema QFD também atualiza requisitos e especificações)' : ''}. Nada disso é obrigatório.</p>
   <div class="grade-campos">${c(b + '.app.nome', 'Aplicativo da fase', { ph: 'ex.: Sistema QFD' })}${c(b + '.app.url', 'Endereço (URL)', { ph: 'https://…', render: true })}</div>
   <div class="barra">${e.app.url ? `<button class="btn" data-acao="nedip-app-abrir">↗ Abrir ${esc(e.app.nome || 'aplicativo')}</button>` : ''}
-    <label class="btn">⬆ Importar resultado do aplicativo<input type="file" hidden id="appResultado"></label></div>${qfdInfo}
+    <label class="btn">⬆ Importar resultado do aplicativo<input type="file" hidden id="appResultado"></label>${et.id === 'conceitual' ? App.botaoConceitualNavegador() : ''}</div>${qfdInfo}
   <div class="barra nedip-ferr"><span class="muted"><b>Ferramentas internas desta fase:</b></span>${et.ferramentas.map(([id, rot]) => c(`${b}.ferramentas.${id}`, rot, { tipo: 'checkbox', render: true, classe: 'rec' })).join('')}</div>`);
 };
 
@@ -115,7 +115,7 @@ App.pedirResultadoApp = function (etapa) {
   App.modal(`<h2>Resultado de ${esc(nome)}</h2>
     <p>Terminou em ${esc(nome)}? Selecione o arquivo exportado por ele (${etapa === 'informacional' ? 'no sistema QFD: botão “Backup”, JSON completo' : 'qualquer formato'}). Ele fica nos documentos da fase “${esc(NEDIP_ETAPAS.find((x) => x.id === etapa).nome)}”.</p>
     <div class="barra"><label class="btn primario">Selecionar arquivo<input type="file" hidden id="appVolta"></label>
-    ${e.app.url ? `<button class="btn" data-acao="nedip-app-abrir">↗ Voltar a ${esc(nome)}</button>` : ''}
+    ${etapa === 'conceitual' ? App.botaoConceitualNavegador() : ''}${e.app.url ? `<button class="btn" data-acao="nedip-app-abrir">↗ Voltar a ${esc(nome)}</button>` : ''}
     <button class="btn" data-acao="nedip-app-depois">Importar depois</button></div>`);
   $('#appVolta').addEventListener('change', (ev) => { const f = ev.target.files[0]; if (f) App.nedipImportarResultado(f, etapa); });
 };

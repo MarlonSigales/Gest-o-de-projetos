@@ -17,6 +17,11 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 
 === FEITO
 --- Integração com o Sistema de Projeto Conceitual (27/10/2026)
+43 [resolvido] Sem arquivo no mesmo navegador: "Usar o QFD deste navegador" (projeto informacional, Qualidade, versão
+   simplificada e pedido na volta do QFD) e "Usar o projeto conceitual deste navegador" (fase conceitual). Os sistemas ficam
+   em marlonsigales.github.io e dividem o armazenamento do navegador (chaves qfd_data e pc_para_gestao).
+44 [resolvido] FMEA da concepção do projeto conceitual entra na FMEA do projeto preliminar (linhas pc_ são substituídas na
+   reimportação; as da equipe ficam); os críticos seguem para Riscos pelo botão que já existia.
 41 [resolvido] Fase conceitual: app padrão = Sistema de Projeto Conceitual (CONFIG.urlConceitual). O arquivo "…-para-gestao.json"
    ou o ZIP do projeto conceitual entram por "Importar resultado do aplicativo", pela importação do QFD ou pela aba Especificações
    (versão simplificada): importa o QFD que vem junto, funções → subfunções com princípios, escolhido, maturidade (TRL provável)

@@ -224,6 +224,7 @@ O sistema monta sozinho o <b>cronograma</b> (uma etapa por função + integraç�
     || '<tr><td colspan="4" class="vazio">Nenhuma especificação ainda.</td></tr>'}
   </tbody></table></div>
   <div class="barra"><button class="btn primario" data-acao="add-linha" data-lista="qualidade" data-novo="especSimples">+ Especificação</button>
+    ${App.botaoQfdNavegador()}${App.botaoConceitualNavegador()}
     <label class="btn" title="Opcional: traz as especificações de um QFD já feito">⬆ Importar do QFD (opcional)<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdSimp"></label>
     ${o.importadoEm ? `<span class="muted">QFD importado em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))}</span>` : ''}</div>
   <p class="muted">Se a meta foi atingida, se não foi, o valor medido e a correção (PDCA) ficam na aba ✅ Qualidade.</p>
