@@ -8,6 +8,10 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
   trabalho feito a pedido do autor.
 
 === O QUE FALTA (do mais simples para o mais difícil)
+49 [futuro] No fim de cada fase (pedido de 28/10/2026), um botão para avançar para a próxima etapa: ao terminar uma fase do
+   projeto de produto (informacional → conceitual → preliminar → detalhado) e cada aba da gestão, um botão "Avançar para
+   <próxima etapa> →" no fim da página, que mostra antes o que ainda falta na fase atual (sem impedir de avançar), como já
+   existe no Projeto Conceitual (botões Voltar / Próxima etapa e "O que falta").
 47 [futuro] Integrar o software de QFD, de projeto conceitual e de projeto preliminar diretamente nas páginas respectivas, para
    que não precise redirecionar para apps externos (pedido de 28/10/2026). Ao integrar: um só projeto e um só arquivo/ZIP;
    a mesma regra de salvamento (neste computador ou só na nuvem da equipe/MEGA, perguntada no início); as ligações que hoje
