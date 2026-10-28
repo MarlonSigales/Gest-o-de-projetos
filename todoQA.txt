@@ -14,6 +14,15 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    passam pelo navegador (qfd_data, pc_para_gestao) viram leitura direta; a adequação às especificações e as rodadas de
    teste do preliminar alimentam a Qualidade e o TRL (o antigo item 41 do Projeto Conceitual); manter as versões simplificada
    e completa.
+   Na integração, selecionar desde o início o projeto todo (pedido de 28/10/2026): ao criar o projeto, escolher de uma vez
+   as fases que ele terá (informacional com questionários e QFD, conceitual, preliminar, detalhado, gestão e TRL), para
+   que o sistema já monte o caminho completo, as etapas, as macroentregas e o que vem pré-preenchido de uma fase para a outra.
+48 [futuro] Sistema que gere um pedido (prompt) para uma IA pré-desenvolver as perguntas dos questionários de levantamento de
+   necessidades segundo Reis (2003), Roger (Spagnolo, 2011) e Pahl et al. (pedido de 28/10/2026): a partir do produto, do
+   contexto e dos clientes ao longo do ciclo de vida (fabricação, venda, uso, manutenção, descarte), a IA devolve as
+   perguntas num formato fixo para importar direto nos questionários do sistema (e no Google Forms), sem perguntas que
+   induzam solução; a equipe revisa antes de aplicar. Mesma lógica dos pedidos para IA do Projeto Conceitual (formato JSON
+   fixo, importação que só completa o que está vazio).
 42 [futuro] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
 40 [futuro] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
