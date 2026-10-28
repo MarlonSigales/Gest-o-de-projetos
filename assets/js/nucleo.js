@@ -798,6 +798,17 @@ Nucleo.importarConceitual = function (p, d) {
     pre.fmea = vindas.concat(pre.fmea.filter((x) => !String(x.id).startsWith('pc_')));
     fmea = vindas.length;
   }
+  // lições aprendidas das recorrências do projeto preliminar: as vindas de lá são atualizadas; as da equipe ficam
+  let licoes = 0;
+  if (Array.isArray(d.licoes)) {
+    const L = p.licoesAprendidas || (p.licoesAprendidas = []);
+    d.licoes.filter((x) => x && t(x.idOrigem)).forEach((x) => {
+      const ja = L.find((l) => l.origem === 'projeto-preliminar' && l.idOrigem === t(x.idOrigem));
+      if (ja) { ja.descricao = t(x.descricao) || ja.descricao; if (t(x.recomendacao)) ja.recomendacao = t(x.recomendacao); }
+      else L.push({ data: t(x.data) || Nucleo.hoje(), macroUid: '', descricao: t(x.descricao), recomendacao: t(x.recomendacao), origem: 'projeto-preliminar', idOrigem: t(x.idOrigem) });
+      licoes++;
+    });
+  }
   const outras = c.concepcoes.filter((x) => !String(x.id).startsWith('pc_'));
   const vindas = (k.concepcoes || []).map((x) => ({ id: t(x.id), nome: t(x.nome), descricao: t(x.descricao), avaliacao: t(x.avaliacao), selecionada: !!x.selecionada }));
   if (vindas.some((x) => x.selecionada)) outras.forEach((x) => { x.selecionada = false; });
@@ -805,7 +816,7 @@ Nucleo.importarConceitual = function (p, d) {
   c.conceitualImportadoEm = Nucleo.agoraIso();
   ['con_global', 'con_estr', 'con_desd', 'con_variantes', 'con_aval', 'con_sel'].forEach((r) => { if (c.recomendacoes && r in c.recomendacoes) c.recomendacoes[r] = true; });
   if (c.status === 'não iniciada') c.status = 'em andamento';
-  return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, fmea, desdobramento: Object.keys(k.desdobramento || {}).length };
+  return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, fmea, licoes, desdobramento: Object.keys(k.desdobramento || {}).length };
 };
 
 Nucleo.mesclarQfd = function (atual, novos) {

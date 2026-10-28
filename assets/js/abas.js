@@ -342,7 +342,7 @@ App.importarConceitual = async function (d, nomeArquivo) {
     App.p.log.push({ dataHora: quando, acao: `Projeto conceitual importado (${nomeArquivo}): ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)`, usuario: App.cfg.usuario || '' });
     App.appAguardando = null;
     App.fecharModal(); App.marcarSujo(true); App.render(); App.agendarAnalise();
-    App.toast(`Projeto conceitual importado: ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)${r.manuais ? `, ${r.manuais} especificação(ões) manual(is)` : ''}${r.fmea ? `, ${r.fmea} linha(s) de FMEA no projeto preliminar (os críticos podem ir para Riscos)` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
+    App.toast(`Projeto conceitual importado: ${r.funcoes} função(ões), ${r.subfuncoes} subfunção(ões), ${r.concepcoes} concepção(ões)${r.manuais ? `, ${r.manuais} especificação(ões) manual(is)` : ''}${r.fmea ? `, ${r.fmea} linha(s) de FMEA no projeto preliminar (os críticos podem ir para Riscos)` : ''}${r.licoes ? `, ${r.licoes} lição(ões) aprendida(s) das recorrências do preliminar` : ''}. Salve para gravar no JSON.`, 'ok', 9000);
     // árvore TRL: vazia → monta sozinha; já existe → pergunta como exportar
     if (r.funcoes) { if (!App.p.trl.arvore.length) App.nedipAplicarTrl('substituir'); else App.acoes['nedip-trl'](); }
   } catch (e) { App.toast('Projeto conceitual: ' + esc(e.message), 'erro', 9000); }
