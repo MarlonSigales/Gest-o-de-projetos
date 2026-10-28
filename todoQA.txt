@@ -101,7 +101,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    Os questionários gerados devem manter a folha padrão timbrada EMBRAPII (pedido de 28/10/2026): cabeçalho e rodapé com os
    logotipos (EMBRAPII / Inova Agro UFPel, como nos relatórios), título, projeto, data e identificação do respondente, tanto
    no PDF/impressão quanto no texto enviado ao Google Forms (cabeçalho e descrição do formulário).
-42 [futuro] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
+42 [resolvido 28/10/2026, ver 58] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
 40 [resolvido 28/10/2026] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
 === REJEITADO
@@ -262,3 +262,12 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    uso refeitos. Conferido: o ZIP abre no sistema (projeto válido, 23 arquivos, economia presente) e o PDF traz VPL, TIR e
    payback. O item 42 continua pendente: o QFD do exemplo do Gestão (10 requisitos) não é o mesmo do exemplo do Projeto
    Conceitual (6 requisitos), então importar a fase conceitual de lá deixaria o desdobramento e a árvore TRL incoerentes.
+58 [resolvido] (item 42) Fase conceitual do exemplo refeita no Sistema de Projeto Conceitual a partir do QFD deste exemplo
+   (exemplos/qfd-roda-bicicleta.json, 10 requisitos). Lá foram montados a estrutura de funções (as mesmas 4 funções e 5
+   subfunções daqui), os princípios de solução, a matriz morfológica, a seleção das concepções A, B e C (C escolhida depois
+   da trinca do P1), o leiaute e as duas rodadas de teste (P1 e P2). O resultado foi importado aqui: as funções mantêm os
+   ids (área, árvore TRL e desdobramento continuam ligados), as concepções passam a vir do conceitual e a matriz de decisão
+   foi passada para elas. Ficaram as observações do desdobramento, a FMEA e as lições já escritas no exemplo. O projeto
+   conceitual vai anexo à fase (produto/conceitual/projeto-conceitual-roda-700c.zip, abre no Sistema de Projeto
+   Conceitual) e também em exemplos/. O exemplo do navegador (assets/js/exemplo.js) e o ZIP do exemplo foram regerados, com
+   todos os PDFs e manuais. Conferido: o ZIP abre sem erro e as macroentregas mostram as concepções novas.
