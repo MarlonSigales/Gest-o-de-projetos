@@ -28,6 +28,38 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
       diferentes destacadas, e dá para escolher linha a linha de qual versão vem cada uma (o misto é montado assim).
    g) Log de modificações em .txt na pasta do projeto, atualizado a cada salvamento: data e hora, quem, o que mudou, de que
       valor para que valor — inclusive nos ramos (versões dos contribuidores) e nas unificações.
+   h) Nome e senha pessoal (decisão de 28/10/2026): o coordenador cadastra cada membro com senha inicial, trocada no
+      primeiro acesso; o coordenador pode redefinir. Nomes e senhas ficam na biblioteca de projetos da equipe (MEGA) e são
+      reaproveitados nos próximos projetos — senha guardada só como resumo cifrado (hash com sal, ex.: PBKDF2), nunca o texto.
+   i) Cadastro de pessoas da equipe na biblioteca: lista por áreas, com nome completo, titulação, formação, e-mail, Lattes,
+      função/papel e áreas de atuação; pré-preenche o pessoal das equipes (aba Equipe e Áreas) dos novos projetos.
+   j) Cada versão de contribuidor registra de qual versão principal partiu (base comum): a unificação compara base ×
+      principal × versões e mostra só o que cada um mudou de fato (sem diferenças falsas nem desfazer o já unificado).
+   k) Aviso de edição simultânea ("Fulano está com o projeto aberto desde 08:20", arquivo de presença com horário); ao salvar,
+      se o principal mudou desde a abertura, avisa e traz as mudanças antes de gravar.
+   l) Trazer o principal para a versão do contribuidor depois de cada unificação (para as mesmas diferenças não voltarem).
+   m) Desfazer unificação: cópia do projeto antes de cada unificação, para voltar atrás.
+   n) Mensagem ao enviar a versão (o que mudou e por quê) e motivo de cada escolha na unificação; vão para o log e podem
+      alimentar as lições aprendidas.
+   o) Estado de cada versão: pendente, unificada, recusada (volta ao autor com o motivo) ou arquivada.
+   p) Cada contribuidor edita os itens da sua área e vê o resto — EXCETO o projeto de produto nas fases informacional e
+      conceitual, que são feitas em grupo (todos da equipe editam).
+   q) Avisos por e-mail: ao coordenador quando chega versão nova; ao contribuidor quando a versão dele é unificada ou recusada.
+   r) Imagens e arquivos: na unificação escolhe-se o arquivo inteiro; arquivos iguais guardados uma vez só (pelo conteúdo).
+   s) Log à prova de alteração: cada linha do .txt com um código calculado a partir da anterior (encadeado); exportar em
+      planilha (CSV) e filtrar por pessoa, data e aba.
+   t) Limite de espaço: manter as últimas N versões e compactar/arquivar as antigas (conta grátis do MEGA é limitada).
+   u) Sem internet: alterações guardadas no computador e enviadas quando a conexão voltar.
+   v) Quando alguém sai da equipe: só deixa de poder editar o projeto (continua vendo; o histórico e as autorias ficam).
+      Observação: quem sabe a senha do MEGA da equipe ainda tem acesso técnico à conta; trocar a senha é opcional.
+   w) Teste real: dois computadores editando o mesmo projeto ao mesmo tempo, com uma conta MEGA de teste.
+   x) Aviso de dados pessoais (LGPD) no primeiro acesso: o log e o cadastro guardam nomes, horários e dados das pessoas.
+   y) Tela inicial de projetos da equipe para escolher qual abrir: lista com situação (em execução, concluído, atrasado,
+      com versões pendentes de unificação), coordenador, área, última alteração, TRL atual × esperado.
+   z) Estatísticas nessa tela: projetos concluídos e em execução, no prazo e atrasados, finalizações por ano, TRL médio,
+      versões pendentes, riscos altos abertos, entregas do mês.
+   aa) Todas as informações de cada projeto ficam na sua pasta, sempre atualizada (projeto principal, versões, log, anexos,
+      relatórios); não é possível concluir/finalizar um projeto com versões (ramos) pendentes — antes, unificar ou arquivar.
    Observação técnica: o nome digitado identifica a pessoa, mas não é uma senha — quem tem a senha do MEGA da equipe consegue
    entrar com qualquer nome da equipe. Para separar permissões de verdade, cada pessoa precisaria de conta própria no MEGA com
    a pasta compartilhada só para leitura/escrita conforme o papel, ou uma senha pessoal guardada cifrada na pasta; decidir
