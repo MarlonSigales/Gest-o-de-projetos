@@ -245,7 +245,7 @@ Pdf.macroentrega = async function (p, mi, armazem) {
     ...Pdf.anexosSecao(m, 'objetivos', num, imgs)]));
   c.push(tituloSecao('secResultados', 'Resultados e conclusões do projeto', TOC));
   c.push(subitem('3. Resultados', TOC), corpo([...Pdf.texto(m.resultados, num), ...Pdf.anexosSecao(m, 'resultados', num, imgs),
-    ...Pdf.blocos(p, m, num, imgs, { recuo: 22, base: '3' })]));
+    ...Pdf.blocos(p, m, num, imgs, { recuo: 22, base: '3', tocTitulos: TOC })]));
   c.push(subitem('4. Conclusão', TOC), corpo([...Pdf.texto(m.conclusao, num), ...Pdf.anexosSecao(m, 'conclusao', num, imgs)]));
   c.push(tituloSecao('secProjecoes', 'Projeções e próximos passos', TOC));
   c.push(subitem('5. Etapas Futuras', TOC), corpo([...Pdf.texto(m.etapasFuturas, num), ...Pdf.anexosSecao(m, 'etapasFuturas', num, imgs)]));

@@ -361,12 +361,15 @@ document.addEventListener('change', async (ev) => {
 // ================================================================== PDF
 /**
  * Conteúdo pdfmake dos blocos de uma macroentrega (ou da "macroentrega vista" por um relatório intermediário).
- * ctx: { recuo, base ('3' no relatório da macroentrega; null = títulos sem número), toc, qfdSecao (nº da seção do QFD no relatório geral) }
+ * ctx: { recuo, base ('3' no relatório da macroentrega; null = títulos sem número), toc, tocTitulos (id do sumário que recebe os títulos), qfdSecao (nº da seção do QFD no relatório geral) }
  */
 Pdf.blocos = function (p, m, num, imgs, ctx = {}) {
   const tit = Nucleo.numerarTitulos(m.blocos, ctx.base), larg = Pdf.ctxLargura(ctx.recuo || 0), numerar = ctx.base !== null && ctx.base !== undefined;
   const estiloT = { 1: { fontSize: 10.5, bold: true, color: COR.escuro, margin: [0, 10, 0, 4] }, 2: { fontSize: 10, bold: true, color: COR.teal, margin: [0, 8, 0, 3] }, 3: { fontSize: 10, bold: true, italics: true, color: COR.texto, margin: [0, 6, 0, 3] } };
-  const hBloco = (t) => ({ text: t, fontSize: 10.5, bold: true, color: COR.escuro, margin: [0, 10, 0, 4] });
+  // títulos dos blocos no sumário (relatório da macroentrega): recuo pelo nível
+  const noSumario = (no, nivel) => (ctx.tocTitulos ? Object.assign(no, { tocItem: ctx.tocTitulos, tocStyle: { fontSize: 9 }, tocMargin: [14 + 12 * nivel, 2, 0, 0] }) : no);
+  let nivelTitulo = 0; // blocos de conteúdo ficam um nível abaixo do último título
+  const hBloco = (t) => noSumario({ text: t, fontSize: 10.5, bold: true, color: COR.escuro, margin: [0, 10, 0, 4] }, nivelTitulo + 1);
   const hSub = (t) => ({ text: t, fontSize: 10, bold: true, color: COR.teal, margin: [0, 8, 0, 3] });
   const tocFig = ctx.toc && ctx.toc.fig;
   const saida = [];
@@ -376,7 +379,7 @@ Pdf.blocos = function (p, m, num, imgs, ctx = {}) {
     saida.push(...titulos, ...nos); titulos = [];
   } };
   (m.blocos || []).forEach((b, i) => {
-    if (b.tipo === 'titulo') { if (b.titulo) titulos.push(Object.assign({ text: `${numerar ? tit[b.id] + ' ' : ''}${b.titulo}` }, estiloT[b.nivel])); return; }
+    if (b.tipo === 'titulo') { if (b.titulo) nivelTitulo = +b.nivel || 1; if (b.titulo) titulos.push(noSumario(Object.assign({ text: `${numerar ? tit[b.id] + ' ' : ''}${b.titulo}` }, estiloT[b.nivel]), +b.nivel || 1)); return; }
     if (b.tipo === 'texto') { out.push(...Pdf.texto(b.texto, num)); return; }
     if (b.tipo === 'figura') { const f = m.figuras.find((x) => x.id === b.ref); if (f) out.push(Pdf.figura(f, num.fig[f.id], imgs, tocFig)); return; }
     if (b.tipo === 'tabela') {

@@ -8,8 +8,9 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
   trabalho feito a pedido do autor.
 
 === O QUE FALTA (do mais simples para o mais difícil)
-54 [futuro] Sumário do relatório da macroentrega também com os títulos dos blocos de conteúdo acrescentados dentro de
-   Resultados (3.1, 3.2…), como no relatório geral (recomendação de 28/10/2026).
+54 [resolvido 28/10/2026] Sumário do relatório da macroentrega também com os títulos dos blocos de conteúdo acrescentados dentro de
+   Resultados (3.1, 3.2…), como no relatório geral (recomendação de 28/10/2026). Feito: títulos e blocos (QFD, NeDIP,
+   questionário, pesquisa) entram no sumário com recuo pelo nível.
 52 [futuro] Login, versões por contribuidor e unificação de projetos na nuvem da equipe (MEGA) (pedido de 28/10/2026):
    a) Sistema de login: depois de conectar ao MEGA da equipe, sempre pedir o nome da pessoa, que precisa estar na equipe de
       projeto (aba Equipe) para entrar; o papel (gerente, coordenador, contribuidor) vem da equipe.
