@@ -8,6 +8,23 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
   trabalho feito a pedido do autor.
 
 === O QUE FALTA (do mais simples para o mais difícil)
+52 [futuro] Login, versões por contribuidor e unificação de projetos na nuvem da equipe (MEGA) (pedido de 28/10/2026):
+   a) Sistema de login: depois de conectar ao MEGA da equipe, sempre pedir o nome da pessoa, que precisa estar na equipe de
+      projeto (aba Equipe) para entrar; o papel (gerente, coordenador, contribuidor) vem da equipe.
+   b) Só o gerente ou o coordenador de projetos podem criar o projeto na pasta do MEGA.
+   c) Alterações de quem não é gerente nem coordenador não sobrescrevem o projeto: viram versões (ramos) dentro da pasta do
+      mesmo projeto, com o nome do contribuidor, data e hora.
+   d) Havendo versões diferentes, o gerente ou o coordenador vê a opção "Unificar projeto".
+   e) Aba "Unificar projeto": cada diferença lado a lado, com o nome do contribuidor e o valor de cada versão, e uma caixa
+      de seleção para usar um valor, o outro, ou um misto a ser preenchido.
+   f) Ao salvar a unificação, só as diferenças marcadas são atualizadas; as demais mantêm a versão do coordenador ou, se não
+      houver, a do gerente (nessa ordem).
+   g) Log de modificações em .txt na pasta do projeto, atualizado a cada salvamento: data e hora, quem, o que mudou, de que
+      valor para que valor — inclusive nos ramos (versões dos contribuidores) e nas unificações.
+   Observação técnica: o nome digitado identifica a pessoa, mas não é uma senha — quem tem a senha do MEGA da equipe consegue
+   entrar com qualquer nome da equipe. Para separar permissões de verdade, cada pessoa precisaria de conta própria no MEGA com
+   a pasta compartilhada só para leitura/escrita conforme o papel, ou uma senha pessoal guardada cifrada na pasta; decidir
+   antes de implementar.
 50 [futuro] Na integração (item 47), para projetos elétricos, eletrônicos, de sistemas embarcados e de automação, poder
    escolher uma versão simplificada do todo baseada nas metodologias da tese e da dissertação (Nilsson e Riedel, Nise,
    Marwedel, CDIO) — detalhada no item 56 do todoQA do Projeto Conceitual.
