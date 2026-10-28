@@ -102,7 +102,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    logotipos (EMBRAPII / Inova Agro UFPel, como nos relatórios), título, projeto, data e identificação do respondente, tanto
    no PDF/impressão quanto no texto enviado ao Google Forms (cabeçalho e descrição do formulário).
 42 [futuro] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
-40 [futuro] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
+40 [resolvido 28/10/2026] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
 === REJEITADO
 16 [rejeitado] Pesquisar patentes automaticamente direto do navegador: as bases não permitem esse acesso sem servidor; substituído pelo item 15.
@@ -257,3 +257,8 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    público, aviso de dados pessoais, contato). O documento PDF do roteiro já sai na folha padrão EMBRAPII (Pdf.documento).
    QA: as 19 telas percorridas pelo botão Avançar em 1280 e 360 px sem erros e sem estouro; importação testada (sem duplicar
    ao repetir); t1/t2/t3 sem erros.
+57 [resolvido] (item 40) exemplos/roda-bicicleta-generica.zip regerado a partir do exemplo atual: JSON com a análise econômica do
+   lançamento, relatório de andamento, macroentregas (com o sumário novo), relatórios intermediários e manuais de projeto e de
+   uso refeitos. Conferido: o ZIP abre no sistema (projeto válido, 23 arquivos, economia presente) e o PDF traz VPL, TIR e
+   payback. O item 42 continua pendente: o QFD do exemplo do Gestão (10 requisitos) não é o mesmo do exemplo do Projeto
+   Conceitual (6 requisitos), então importar a fase conceitual de lá deixaria o desdobramento e a árvore TRL incoerentes.
