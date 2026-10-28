@@ -8,6 +8,12 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
   trabalho feito a pedido do autor.
 
 === O QUE FALTA (do mais simples para o mais difícil)
+47 [futuro] Integrar o software de QFD, de projeto conceitual e de projeto preliminar diretamente nas páginas respectivas, para
+   que não precise redirecionar para apps externos (pedido de 28/10/2026). Ao integrar: um só projeto e um só arquivo/ZIP;
+   a mesma regra de salvamento (neste computador ou só na nuvem da equipe/MEGA, perguntada no início); as ligações que hoje
+   passam pelo navegador (qfd_data, pc_para_gestao) viram leitura direta; a adequação às especificações e as rodadas de
+   teste do preliminar alimentam a Qualidade e o TRL (o antigo item 41 do Projeto Conceitual); manter as versões simplificada
+   e completa.
 42 [futuro] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
 40 [futuro] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
