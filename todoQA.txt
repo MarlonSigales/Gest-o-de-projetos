@@ -23,6 +23,9 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
       nome), para comparar de uma vez e escolher uma delas ou montar um misto. Se o dado é ligado a uma área X (ex.: item
       da árvore TRL, atividade, especificação ou função com área), os nomes das pessoas da área X ficam grafados (destacados)
       e a versão delas aparece como referência da comparação.
+   e3) Para simplificar a seleção: a aba mostra a lista das diferenças; ao clicar numa delas, abre só aquele item para unificar
+      (um por vez, com "anterior / próximo"). Textos longos aparecem quebrados por linhas, lado a lado, com as linhas
+      diferentes destacadas, e dá para escolher linha a linha de qual versão vem cada uma (o misto é montado assim).
    g) Log de modificações em .txt na pasta do projeto, atualizado a cada salvamento: data e hora, quem, o que mudou, de que
       valor para que valor — inclusive nos ramos (versões dos contribuidores) e nas unificações.
    Observação técnica: o nome digitado identifica a pessoa, mas não é uma senha — quem tem a senha do MEGA da equipe consegue
