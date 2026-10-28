@@ -31,9 +31,14 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
       diferentes destacadas, e dá para escolher linha a linha de qual versão vem cada uma (o misto é montado assim).
    g) Log de modificações em .txt na pasta do projeto, atualizado a cada salvamento: data e hora, quem, o que mudou, de que
       valor para que valor — inclusive nos ramos (versões dos contribuidores) e nas unificações.
-   h) Nome e senha pessoal (decisão de 28/10/2026): o coordenador cadastra cada membro com senha inicial, trocada no
-      primeiro acesso; o coordenador pode redefinir. Nomes e senhas ficam na biblioteca de projetos da equipe (MEGA) e são
-      reaproveitados nos próximos projetos — senha guardada só como resumo cifrado (hash com sal, ex.: PBKDF2), nunca o texto.
+   h) Nome e senha pessoal (decisão de 28/10/2026, revista): no primeiro acesso a própria pessoa cria a senha dela, que passa a
+      ser sempre usada; não há recuperação pela própria pessoa (quem esquecer pede ao coordenador), e a senha fica visível
+      para o coordenador. Nomes e senhas ficam na biblioteca de projetos da equipe (MEGA) e valem para os próximos projetos.
+      Como fazer as duas coisas ao mesmo tempo (conferir sem guardar a senha aberta e o coordenador conseguir ver): guardar
+      (1) um resumo cifrado (hash com sal, PBKDF2) para conferir a entrada e (2) uma cópia cifrada com a chave do coordenador
+      (par de chaves criado no primeiro acesso dele; WebCrypto), que só ele abre com a senha dele. Assim os outros membros,
+      mesmo com acesso ao MEGA da equipe, não leem as senhas. Avisar na criação: "o coordenador pode ver esta senha — não use
+      a mesma de outros serviços". Troca de coordenador: o antigo repassa as chaves ao novo.
    i) Cadastro de pessoas da equipe na biblioteca: lista por áreas, com nome completo, titulação, formação, e-mail, Lattes,
       função/papel e áreas de atuação; pré-preenche o pessoal das equipes (aba Equipe e Áreas) dos novos projetos.
    j) Cada versão de contribuidor registra de qual versão principal partiu (base comum): a unificação compara base ×
