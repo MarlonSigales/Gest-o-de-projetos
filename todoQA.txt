@@ -23,6 +23,9 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    perguntas num formato fixo para importar direto nos questionários do sistema (e no Google Forms), sem perguntas que
    induzam solução; a equipe revisa antes de aplicar. Mesma lógica dos pedidos para IA do Projeto Conceitual (formato JSON
    fixo, importação que só completa o que está vazio).
+   Os questionários gerados devem manter a folha padrão timbrada EMBRAPII (pedido de 28/10/2026): cabeçalho e rodapé com os
+   logotipos (EMBRAPII / Inova Agro UFPel, como nos relatórios), título, projeto, data e identificação do respondente, tanto
+   no PDF/impressão quanto no texto enviado ao Google Forms (cabeçalho e descrição do formulário).
 42 [futuro] Regerar exemplos/roda-bicicleta-generica.zip com a fase conceitual importada do Sistema de Projeto Conceitual (exemplo da roda de lá).
 40 [futuro] Regerar exemplos/roda-bicicleta-generica.zip (JSON e PDFs) com a análise econômica do lançamento; hoje ela está só em assets/js/exemplo.js.
 
