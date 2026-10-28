@@ -79,7 +79,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 50 [futuro] Na integração (item 47), para projetos elétricos, eletrônicos, de sistemas embarcados e de automação, poder
    escolher uma versão simplificada do todo baseada nas metodologias da tese e da dissertação (Nilsson e Riedel, Nise,
    Marwedel, CDIO) — detalhada no item 56 do todoQA do Projeto Conceitual.
-49 [futuro] No fim de cada fase (pedido de 28/10/2026), um botão para avançar para a próxima etapa: ao terminar uma fase do
+49 [resolvido 28/10/2026] No fim de cada fase (pedido de 28/10/2026), um botão para avançar para a próxima etapa: ao terminar uma fase do
    projeto de produto (informacional → conceitual → preliminar → detalhado) e cada aba da gestão, um botão "Avançar para
    <próxima etapa> →" no fim da página, que mostra antes o que ainda falta na fase atual (sem impedir de avançar), como já
    existe no Projeto Conceitual (botões Voltar / Próxima etapa e "O que falta").
@@ -92,7 +92,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    Na integração, selecionar desde o início o projeto todo (pedido de 28/10/2026): ao criar o projeto, escolher de uma vez
    as fases que ele terá (informacional com questionários e QFD, conceitual, preliminar, detalhado, gestão e TRL), para
    que o sistema já monte o caminho completo, as etapas, as macroentregas e o que vem pré-preenchido de uma fase para a outra.
-48 [futuro] Sistema que gere um pedido (prompt) para uma IA pré-desenvolver as perguntas dos questionários de levantamento de
+48 [resolvido 28/10/2026] Sistema que gere um pedido (prompt) para uma IA pré-desenvolver as perguntas dos questionários de levantamento de
    necessidades segundo Reis (2003), Roger (Spagnolo, 2011) e Pahl et al. (pedido de 28/10/2026): a partir do produto, do
    contexto e dos clientes ao longo do ciclo de vida (fabricação, venda, uso, manutenção, descarte), a IA devolve as
    perguntas num formato fixo para importar direto nos questionários do sistema (e no Google Forms), sem perguntas que
@@ -243,3 +243,17 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    (Próximos passos, Fundamentos, 1 Introdução, 2 Objetivos, Resultados, 3 Resultados, 4 Conclusão, Projeções, 5 Etapas
    Futuras, Andamento/TRL e Referências) e o número da página; a apresentação passa para a página 4 com o mesmo cabeçalho.
    QA: PDF da macroentrega do exemplo conferido (páginas 2–5); t1/t2/t3 sem erros.
+
+--- Botão de avançar e pedido para IA do questionário (28/10/2026)
+55 [resolvido] (item 49) No fim de cada aba e de cada fase do projeto de produto: "← Voltar: <anterior>" e "Avançar para
+   <próxima> →", na ordem do menu (as fases usadas do projeto de produto em sequência; vale nas versões completa e
+   simplificada). Acima dos botões, o que ainda falta na tela (recomendações da fase não marcadas, situação da fase, áreas
+   sem responsável ou sem item TRL, macroentregas sem data ou sem atividades, itens sem TRL, especificações pendentes…), só
+   informativo, sem impedir de avançar.
+56 [resolvido] (item 48) Pedido para IA das perguntas do questionário (formato "questionario-ia"), segundo Reis (ciclo de vida),
+   Spagnolo (importância para o QFD) e Pahl (lista de verificação de requisitos), com perguntas neutras e o contexto do
+   projeto; importar só acrescenta perguntas novas (tipo, alternativas, itens da grade, escala, fase). Cabeçalho padrão
+   timbrado EMBRAPII para colar no título e na descrição do Google Forms (unidade, projeto, empresa, coordenação, data,
+   público, aviso de dados pessoais, contato). O documento PDF do roteiro já sai na folha padrão EMBRAPII (Pdf.documento).
+   QA: as 19 telas percorridas pelo botão Avançar em 1280 e 360 px sem erros e sem estouro; importação testada (sem duplicar
+   ao repetir); t1/t2/t3 sem erros.
