@@ -175,11 +175,13 @@ function contracapa() {
   ];
 }
 
-const tituloSecao = (img, titulo) => ({
-  columns: [{ image: T()[img], width: 36, height: 36 }, { text: titulo.toUpperCase(), style: 'secao', margin: [10, 11, 0, 0] }],
+const tituloSecao = (img, titulo, toc) => ({
+  columns: [{ image: T()[img], width: 36, height: 36 }, Object.assign({ text: titulo.toUpperCase(), style: 'secao', margin: [10, 11, 0, 0] },
+    toc ? { tocItem: toc, tocStyle: { bold: true, fontSize: 10, color: COR.teal }, tocMargin: [0, 8, 0, 0] } : {})],
   margin: [0, 16, 0, 6], unbreakable: true,
 });
-const subitem = (rotulo) => ({ columns: [{ image: T().seta, width: 9, margin: [0, 2, 0, 0] }, { text: rotulo, style: 'subitem', margin: [6, 0, 0, 0] }], margin: [22, 8, 0, 4] });
+const subitem = (rotulo, toc) => ({ columns: [{ image: T().seta, width: 9, margin: [0, 2, 0, 0] }, Object.assign({ text: rotulo, style: 'subitem', margin: [6, 0, 0, 0] },
+  toc ? { tocItem: toc, tocStyle: { fontSize: 9.5 }, tocMargin: [14, 3, 0, 0] } : {})], margin: [22, 8, 0, 4] });
 const corpo = (arr) => ({ stack: arr, margin: [22, 0, 0, 0] });
 
 // ------------------------------------------------------------------ RELATÓRIO DE MACROENTREGA
@@ -222,31 +224,35 @@ Pdf.macroentrega = async function (p, mi, armazem) {
     layout: { hLineWidth: () => 0.7, vLineWidth: () => 0.7, paddingTop: () => 5, paddingBottom: () => 5, paddingLeft: () => 6, paddingRight: () => 6 },
   });
 
-  // página 3 — apresentação
+  // página 3 — SUMÁRIO (logo após o termo de aceite)
+  const TOC = 'sumMacro';
+  c.push({ toc: { id: TOC, title: { text: 'SUMÁRIO', style: 'secao', fontSize: 13, margin: [0, 0, 0, 14] } }, pageBreak: 'before' });
+
+  // página 4 — apresentação
   c.push({ columns: [{ canvas: [{ type: 'rect', x: 0, y: 0, w: 34, h: 34, color: COR.teal }], width: 44 }, { text: 'MACRO', fontSize: 22, bold: true, color: COR.escuro, margin: [0, 5, 0, 0] }], pageBreak: 'before', margin: [0, 0, 0, 40] });
   c.push({ table: { widths: [170], body: [[{ text: 'ENTREGA ' + n, bold: true, color: '#ffffff', fillColor: COR.teal, margin: [8, 4, 0, 4] }]] }, layout: 'noBorders', margin: [0, 0, 0, 22] });
   c.push({ stack: Pdf.texto(`**A Macro Entrega ${n}${m.titulo ? ' – ' + m.titulo : ''}** – ${m.descricao || ''}`, num), width: 340, margin: [0, 0, 110, 0] });
 
   // páginas de itens
-  c.push(Object.assign(tituloSecao('secAndamento', 'Próximos passos para o TRL esperado'), { pageBreak: 'before', margin: [0, 0, 0, 6] }));
+  c.push(Object.assign(tituloSecao('secAndamento', 'Próximos passos para o TRL esperado', TOC), { pageBreak: 'before', margin: [0, 0, 0, 6] }));
   c.push(corpo(Pdf.proximosPassos(p, an, +m.trlEsperado || null, { text: '' }).slice(1)));
-  c.push(tituloSecao('secFundamentos', 'Fundamentos e direcionamento do projeto'));
-  c.push(subitem('1. Introdução'), corpo([...Pdf.texto(pj.introducao, num), ...Pdf.anexosSecao(m, 'introducao', num, imgs)]));
-  c.push(subitem('2. Objetivo Geral do Projeto'), corpo(Pdf.texto(pj.objetivoGeral, num)));
+  c.push(tituloSecao('secFundamentos', 'Fundamentos e direcionamento do projeto', TOC));
+  c.push(subitem('1. Introdução', TOC), corpo([...Pdf.texto(pj.introducao, num), ...Pdf.anexosSecao(m, 'introducao', num, imgs)]));
+  c.push(subitem('2. Objetivo Geral do Projeto', TOC), corpo(Pdf.texto(pj.objetivoGeral, num)));
   const obj = (m.objetivosEtapa || []).filter((o) => String(o).trim());
-  c.push(subitem(`2.1 Objetivos da Etapa ${n}`), corpo([
+  c.push(subitem(`2.1 Objetivos da Etapa ${n}`, TOC), corpo([
     ...(obj.length ? [{ ul: obj.map((o, i) => o + (i < obj.length - 1 ? ';' : '.')), style: 'corpo', margin: [0, 0, 0, 6] }] : []),
     ...Pdf.anexosSecao(m, 'objetivos', num, imgs)]));
-  c.push(tituloSecao('secResultados', 'Resultados e conclusões do projeto'));
-  c.push(subitem('3. Resultados'), corpo([...Pdf.texto(m.resultados, num), ...Pdf.anexosSecao(m, 'resultados', num, imgs),
+  c.push(tituloSecao('secResultados', 'Resultados e conclusões do projeto', TOC));
+  c.push(subitem('3. Resultados', TOC), corpo([...Pdf.texto(m.resultados, num), ...Pdf.anexosSecao(m, 'resultados', num, imgs),
     ...Pdf.blocos(p, m, num, imgs, { recuo: 22, base: '3' })]));
-  c.push(subitem('4. Conclusão'), corpo([...Pdf.texto(m.conclusao, num), ...Pdf.anexosSecao(m, 'conclusao', num, imgs)]));
-  c.push(tituloSecao('secProjecoes', 'Projeções e próximos passos'));
-  c.push(subitem('5. Etapas Futuras'), corpo([...Pdf.texto(m.etapasFuturas, num), ...Pdf.anexosSecao(m, 'etapasFuturas', num, imgs)]));
+  c.push(subitem('4. Conclusão', TOC), corpo([...Pdf.texto(m.conclusao, num), ...Pdf.anexosSecao(m, 'conclusao', num, imgs)]));
+  c.push(tituloSecao('secProjecoes', 'Projeções e próximos passos', TOC));
+  c.push(subitem('5. Etapas Futuras', TOC), corpo([...Pdf.texto(m.etapasFuturas, num), ...Pdf.anexosSecao(m, 'etapasFuturas', num, imgs)]));
 
   if (p.config && p.config.incluirAndamentoNaMacro) {
     const am = an.macroentregas[mi];
-    c.push(tituloSecao('secAndamento', 'Andamento e maturidade tecnológica (TRL)'));
+    c.push(tituloSecao('secAndamento', 'Andamento e maturidade tecnológica (TRL)', TOC));
     const bloco = [Pdf.kpi([
       ['Situação', am.status.charAt(0).toUpperCase() + am.status.slice(1)],
       ['Percentual concluído', am.percentual + '%' + (am.automatico ? ' (calculado pelas atividades)' : '')],
@@ -266,7 +272,7 @@ Pdf.macroentrega = async function (p, mi, armazem) {
 
   // referências citadas nos textos desta macroentrega
   const refs = Pdf.referenciasCitadas(p, num);
-  if (refs.length) c.push(tituloSecao('secProjecoes', 'Referências'), corpo(refs));
+  if (refs.length) c.push(tituloSecao('secProjecoes', 'Referências', TOC), corpo(refs));
 
   // apêndices: manuais e documentos individuais, só na última macroentrega (depois das referências)
   if (mi === p.macroentregas.length - 1) c.push(...await Pdf.apendices(p, armazem));
@@ -301,7 +307,7 @@ Pdf.macroentrega = async function (p, mi, armazem) {
           { image: T().logoAceite, width: 105 },
         ] };
       }
-      if (pg === 3 || pg === total - 1) return { image: T().logo, width: 80, alignment: 'right', margin: [0, 10 * MM, 14 * MM, 0] };
+      if (pg === 3 || pg === 4 || pg === total - 1) return { image: T().logo, width: 80, alignment: 'right', margin: [0, 10 * MM, 14 * MM, 0] }; // sumário e apresentação
       return { margin: [25 * MM, 10 * MM, 14 * MM, 0], columns: [
         { stack: [{ text: 'ITENS', fontSize: 11, bold: true, color: COR.teal }, { text: `MACRO ENTREGA ${n}`, fontSize: 22, bold: true, color: COR.escuro }], margin: [0, 8, 0, 0] },
         { image: T().logo, width: 80, alignment: 'right' },
