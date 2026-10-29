@@ -311,3 +311,89 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    macroentregas sem reimportar; conceitual e preliminar sem "Entrada da fase"; textos "importado" → "atualizado".
    A versão simplificada continua podendo importar um QFD (não tem as seções).
 63 [resolvido] Informacional: a seção "Relatório do QFD" saiu; no topo das seções do QFD fica o botão "📄 PDF da análise QFD" (PDF no padrão do Gestão). Links do QFD para o relatório geram esse PDF.
+
+=== Problemas da integração em seções (avaliação de 29/10/2026) ===
+64 [pendente — urgente] Dois projetos abertos ao mesmo tempo se misturam: o Gestão usa as mesmas chaves do navegador que o
+   QFD e o Projeto Conceitual sozinhos (qfd_data, pc_projeto).
+   a) Trava por projeto com BroadcastChannel/localStorage: ao abrir as seções, avisar e bloquear se o QFD/conceitual já
+      estiver aberto em outra aba (de outro projeto ou do QFD/Projeto Conceitual sozinhos); botão "usar aqui" que libera.
+   b) Ignorar mudanças que cheguem de outra aba que não seja dona da trava (hoje só confere o "dono" do projeto).
+   c) Opcional: chave por projeto nos dois sistemas (ex.: ?gp=<id> usa qfd_data_<id>); exige mudar QFD e Projeto
+      Conceitual (só quando abertos com o parâmetro, para não afetar quem usa sozinho).
+65 [pendente — urgente] Dois lugares para o mesmo dado: quadros do Gestão alimentados pelas seções (requisitos de
+   cliente, especificações, funções/subfunções/princípios, concepções, desdobramento, FMEA vinda do conceitual) ficam
+   só para leitura quando as seções estão ativas, com "editar na seção X.Y". Manter editáveis os campos só do Gestão
+   (PDCA, valor medido, responsáveis, matriz de decisão, registro).
+66 [pendente — urgente] Recarga das outras seções do QFD a cada mudança (piscam e perdem rolagem/aberturas):
+   a) Em vez de recarregar, chamar a função de desenho de cada página do QFD (levantar o nome por página);
+   b) só recarregar o que não tiver função de redesenho e guardar/restaurar a rolagem e os <details> abertos;
+   c) não recarregar a seção que a pessoa está usando nem a que recebeu clique nos últimos segundos.
+67 [pendente] Dados só no arquivo ao Salvar: salvar sozinho (como no modo navegador) alguns segundos depois de cada
+   mudança vinda das seções, ou ao menos marcar com destaque "mudanças do QFD/conceitual ainda não salvas"; avisar ao
+   fechar a aba.
+68 [pendente] Peso: cada seção carrega o sistema inteiro (11 do QFD + 17 do conceitual/preliminar).
+   a) Descarregar seções longe da tela (guardar a altura) e recarregar ao voltar;
+   b) limite de seções abertas ao mesmo tempo (ex.: 6);
+   c) no celular, abrir uma seção por vez (lista com "abrir").
+69 [pendente] Página pulando ao carregar: guardar no projeto a última altura de cada seção e usar como altura
+   provisória; compensar a rolagem quando uma seção acima da tela mudar de altura.
+70 [pendente] Títulos duplicados e numeração: esconder o título/número da página do app (fica só o do cartão do Gestão)
+   ou o contrário; trocar "importado em" do Início do conceitual por "vindo do QFD do projeto"; selo "Etapa concluída"
+   do app → situação no cartão do Gestão.
+71 [pendente] Visual: folha de estilo comum injetada nas seções (fonte, botões, cores, cartões) para parecer um sistema
+   só; Font Awesome local em vez de CDN.
+72 [pendente] Janelas dentro das seções: testar Mudge, matriz QFD, telhado, editor de esboço, editor de estrutura,
+   imagens, IA; menus e dicas perto da borda; trocar a verificação de 300 ms por MutationObserver.
+73 [pendente] Limitações de navegador: Ctrl+F não busca dentro das seções (oferecer busca do Gestão nas seções);
+   ordem do Tab entre seções; imprimir a fase (gerar PDF da fase em vez de imprimir a página).
+74 [pendente] QFD → conceitual só quando o conceitual abre: aplicar no pcDados guardado mesmo sem a seção aberta
+   (carregar uma seção oculta do conceitual só para isso) e mostrar "o QFD mudou desde a última vez" no conceitual.
+75 [pendente] Consolidação → QFD: mostrar a lista antes de acrescentar (marcar quais entram), casar por semelhança de
+   texto (não só igual) e avisar quando uma necessidade sair da consolidação mas continuar no QFD.
+76 [pendente] Testar no site publicado: endereço /QFD/ x repositório qfd (maiúsculas), mesma origem, Font Awesome;
+   criar testes automáticos de apps-secoes.js (preparar, sincronizar QFD/conceitual, salvar ZIP, modal, links).
+77 [pendente] Versão simplificada: decidir se recebe seções (só as páginas do QFD de especificações) ou mantém a
+   importação opcional.
+78 [pendente] Versionamento (item 52): qfdDados e pcDados são grandes; comparar por item (requisito, função,
+   concepção) e não pelo bloco inteiro; o log deve registrar as mudanças vindas das seções.
+
+=== Resto do projeto de produto: tirar "Entrada da fase / Importar resultado do aplicativo" e fazer passos ===
+79 [pendente] Detalhado, Preparação da produção, Lançamento e Validação ainda têm o cartão "Entrada da fase" (aplicativo
+   externo, "Importar resultado do aplicativo"). Trocar por passos numerados na própria página, na ordem do trabalho,
+   com "Documentos da fase" no passo em que os arquivos são produzidos (como no informacional). Os passos seguem as
+   recomendações de cada fase (nedip.js), que passam a ser marcadas sozinhas quando o passo for preenchido.
+   Detalhado:
+     1. Desenhos e documentos de fabricação (det_des, det_docs): subir desenhos, CAD, tolerâncias, materiais e
+        acabamentos → documentos da fase.
+     2. Lista de materiais (det_bom): a partir dos portadores e da lista de partes do preliminar (sem importar; vem do
+        pcDados), com fabricado/comprado, fornecedor e custo.
+     3. Planos de fabricação, montagem e controle (det_fab): roteiro por peça e plano de controle (vem das
+        especificações e da FMEA).
+     4. Ensaio do protótipo final (det_proto): rodada final com todas as especificações; valores vão para a
+        Qualidade (valor medido/situação).
+     5. Proteção intelectual (det_pi): busca de anterioridade (aba Pesquisa) e decisão (vem do fechamento do preliminar).
+     6. Manual de projeto (det_manproj) e 7. Manual de uso (det_manuso): conteúdo e geração dos PDFs.
+   Preparação da produção:
+     1. Processos, recursos e leiaute de fabricação (pro_proc).
+     2. Fornecedores e itens comprados (pro_forn): homologação a partir da lista de materiais e do banco de
+        fornecedores da equipe (Projeto Conceitual).
+     3. Instruções de trabalho e plano de controle (pro_ctrl).
+     4. Lote piloto (pro_piloto): resultados por especificação → Qualidade.
+     5. Assistência técnica e peças de reposição (pro_assist).
+     6. Liberação da produção (pro_lib): aceite, data e responsável → documentos da fase.
+   Lançamento:
+     1. Mercado e demanda (lan_mercado) → 2. Custos e investimentos (lan_custos; custo variável a partir da lista de
+        materiais) → 3. Viabilidade (lan_viab: VPL, TIR, payback, EVA, sensibilidade — análise econômica que já existe)
+        → 4. Preço (lan_preco) → 5. Plano de lançamento e comunicação (lan_plano) → 6. Canais (lan_canais) →
+        7. Treinamento (lan_trein) → 8. Certificações (lan_cert) → 9. Documentação ao cliente (lan_doc: manual de uso e
+        garantia, vindos do detalhado).
+   Validação:
+     1. Questionário de satisfação pós-uso (val_satisf): mesmo fluxo do informacional (planejar → Google Forms →
+        respostas → documentos).
+     2. Desempenho em campo, falhas, reclamações e garantia (val_campo).
+     3. Especificações em uso real (val_espec) → Qualidade.
+     4. Lições aprendidas (val_licoes) → aba Lições.
+     5. Melhorias e próxima versão (val_melhor).
+     6. Encerramento (val_encerr): aceites e documentação final → documentos da fase.
+   Para todas: tirar o cartão "Entrada da fase" (o campo "aplicativo da fase" sai da tela, mas o dado fica no JSON),
+   sem "importar resultado"; arquivos só em "Documentos da fase"; botão "Avançar" no fim de cada passo.
