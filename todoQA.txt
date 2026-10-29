@@ -310,3 +310,4 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    nem "Usar o QFD deste navegador" (mostra que vem do QFD do projeto, com "Ir ao QFD do projeto"); cartão do QFD nas
    macroentregas sem reimportar; conceitual e preliminar sem "Entrada da fase"; textos "importado" → "atualizado".
    A versão simplificada continua podendo importar um QFD (não tem as seções).
+63 [resolvido] Informacional: a seção "Relatório do QFD" saiu; no topo das seções do QFD fica o botão "📄 PDF da análise QFD" (PDF no padrão do Gestão). Links do QFD para o relatório geram esse PDF.

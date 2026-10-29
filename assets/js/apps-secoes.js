@@ -19,7 +19,7 @@
     ['matriz-qfd', 'Matriz QFD (casa da qualidade)'], ['especificacoes', 'Especificações de projeto'],
     ['avaliacao-competitiva', 'Avaliação competitiva'], ['atendimento-requisitos', 'Atendimento aos requisitos'],
     ['ideias', 'Caderno de ideias'], ['referencias', 'Estado da técnica (normas, produtos, patentes, artigos)'],
-    ['fechamento', 'Fechamento: abstração, formulação e função global'], ['relatorio', 'Relatório do QFD']];
+    ['fechamento', 'Fechamento: abstração, formulação e função global']]; // o relatório do QFD sai no PDF do Gestão (botão no topo)
   const PC_CONC = [
     ['inicio', 'Início: tipo de projeto e preenchimento automático'], ['escopo', 'Escopo do problema'], ['funcao-global', 'Função global'],
     ['estrutura', 'Estrutura funcional'], ['principios', 'Princípios de solução'], ['matriz', 'Matriz morfológica'],
@@ -56,6 +56,7 @@
     const lista = app === 'qfd' ? QFD_PAGS : app === 'pc-pre' ? PC_PRE : PC_CONC, ap = app === 'qfd' ? 'qfd' : 'pc';
     const nome = { qfd: 'QFD (casa da qualidade)', pc: 'Projeto conceitual', 'pc-pre': 'Projeto preliminar' }[app];
     let h = `<div class="cartao secoes-cab"><h3 style="margin-top:0">${n0}. ${nome}</h3><p class="muted" style="margin:0">${intro}</p>
+      ${app === 'qfd' ? '<div class="barra"><button class="btn primario" data-acao="qfd-pdf">📄 PDF da análise QFD</button></div>' : ''}
       <nav class="secoes-indice">${lista.map(([p, t], i) => `<a href="#" data-acao="sec-ir" data-chave="${ap}:${p}">${n0}.${i + 1} ${esc(t)}</a>`).join('')}</nav></div>`;
     h += lista.map(([p, t], i) => {
       const k = `${ap}:${p}`, f = S.frames[k];
@@ -67,6 +68,7 @@
   App.acoes['sec-ir'] = (el, ev) => { if (ev) ev.preventDefault(); const [a, p] = el.dataset.chave.split(':'); irParaSecao(a, p); };
 
   function irParaSecao(app, pag) {
+    if (app === 'qfd' && pag === 'relatorio' && App.acoes['qfd-pdf']) { App.acoes['qfd-pdf'](); return; } // relatório do QFD = PDF do Gestão
     if (app === 'qfd' && !QFD_PAGS.some(([p]) => p === pag)) pag = QFD_PAGS[0][0];
     if (app === 'pc' && !PC_CONC.concat(PC_PRE).some(([p]) => p === pag)) pag = 'inicio';
     const fase = faseDe(app, pag);
