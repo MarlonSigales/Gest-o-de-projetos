@@ -6,7 +6,9 @@
       "observacao": "",
       "importancia": 24,
       "peso": 0.3380281690140845,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "cb954179-6dd8-48ae-b94f-b45a1eb7228b",
@@ -14,7 +16,9 @@
       "observacao": "",
       "importancia": 19,
       "peso": 0.2676056338028169,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "77d608fb-5129-444d-832c-a621d9839962",
@@ -22,7 +26,9 @@
       "observacao": "",
       "importancia": 14,
       "peso": 0.19718309859154928,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "0d6b466c-28c8-44d8-8407-4f27f2a01d00",
@@ -30,7 +36,9 @@
       "observacao": "",
       "importancia": 9,
       "peso": 0.1267605633802817,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "b61d809a-67e0-4b70-a011-6f645a9b1893",
@@ -38,7 +46,9 @@
       "observacao": "",
       "importancia": 4,
       "peso": 0.056338028169014086,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "48e62035-4892-4bdf-88bb-bd37c24ed7e4",
@@ -46,7 +56,9 @@
       "observacao": "",
       "importancia": 1,
       "peso": 0.014084507042253521,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "249fa77e-a54a-4089-9ec8-af042f06f44d",
@@ -54,7 +66,9 @@
       "observacao": "",
       "importancia": 0,
       "peso": 0,
-      "created": "2026-09-29T07:06:01.581Z"
+      "created": "2026-09-29T07:06:01.581Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     }
   ],
   "requisitosProjeto": [
@@ -67,7 +81,9 @@
       "importanciaAbsoluta": 273,
       "importanciaRelativa": 2,
       "pesoRelativo": 0.19444444444444445,
-      "created": "2026-09-29T07:06:01.585Z"
+      "created": "2026-09-29T07:06:01.585Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
@@ -78,7 +94,9 @@
       "importanciaAbsoluta": 171,
       "importanciaRelativa": 4,
       "pesoRelativo": 0.12179487179487179,
-      "created": "2026-09-29T07:06:01.585Z"
+      "created": "2026-09-29T07:06:01.585Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
@@ -89,7 +107,9 @@
       "importanciaAbsoluta": 324,
       "importanciaRelativa": 1,
       "pesoRelativo": 0.23076923076923078,
-      "created": "2026-09-29T07:06:01.585Z"
+      "created": "2026-09-29T07:06:01.585Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "24ded4b7-2652-4bab-a416-77d0d5285421",
@@ -100,7 +120,9 @@
       "importanciaAbsoluta": 135,
       "importanciaRelativa": 5,
       "pesoRelativo": 0.09615384615384616,
-      "created": "2026-09-29T07:06:01.586Z"
+      "created": "2026-09-29T07:06:01.586Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
@@ -111,7 +133,9 @@
       "importanciaAbsoluta": 126,
       "importanciaRelativa": 6,
       "pesoRelativo": 0.08974358974358974,
-      "created": "2026-09-29T07:06:01.586Z"
+      "created": "2026-09-29T07:06:01.586Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
@@ -122,7 +146,9 @@
       "importanciaAbsoluta": 222,
       "importanciaRelativa": 3,
       "pesoRelativo": 0.1581196581196581,
-      "created": "2026-09-29T07:06:01.587Z"
+      "created": "2026-09-29T07:06:01.587Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
@@ -133,7 +159,9 @@
       "importanciaAbsoluta": 33,
       "importanciaRelativa": 9,
       "pesoRelativo": 0.023504273504273504,
-      "created": "2026-09-29T07:06:01.587Z"
+      "created": "2026-09-29T07:06:01.587Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "1d085f42-0580-43ee-9c50-367b89ef8b22",
@@ -144,7 +172,9 @@
       "importanciaAbsoluta": 39,
       "importanciaRelativa": 8,
       "pesoRelativo": 0.027777777777777776,
-      "created": "2026-09-29T07:06:01.587Z"
+      "created": "2026-09-29T07:06:01.587Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
@@ -155,7 +185,9 @@
       "importanciaAbsoluta": 0,
       "importanciaRelativa": 10,
       "pesoRelativo": 0,
-      "created": "2026-09-29T07:06:01.587Z"
+      "created": "2026-09-29T07:06:01.587Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     },
     {
       "id": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
@@ -166,7 +198,9 @@
       "importanciaAbsoluta": 81,
       "importanciaRelativa": 7,
       "pesoRelativo": 0.057692307692307696,
-      "created": "2026-09-29T07:06:01.587Z"
+      "created": "2026-09-29T07:06:01.587Z",
+      "classificacao": "",
+      "justificativaClassificacao": ""
     }
   ],
   "comparacaoCliente": [
@@ -473,92 +507,142 @@
     {
       "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
       "unidadeMedida": "g",
-      "valorUnitario": "1100",
       "observacao": "Pesagem em balança 0,1 g (roda completa com cubo, sem pneu, câmara e blocagem)",
       "aspectosIndesejaveis": "Reduzir espessura do aro e compromete a fadiga",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.585Z"
+      "updated": "2026-09-29T07:06:01.585Z",
+      "tipoMeta": "<=",
+      "valorMeta": 1100,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
       "unidadeMedida": "N",
-      "valorUnitario": "1500",
       "observacao": "Ensaio de carga estática radial, deformação residual ≤ 0,5 mm após 1 min (referência: ISO 4210-7)",
       "aspectosIndesejaveis": "Aumentar massa e custo",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.585Z"
+      "updated": "2026-09-29T07:06:01.585Z",
+      "tipoMeta": ">=",
+      "valorMeta": 1500,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
       "unidadeMedida": "ciclos",
-      "valorUnitario": "200000",
       "observacao": "Bancada de tambor com 1000 N a 25 km/h; inspeção de trincas a cada 50 000 ciclos",
       "aspectosIndesejaveis": "Aumentar massa (raios mais grossos, aro mais pesado)",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.585Z"
+      "updated": "2026-09-29T07:06:01.585Z",
+      "tipoMeta": ">=",
+      "valorMeta": 200000,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
       "unidadeMedida": "mm",
-      "valorUnitario": "0,5",
       "observacao": "Relógio comparador 0,01 mm na pista do aro, roda em cavalete de centragem",
       "aspectosIndesejaveis": "Aumentar tempo de centragem e custo",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.586Z"
+      "updated": "2026-09-29T07:06:01.586Z",
+      "tipoMeta": "<=",
+      "valorMeta": 0.5,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
       "unidadeMedida": "mm",
-      "valorUnitario": "0,5",
       "observacao": "Relógio comparador 0,01 mm no flanco do aro",
       "aspectosIndesejaveis": "Aumentar tempo de centragem e custo",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.586Z"
+      "updated": "2026-09-29T07:06:01.586Z",
+      "tipoMeta": "<=",
+      "valorMeta": 0.5,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
       "unidadeMedida": "%",
-      "valorUnitario": "10",
       "observacao": "Tensiômetro de raios em todos os 32 raios; maior desvio em relação à média ÷ média",
       "aspectosIndesejaveis": "Aumentar tempo de centragem",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.587Z"
+      "updated": "2026-09-29T07:06:01.587Z",
+      "tipoMeta": "<=",
+      "valorMeta": 10,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
       "unidadeMedida": "R$",
-      "valorUnitario": "350",
       "observacao": "Soma de custos de componentes e mão de obra de montagem",
       "aspectosIndesejaveis": "Usar materiais de menor qualidade",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.587Z"
+      "updated": "2026-09-29T07:06:01.587Z",
+      "tipoMeta": "<=",
+      "valorMeta": 350,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
       "unidadeMedida": "min",
-      "valorUnitario": "15",
       "observacao": "Cronometragem com montador treinado",
       "aspectosIndesejaveis": "Tolerâncias de desvio mais frouxas",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.587Z"
+      "updated": "2026-09-29T07:06:01.587Z",
+      "tipoMeta": "<=",
+      "valorMeta": 15,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
       "unidadeMedida": "mm",
-      "valorUnitario": "19",
       "observacao": "Paquímetro 0,02 mm em 4 pontos",
       "aspectosIndesejaveis": "Incompatibilidade com pneus 28–42 mm",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.587Z"
+      "updated": "2026-09-29T07:06:01.587Z",
+      "tipoMeta": "=",
+      "valorMeta": 19,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     },
     {
       "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
       "unidadeMedida": "h",
-      "valorUnitario": "96",
       "observacao": "Ensaio de névoa salina neutra (ISO 9227) em cubo, raios e niples",
       "aspectosIndesejaveis": "Custo de tratamento superficial",
       "aspectosAutoGerado": false,
-      "updated": "2026-09-29T07:06:01.587Z"
+      "updated": "2026-09-29T07:06:01.587Z",
+      "tipoMeta": ">=",
+      "valorMeta": 96,
+      "valorMax": null,
+      "tolerancia": null,
+      "metaTexto": "",
+      "revisarMeta": false
     }
   ],
   "avaliacaoCompetitiva": {
@@ -759,51 +843,6 @@
     "valoresTecnicos": [
       {
         "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
-        "produtoId": "nosso",
-        "valor": "1070"
-      },
-      {
-        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
-        "produtoId": "nosso",
-        "valor": "1800"
-      },
-      {
-        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
-        "produtoId": "nosso",
-        "valor": "200000"
-      },
-      {
-        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
-        "produtoId": "nosso",
-        "valor": "0,26"
-      },
-      {
-        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
-        "produtoId": "nosso",
-        "valor": "0,29"
-      },
-      {
-        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
-        "produtoId": "nosso",
-        "valor": "10,4"
-      },
-      {
-        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
-        "produtoId": "nosso",
-        "valor": "338"
-      },
-      {
-        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
-        "produtoId": "nosso",
-        "valor": "12"
-      },
-      {
-        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
-        "produtoId": "nosso",
-        "valor": "19"
-      },
-      {
-        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
         "produtoId": "c_alfa",
         "valor": "1220"
       },
@@ -951,13 +990,232 @@
         "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
         "produtoId": "c_gama",
         "valor": "96"
+      },
+      {
+        "requisitoProjetoId": "9fbabd44-0a92-4cf2-af55-bb65478759df",
+        "produtoId": "nosso",
+        "valor": "1070"
+      },
+      {
+        "requisitoProjetoId": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3",
+        "produtoId": "nosso",
+        "valor": "1800"
+      },
+      {
+        "requisitoProjetoId": "f9fa42dc-c547-4f0e-9447-28bab9638d6a",
+        "produtoId": "nosso",
+        "valor": "200000"
+      },
+      {
+        "requisitoProjetoId": "24ded4b7-2652-4bab-a416-77d0d5285421",
+        "produtoId": "nosso",
+        "valor": "0,26"
+      },
+      {
+        "requisitoProjetoId": "b87aa724-2dda-40c8-a338-e02acbb0fbd8",
+        "produtoId": "nosso",
+        "valor": "0,29"
+      },
+      {
+        "requisitoProjetoId": "daa9f5dc-ec58-4988-8cd5-5c2849416e6a",
+        "produtoId": "nosso",
+        "valor": "7,8"
+      },
+      {
+        "requisitoProjetoId": "50a1cd36-63dc-48a1-8fa8-5246a5f5bcb2",
+        "produtoId": "nosso",
+        "valor": "338"
+      },
+      {
+        "requisitoProjetoId": "1d085f42-0580-43ee-9c50-367b89ef8b22",
+        "produtoId": "nosso",
+        "valor": "12"
+      },
+      {
+        "requisitoProjetoId": "681cd6a1-1cc5-4ebd-8058-693201ac730f",
+        "produtoId": "nosso",
+        "valor": "19"
+      },
+      {
+        "requisitoProjetoId": "274b27a4-a6e8-465e-b060-81f2f93c3f32",
+        "produtoId": "nosso",
+        "valor": "120"
       }
-    ]
+    ],
+    "indices": []
   },
   "metadata": {
     "created": "2026-09-29T07:06:01.581Z",
-    "lastModified": "2026-09-29T07:06:01.605Z",
-    "schemaVersion": 3,
+    "lastModified": "2026-10-29T14:16:36.791Z",
+    "schemaVersion": 11,
     "projeto": "Roda de bicicleta genérica 700c (exemplo)"
+  },
+  "projeto": {
+    "nome": "Roda de bicicleta genérica 700c",
+    "emails": [],
+    "cliente": "Bicicletas Exemplo Ltda. (fictícia)",
+    "instituicao": "Unidade de exemplo (fictícia)",
+    "equipe": [],
+    "justificativaHierarquia": "",
+    "escalaValorCliente": "pontuacao",
+    "etapasConcluidas": [
+      "correlacao-projeto",
+      "matriz-qfd"
+    ]
+  },
+  "cadernoIdeias": {
+    "ideias": [
+      {
+        "id": "15b894cb-dd7b-4415-a432-9741e93c5003",
+        "descricao": "Tirar massa no trecho central do raio sem perder resistência nas pontas.",
+        "autor": "Bruno Lima",
+        "status": "promissora",
+        "requisitos": [
+          {
+            "tipo": "projeto",
+            "id": "9fbabd44-0a92-4cf2-af55-bb65478759df"
+          },
+          {
+            "tipo": "projeto",
+            "id": "f9fa42dc-c547-4f0e-9447-28bab9638d6a"
+          }
+        ],
+        "data": "2026-10-29T14:16:36.779Z",
+        "titulo": "Raios de seção variável (2,0/1,8/2,0 mm)"
+      },
+      {
+        "id": "dfc4f456-b1dc-4a1b-9b23-c8ee3756b22c",
+        "descricao": "Distribuir a tensão do raio no furo; resposta à trinca do P1.",
+        "autor": "Ana Souza",
+        "status": "promissora",
+        "requisitos": [
+          {
+            "tipo": "projeto",
+            "id": "f9fa42dc-c547-4f0e-9447-28bab9638d6a"
+          },
+          {
+            "tipo": "cliente",
+            "id": "cb954179-6dd8-48ae-b94f-b45a1eb7228b"
+          }
+        ],
+        "data": "2026-10-29T14:16:36.781Z",
+        "titulo": "Ilhós nos furos de raio do aro"
+      },
+      {
+        "id": "d708ccfd-f8b2-470d-8be4-374ddd2b593b",
+        "descricao": "Mais leves, mas com risco de corrosão galvânica com o aro e de espanar na centragem.",
+        "autor": "Carla Mendes",
+        "status": "descartada",
+        "requisitos": [
+          {
+            "tipo": "projeto",
+            "id": "9fbabd44-0a92-4cf2-af55-bb65478759df"
+          },
+          {
+            "tipo": "projeto",
+            "id": "274b27a4-a6e8-465e-b060-81f2f93c3f32"
+          }
+        ],
+        "data": "2026-10-29T14:16:36.782Z",
+        "titulo": "Niples de alumínio"
+      }
+    ],
+    "falhas": []
+  },
+  "referencias": [
+    {
+      "id": "62bb4640-2e3b-4c90-bd87-20bcea0ded14",
+      "tipo": "norma",
+      "identificacao": "ISO 4210-7",
+      "link": "",
+      "dataConsulta": "",
+      "resumo": "Ensaios de carga estática e de fadiga radial; base das metas de carga e de vida em fadiga.",
+      "requisitos": [
+        {
+          "tipo": "projeto",
+          "id": "5f14ebd2-ad4e-432a-97ff-fca2adaa1ce3"
+        },
+        {
+          "tipo": "projeto",
+          "id": "f9fa42dc-c547-4f0e-9447-28bab9638d6a"
+        }
+      ],
+      "data": "2026-10-29T14:16:36.783Z",
+      "titulo": "Bicicletas — requisitos de segurança — métodos de ensaio de rodas e aros"
+    },
+    {
+      "id": "5901dfdb-2c12-4c2d-8e06-c955cac803b6",
+      "tipo": "norma",
+      "identificacao": "ISO 9227",
+      "link": "",
+      "dataConsulta": "",
+      "resumo": "Ensaio de névoa salina neutra de cubo, raios e niples (96 h).",
+      "requisitos": [
+        {
+          "tipo": "projeto",
+          "id": "274b27a4-a6e8-465e-b060-81f2f93c3f32"
+        }
+      ],
+      "data": "2026-10-29T14:16:36.783Z",
+      "titulo": "Ensaios de corrosão em atmosferas artificiais — névoa salina"
+    }
+  ],
+  "fechamento": {
+    "abstracao": [
+      "Necessidades: roda leve, que suporte o ciclista e impactos, rode alinhada, dure sem manutenção, seja fácil de manter, tenha preço acessível e aceite pneus comuns.",
+      "- Massa ≤ 1100 g\n- Vida em fadiga ≥ 200 000 ciclos\n- Carga radial ≥ 1500 N\n- Desvios radial e lateral ≤ 0,5 mm\n- Custo ≤ R$ 350",
+      "- Massa a menor possível\n- Vida em fadiga a maior possível\n- Alinhamento mantido",
+      "- Suportar cargas repetidas com pouca massa\n- Manter o alinhamento",
+      "Suportar a bicicleta e permitir o rolamento com pouca massa e longa vida."
+    ],
+    "formulacoes": [
+      {
+        "id": "c652a7b1-c287-498c-ad7a-350c2f92a0be",
+        "texto": "Fazer uma roda de alumínio com 32 raios"
+      },
+      {
+        "id": "95f8a5ad-006c-48f5-b19a-b4c8767d2b5c",
+        "texto": "Fazer uma roda leve que dure muito"
+      },
+      {
+        "id": "7dcdaabb-9d6a-4a61-ab69-9570325c0c33",
+        "texto": "Suportar a bicicleta e permitir o rolamento"
+      }
+    ],
+    "formulacaoEscolhida": "7dcdaabb-9d6a-4a61-ab69-9570325c0c33",
+    "funcaoGlobal": {
+      "nome": "Suportar a bicicleta e permitir o rolamento",
+      "entradas": {
+        "energia": [
+          "Carga do ciclista e impactos do solo",
+          "Torque de frenagem (freio de aro)"
+        ],
+        "material": [
+          "Pneu e câmara"
+        ],
+        "sinal": [
+          "Ajuste de centragem"
+        ]
+      },
+      "saidas": {
+        "energia": [
+          "Rolamento com baixa resistência",
+          "Carga transmitida ao garfo"
+        ],
+        "material": [
+          "Roda montada"
+        ],
+        "sinal": [
+          "Desvio do aro"
+        ]
+      }
+    }
+  },
+  "verificacaoRP": {
+    "exigir": false,
+    "criterios": {},
+    "confirmadoEm": "",
+    "idsConfirmados": [],
+    "descartados": []
   }
 }

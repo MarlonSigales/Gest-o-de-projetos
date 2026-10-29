@@ -416,3 +416,8 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 87 [resolvido] Todas as seções começam recolhidas ao abrir o projeto (abre-se só o que for usar; ir a uma seção a abre).
 88 [resolvido] Botão "▴ Recolher" também no fim de cada seção aberta; ao recolher por ali, a tela volta ao título da seção.
 89 [resolvido] Início do conceitual (seção 1.1) não mostra mais o cartão do projeto preliminar: ele fica só na fase preliminar.
+90 [resolvido] Exemplo completo até o fim (projeto concluído): QFD 100% (fechamento, ideias, normas, valores finais),
+   conceitual e preliminar completos com Rodada 3 aprovada, todas as fases concluídas e recomendações marcadas,
+   macroentregas 1–5 finalizadas com aceite, riscos fechados, qualidade conforme (PDCA RP6 resolvido), TRL 6; guia atualizado.
+91 [resolvido] Seções recolhidas davam 404 no site: a base das páginas volta a seguir as URLs do CONFIG (repositórios QFD e
+   ProjetoConceitual têm maiúsculas, e o GitHub Pages diferencia).
