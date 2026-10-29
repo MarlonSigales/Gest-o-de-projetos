@@ -338,7 +338,7 @@ assets/js/guia_exemplo.js   guia do exemplo (roteiro de aprendizado na aba Proje
 assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.js
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD
-assets/js/integrado.js     QFD e Projeto Conceitual abertos dentro do Gestão (barra lateral flutuante, trazer dados)
+assets/js/apps-secoes.js   páginas do QFD e do Projeto Conceitual como seções das fases (dados sincronizados)
 exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json, questionario-roda-google-forms.csv e patentes-roda-google-patents.csv
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```

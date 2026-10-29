@@ -424,7 +424,7 @@ Pdf.blocoQfd = function (dados, secoes, ctx) {
   Qfd.SECOES.filter(([s]) => secoes.includes(s)).forEach(([s, nome]) => {
     const disp = Qfd.disponivel(a, s);
     cola(ctx.h(nome));
-    if (!disp.ok) { add({ text: `Sem dados no QFD importado (${disp.motivo}). Complete no sistema QFD e reimporte o backup.`, style: 'muted', margin: [0, 0, 0, 6] }); return; }
+    if (!disp.ok) { add({ text: `Sem dados no QFD importado (${disp.motivo}). Complete no QFD do projeto (projeto informacional).`, style: 'muted', margin: [0, 0, 0, 6] }); return; }
     S[s]();
   });
   return Pdf.montarOrientacao(itens);
@@ -462,25 +462,21 @@ App.qfdIntegracaoHtml = function () {
   const p = App.p, a = Qfd.analisar(p.qfdDados);
   const o = p.qfdOrigem || {};
   if (!a) {
-    return cartao('Relatório do QFD nas macroentregas', `<p class="muted" style="margin-top:0">Importe o <b>backup completo (JSON)</b> do sistema QFD (botão “Backup”) para escolher, com caixas de seleção, o que vai para cada macroentrega e para o relatório geral: dicionário, requisitos, matriz, telhado, especificações, avaliação competitiva, atendimento e ranking.</p>
-  ${o.importadoEm ? '<p class="aviso-box">O QFD deste projeto foi importado por uma versão anterior, que guardava só as especificações. Reimporte o backup para ter o relatório completo.</p>' : ''}
-  <div class="barra"><button class="btn" data-acao="qfd-abrir">↗ Abrir o sistema QFD</button>
-  <label class="btn primario">⬆ Importar backup JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdInf"></label></div>`);
+    return cartao('Relatório do QFD nas macroentregas', `<p class="muted" style="margin-top:0">Assim que o QFD do projeto (seção 5) tiver requisitos, aqui se escolhe, com caixas de seleção, o que vai para cada macroentrega e para o relatório geral: dicionário, requisitos, matriz, telhado, especificações, avaliação competitiva e inconsistências.</p>
+  <div class="barra"><button class="btn" data-acao="qfd-abrir">🛠 Ir ao QFD do projeto</button></div>`);
   }
   const ms = p.macroentregas, rel = p.config.qfdRelatorio || [];
   const cab = ms.map((m, i) => `<th class="centro" title="${esc(m.titulo)}">Macro ${i + 1}<br><button class="btn pequeno" data-acao="qfd-int-todas" data-macro="${esc(m.uid)}">todas</button></th>`).join('');
   const linhas = Qfd.SECOES.map(([s, nome]) => {
     const d = Qfd.disponivel(a, s);
     const chk = (uid, marcado) => `<td class="centro"><input type="checkbox" data-acao="qfd-int" data-sec="${s}" data-macro="${esc(uid)}" ${marcado ? 'checked' : ''} ${d.ok ? '' : 'disabled'}></td>`;
-    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">falta no QFD: ${esc(d.motivo)}</span> <button class="btn pequeno" data-acao="qfd-abrir">↗ completar no QFD</button>`}</td>
+    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">falta no QFD: ${esc(d.motivo)}</span> <button class="btn pequeno" data-acao="qfd-abrir">completar no QFD</button>`}</td>
       ${ms.map((m) => { const b = App.qfdBlocoDaMacro(m); return chk(m.uid, b && b.secoes.includes(s)); }).join('')}${chk('__rel', rel.includes(s))}</tr>`;
   }).join('');
-  return cartao('Relatório do QFD nas macroentregas', `<p class="muted" style="margin-top:0">QFD importado${o.importadoEm ? ` em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))} (${esc(o.arquivo)})` : ''}: <b>${a.rc.length}</b> requisitos do cliente, <b>${a.rp.length}</b> de projeto, ${a.conc.length} concorrente(s).
+  return cartao('Relatório do QFD nas macroentregas', `<p class="muted" style="margin-top:0">QFD do projeto${o.importadoEm ? ` (atualizado em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))})` : ''}: <b>${a.rc.length}</b> requisitos do cliente, <b>${a.rp.length}</b> de projeto, ${a.conc.length} concorrente(s).
     Marque o que entra em cada macroentrega (vira o bloco “Análise QFD” no desenvolvimento, que pode ser movido ou editado lá) e no relatório geral. As tabelas largas saem em folha deitada.</p>
   <div class="rolagem"><table class="tab-edit qfd-int"><thead><tr><th>Informação do QFD</th>${cab}<th class="centro">Relatório geral<br><button class="btn pequeno" data-acao="qfd-int-todas" data-macro="__rel">todas</button></th></tr></thead><tbody>${linhas}</tbody></table></div>
-  <div class="barra"><label class="btn">⬆ Reimportar backup JSON do QFD<input type="file" accept=".json,.zip,application/json,application/zip" hidden id="arqQfdInf"></label>
-  <button class="btn" data-acao="qfd-abrir">↗ Abrir o sistema QFD</button>
-  <button class="btn" data-acao="qfd-pdf">📄 PDF da análise QFD</button></div>`);
+  <div class="barra"><button class="btn" data-acao="qfd-pdf">📄 PDF da análise QFD</button></div>`);
 };
 
 /** Liga/desliga uma seção do QFD numa macroentrega (cria ou remove o bloco) ou no relatório geral. */

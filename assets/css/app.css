@@ -462,3 +462,14 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .int-escolha p:first-child { margin-top: 0; }
 .qfd-embutido .barra .int-estado { align-self: center; }
 @media (max-width: 860px) { .int-lugar[data-pronto="1"] { height: 80vh; min-height: 420px; } }
+/* ---------- QFD, conceitual e preliminar como seções das fases ---------- */
+#appCamada { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 4; }
+.app-frame { position: absolute; border: 0; background: transparent; display: block; }
+.app-lugar { position: relative; }
+.app-carregando { display: block; padding: 20px 4px; }
+.secoes-cab { border-left: 4px solid var(--teal); }
+.secoes-indice { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; }
+.secoes-indice a { text-decoration: none; }
+.secoes-indice a:hover { text-decoration: underline; }
+.app-secao h3 { scroll-margin-top: 70px; }
+.secoes-resumo { background: var(--fundo); }

@@ -518,7 +518,7 @@ Pdf.andamento = async function (p, armazem) {
   if (p.qualidade.length) {
     const o = p.qfdOrigem || {};
     c.push(h2('Requisitos de qualidade (especificações de projeto)'));
-    if (o.importadoEm) c.push({ text: `Origem: QFD – ${o.arquivo} (importado em ${Nucleo.dataBR(o.importadoEm.slice(0, 10))}), requisitos na ordem de importância.`, style: 'muted', margin: [0, 0, 0, 4] });
+    if (o.importadoEm) c.push({ text: `Origem: QFD – ${o.arquivo} (atualizado em ${Nucleo.dataBR(o.importadoEm.slice(0, 10))}), requisitos na ordem de importância.`, style: 'muted', margin: [0, 0, 0, 4] });
     c.push(Pdf.grade(['Requisito', 'Critério de aceite', 'Forma de avaliação', 'Medido', 'Situação'], p.qualidade.map((q) => [
       { stack: [q.requisito, ...(q.aspectosIndesejaveis ? [{ text: 'Aspectos indesejáveis: ' + q.aspectosIndesejaveis, style: 'muted' }] : [])], fontSize: 8.8 },
       q.criterioAceite, q.metodoVerificacao, q.valorMedido || '—',

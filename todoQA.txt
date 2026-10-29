@@ -294,3 +294,19 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    - O QFD fica dentro da própria página (completo, com "Trazer para o Gestão", tela cheia, outra aba e importar backup).
      Abre sozinho com o QFD deste projeto; se o navegador tiver outro QFD, pergunta ali mesmo qual usar. Mudar um campo
      do Gestão não recarrega o QFD.
+61 [resolvido] (substitui o 59/60 na parte dos apps) QFD, projeto conceitual e projeto preliminar como seções das fases:
+   cada página do Sistema QFD (12) e do Sistema de Projeto Conceitual (10 do conceitual + 7 do preliminar) é um cartão na
+   fase, em sequência (informacional 5.1–5.12; conceitual 1.1–1.10; preliminar 1.1–1.7), com a altura do próprio conteúdo
+   e índice no topo. É o código dos próprios sistemas, sem cabeçalho, menu e rodapé deles: nada se perde.
+   - Um só projeto: QFD em qfdDados e projeto conceitual/preliminar em produto.pcDados, no JSON do Gestão; o ZIP do
+     conceitual (fotos e diagramas) vai para produto/conceitual/ ao salvar. Sem importar: cada mudança numa seção atualiza
+     sozinha o Gestão (qualidade, requisitos de cliente, funções, concepções, desdobramento, FMEA, lições) e as outras
+     seções; o QFD chega ao conceitual; requisitos novos da consolidação dos questionários entram no QFD.
+   - Links entre páginas dos sistemas levam à seção certa; janelas (Mudge, editor de esboço etc.) aparecem na parte
+     visível da tela; avisos dos sistemas saem nos avisos do Gestão.
+   - O que estava aberto nos sistemas fora deste projeto é guardado à parte (aviso com botão para baixar uma cópia).
+   - Saiu a área de app em tela cheia (integrado.js).
+62 [resolvido] Ambiguidades de importação removidas na versão completa: Qualidade/DfX sem "Importar/Reimportar JSON do QFD"
+   nem "Usar o QFD deste navegador" (mostra que vem do QFD do projeto, com "Ir ao QFD do projeto"); cartão do QFD nas
+   macroentregas sem reimportar; conceitual e preliminar sem "Entrada da fase"; textos "importado" → "atualizado".
+   A versão simplificada continua podendo importar um QFD (não tem as seções).

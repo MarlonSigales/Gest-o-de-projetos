@@ -64,7 +64,8 @@ App.abas.produto = {
   </div></div>`;
 
     // planejamento e informacional não usam aplicativo externo: sem "Entrada da fase" (o QFD fica dentro da página do informacional)
-    const semEntrada = et.id === 'planejamento' || et.id === 'informacional';
+    const secoes = !!(App.secoesHtml && App.secoesAtivas && App.secoesAtivas());
+    const semEntrada = et.id === 'planejamento' || et.id === 'informacional' || (secoes && (et.id === 'conceitual' || et.id === 'preliminar'));
     h += semEntrada ? App.nedipFerramentasHtml(et, b) : App.nedipEntradaHtml(et, e, b);
     h += cartao('Recomendações da fase', `<p class="muted">Marque o que foi (ou será) aplicado. As marcadas aparecem no manual de projeto.</p>
   <div class="nedip-recs">${et.recomendacoes.map(([id, t]) => c(`${b}.recomendacoes.${id}`, t, { tipo: 'checkbox', classe: 'rec', render: true })).join('')}</div>`);
@@ -73,9 +74,17 @@ App.abas.produto = {
       // ordem do trabalho: questionários (1–3) → documentos com as respostas → QFD → requisitos e especificações
       h += App.nedipQuestionariosHtml(e, b);
       h += App.nedipAnexosHtml(et, e, b);
-      h += App.qfdEmbutidoHtml ? App.qfdEmbutidoHtml(e, b) : App.nedipEntradaHtml(et, e, b);
+      h += secoes ? App.secoesHtml('qfd', 5, 'O QFD do projeto, página por página. Tudo o que for preenchido aqui atualiza sozinho os requisitos de cliente, as especificações e os critérios de qualidade do Gestão, e chega ao projeto conceitual.') : App.nedipEntradaHtml(et, e, b);
       h += App.nedipInformacionalResto(e, b);
       h += registro;
+    } else if (secoes && (et.id === 'conceitual' || et.id === 'preliminar')) {
+      h += et.id === 'conceitual'
+        ? App.secoesHtml('pc', 1, 'Do escopo do problema à concepção selecionada (Reis, 2003; Pahl et al., 2007), página por página. Funções, concepções, desdobramento e FMEA vão sozinhos para o Gestão; as especificações vêm do QFD do projeto informacional.')
+        : App.secoesHtml('pc-pre', 1, 'Do leiaute preliminar ao leiaute definitivo (Reis, 2003, fase 3; Spagnolo, 2011), com rodadas de teste, adequação e lições aprendidas. Usa a concepção escolhida no projeto conceitual.');
+      h += `<div class="cartao secoes-resumo"><h3 style="margin-top:0">Resumo no Gestão</h3><p class="muted" style="margin:0">Os quadros abaixo são do Gestão (relatórios, manuais e árvore TRL). ${et.id === 'conceitual' ? 'Funções, princípios, concepções e desdobramento são preenchidos sozinhos pelas seções acima.' : 'A FMEA recebe sozinha os modos de falha da concepção; leiaute, protótipos e viabilidade são os textos dos relatórios.'}</p></div>`;
+      h += App.nedipEspecifico[et.id](e, b, servico);
+      h += registro;
+      h += App.nedipAnexosHtml(et, e, b);
     } else {
       h += App.nedipEspecifico[et.id](e, b, servico);
       h += registro;

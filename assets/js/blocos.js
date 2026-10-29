@@ -99,10 +99,10 @@ App.blocoPrevia = function (x, b) {
     }
     case 'qfd': {
       const a = Qfd.analisar(App.p.qfdDados);
-      if (!a) return `<div class="aviso-box"><b>${esc(b.titulo)}</b><br>Nenhum QFD importado neste projeto. ${irInformacional('Ir ao projeto informacional (importar o QFD)')}</div>`;
+      if (!a) return `<div class="aviso-box"><b>${esc(b.titulo)}</b><br>O QFD do projeto ainda não tem dados. ${irInformacional('Ir ao QFD do projeto')}</div>`;
       return `<div class="nb-resumo"><b>${esc(b.titulo)}</b> <span class="muted">· ${a.rc.length} requisitos do cliente, ${a.rp.length} de projeto</span>
         ${listaSecoes(b, Qfd.nome, (s) => { const d = Qfd.disponivel(a, s); return { ok: d.ok, motivo: 'falta no QFD: ' + d.motivo }; })}
-        ${b.secoes.some((s) => !Qfd.disponivel(a, s).ok) ? '<button class="btn pequeno" data-acao="qfd-abrir">↗ Completar no sistema QFD</button>' : ''}</div>`;
+        ${b.secoes.some((s) => !Qfd.disponivel(a, s).ok) ? '<button class="btn pequeno" data-acao="qfd-abrir">Completar no QFD do projeto</button>' : ''}</div>`;
     }
     case 'nedip': {
       const falta = b.secoes.map((s) => NedipRel.disponivel(App.p, s)).filter((d) => !d.ok);
@@ -161,10 +161,10 @@ App.blocoEditor = function (x, b, bp) {
     case 'qfd': {
       const a = Qfd.analisar(App.p.qfdDados);
       return `${c(bp + '.titulo', 'Título do bloco', { attrs: 'data-foco="1"' })}
-        ${a ? '' : `<div class="aviso-box">Nenhum QFD importado. ${irInformacional('Ir ao projeto informacional')}</div>`}
+        ${a ? '' : `<div class="aviso-box">O QFD do projeto ainda não tem dados. ${irInformacional('Ir ao projeto informacional')}</div>`}
         <p class="muted">Informações do QFD neste bloco (mesma escolha do cartão “Relatório do QFD” no projeto informacional):</p>
         ${caxasQfd(x, b, a)}
-        ${a && Qfd.SECOES.some(([s]) => !Qfd.disponivel(a, s).ok) ? '<div class="barra"><button class="btn pequeno" data-acao="qfd-abrir">↗ Completar no sistema QFD</button></div>' : ''}`;
+        ${a && Qfd.SECOES.some(([s]) => !Qfd.disponivel(a, s).ok) ? '<div class="barra"><button class="btn pequeno" data-acao="qfd-abrir">Completar no QFD do projeto</button></div>' : ''}`;
     }
     case 'nedip': return `${c(bp + '.titulo', 'Título do bloco', { attrs: 'data-foco="1"' })}
         <p class="muted">Informações do projeto de produto neste bloco (mesma escolha do cartão “Projeto de produto nos relatórios”). Seções sem dados não entram no PDF.</p>
