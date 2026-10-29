@@ -473,3 +473,13 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .secoes-indice a:hover { text-decoration: underline; }
 .app-secao h3 { scroll-margin-top: 70px; }
 .secoes-resumo { background: var(--fundo); }
+.sec-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sec-topo h3 { margin: 0 !important; cursor: pointer; flex: 1; min-width: 200px; }
+.sec-alternar { background: none; border: 0; font-size: 16px; cursor: pointer; color: var(--escuro); width: 26px; padding: 0; }
+.sec-direita { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.sec-pct { font-size: 12.5px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--fundo); color: var(--suave); white-space: nowrap; }
+.sec-pct.ok { background: #e3f3e9; color: var(--ok); }
+.sec-pct.meio { background: #fdf3dc; color: var(--aviso); }
+.app-secao .app-lugar { margin-top: 10px; }
+.app-secao.recolhida { padding-top: 10px; padding-bottom: 10px; }
+.secoes-cab.apoio { border-left-color: var(--lima); }

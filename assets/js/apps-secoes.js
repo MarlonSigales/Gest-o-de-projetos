@@ -18,8 +18,9 @@
     ['requisitos-projeto', 'Requisitos de projeto'], ['correlacao-projeto', 'Correlação entre requisitos de projeto (telhado)'],
     ['matriz-qfd', 'Matriz QFD (casa da qualidade)'], ['especificacoes', 'Especificações de projeto'],
     ['avaliacao-competitiva', 'Avaliação competitiva'], ['atendimento-requisitos', 'Atendimento aos requisitos'],
-    ['ideias', 'Caderno de ideias'], ['referencias', 'Estado da técnica (normas, produtos, patentes, artigos)'],
     ['fechamento', 'Fechamento: abstração, formulação e função global']]; // o relatório do QFD sai no PDF do Gestão (botão no topo)
+  /** Páginas de apoio do QFD (fora do fluxo, valem para todas as fases): no início do projeto de produto. */
+  const QFD_APOIO = [['ideias', 'Caderno de ideias'], ['referencias', 'Estado da técnica (normas, produtos, patentes, artigos)']];
   const PC_CONC = [
     ['inicio', 'Início: tipo de projeto e preenchimento automático'], ['escopo', 'Escopo do problema'], ['funcao-global', 'Função global'],
     ['estrutura', 'Estrutura funcional'], ['principios', 'Princípios de solução'], ['matriz', 'Matriz morfológica'],
@@ -28,7 +29,7 @@
     ['p-requisitos', 'Requisitos e restrições'], ['p-leiautes', 'Portadores e leiautes'], ['p-detalhes', 'Funções auxiliares e diretrizes'],
     ['p-verificacoes', 'Verificações e lista de partes'], ['p-prototipo', 'Protótipo e testes'], ['p-adequacao', 'Adequação às especificações'],
     ['p-fechamento', 'Leiaute definitivo e relatório do preliminar']];
-  const S = App.secoes = { frames: {}, prep: { qfd: '', pc: '' }, chave: { qfd: '', pc: '' }, projeto: '', timers: {}, pcInit: '', pcInitFrame: '', pcPronto: false, criando: false };
+  const S = App.secoes = { frames: {}, prep: { qfd: '', pc: '' }, chave: { qfd: '', pc: '' }, projeto: '', timers: {}, pcInit: '', pcInitFrame: '', pcPronto: false, criando: false, st: {} };
   const norm = (x) => String(x ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   const lerLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const gravarLS = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
@@ -52,27 +53,112 @@
 
   // ---------------------------------------------------------------- seções na página
   /** Cartões das páginas de um sistema, numerados a partir de n0 (ex.: 5 → 5.1, 5.2…). */
+  const listaDe = (app) => (app === 'qfd' ? QFD_PAGS : app === 'apoio' ? QFD_APOIO : app === 'pc-pre' ? PC_PRE : PC_CONC);
+  /** Seções recolhidas: guardadas no projeto (config.secoesRecolhidas); as de apoio começam recolhidas. */
+  const recolhidas = () => { const c = App.p.config || (App.p.config = {}); return c.secoesRecolhidas || (c.secoesRecolhidas = {}); };
+  const estaRecolhida = (k, apoio) => { const r = recolhidas(); return k in r ? !!r[k] : !!apoio; };
+  function estadoHtml(k) {
+    const st = S.st[k]; if (!st) return '';
+    const cls = st.feito ? 'ok' : st.pct ? 'meio' : 'vazio';
+    const txt = st.feito && !st.marcada ? '100%' : st.pct !== null ? `${st.pct}%` : st.estado === 'andamento' ? 'em andamento' : '0%';
+    return `<span class="sec-pct ${cls}" title="${esc(st.resumo || '')}">${txt}${st.feito ? (st.marcada ? ' · ✓ marcada como concluída' : ' · ✓ concluída') : ''}</span>`;
+  }
+  function botaoConcluir(k) {
+    const st = S.st[k]; if (!st || st.semConclusao) return '';
+    if (st.feito && !st.marcada) return '';
+    return st.marcada ? `<button class="btn pequeno" data-acao="sec-concluir" data-chave="${k}" data-v="0" title="Desfazer a marcação">Desfazer</button>`
+      : `<button class="btn pequeno" data-acao="sec-concluir" data-chave="${k}" data-v="1" title="Use quando esta etapa não precisar ser preenchida por completo">✓ Marcar como concluída</button>`;
+  }
+  /** Cartões das páginas de um sistema, numerados a partir de n0 (ex.: 5 → 5.1, 5.2…). */
   App.secoesHtml = function (app, n0, intro) {
-    const lista = app === 'qfd' ? QFD_PAGS : app === 'pc-pre' ? PC_PRE : PC_CONC, ap = app === 'qfd' ? 'qfd' : 'pc';
-    const nome = { qfd: 'QFD (casa da qualidade)', pc: 'Projeto conceitual', 'pc-pre': 'Projeto preliminar' }[app];
-    let h = `<div class="cartao secoes-cab"><h3 style="margin-top:0">${n0}. ${nome}</h3><p class="muted" style="margin:0">${intro}</p>
-      ${app === 'qfd' ? '<div class="barra"><button class="btn primario" data-acao="qfd-pdf">📄 PDF da análise QFD</button></div>' : ''}
+    const lista = listaDe(app), ap = app === 'pc' || app === 'pc-pre' ? 'pc' : 'qfd', apoio = app === 'apoio';
+    const nome = { qfd: 'QFD (casa da qualidade)', apoio: 'Apoio ao projeto (todas as fases)', pc: 'Projeto conceitual', 'pc-pre': 'Projeto preliminar' }[app];
+    const chaves = lista.map(([p]) => `${ap}:${p}`).join(',');
+    let h = `<div class="cartao secoes-cab ${apoio ? 'apoio' : ''}"><h3 style="margin-top:0">${n0}. ${nome}</h3><p class="muted" style="margin:0">${intro}</p>
+      <div class="barra">${app === 'qfd' ? `<button class="btn primario" data-acao="qfd-pdf">📄 PDF da análise QFD</button>
+        <label class="btn" title="Para projetos antigos: traz um backup JSON do Sistema QFD para o QFD deste projeto">⬆ Importar JSON do QFD (legado)<input type="file" hidden data-sec-json="1" accept=".json,.zip,application/json,application/zip"></label>` : ''}
+        <button class="btn pequeno" data-acao="sec-todas" data-chaves="${chaves}" data-v="1">Recolher todas</button><button class="btn pequeno" data-acao="sec-todas" data-chaves="${chaves}" data-v="0">Abrir todas</button></div>
       <nav class="secoes-indice">${lista.map(([p, t], i) => `<a href="#" data-acao="sec-ir" data-chave="${ap}:${p}">${n0}.${i + 1} ${esc(t)}</a>`).join('')}</nav></div>`;
     h += lista.map(([p, t], i) => {
-      const k = `${ap}:${p}`, f = S.frames[k];
-      return `<div class="cartao app-secao" id="sec-${ap}-${p}"><h3 style="margin-top:0">${n0}.${i + 1} ${esc(t)}</h3>
-        <div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div></div>`;
+      const k = `${ap}:${p}`, f = S.frames[k], rec = estaRecolhida(k, apoio);
+      return `<div class="cartao app-secao ${rec ? 'recolhida' : ''}" id="sec-${ap}-${p}">
+        <div class="sec-topo"><button class="sec-alternar" data-acao="sec-alternar" data-chave="${k}" aria-expanded="${!rec}" title="${rec ? 'Abrir' : 'Recolher'}">${rec ? '▸' : '▾'}</button>
+          <h3 data-acao="sec-alternar" data-chave="${k}">${n0}.${i + 1} ${esc(t)}</h3><span class="sec-direita">${estadoHtml(k)}${botaoConcluir(k)}</span></div>
+        ${rec ? '' : `<div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || (App.p.config.secoesAlturas || {})[k] || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div>`}</div>`;
     }).join('');
     return h;
   };
+  /** Recolher/abrir e concluir salvam o projeto sozinhos. */
+  /** Salvamento rápido (só o JSON do projeto, sem nova versão no histórico, PDFs ou e-mails). */
+  function salvarSozinho() {
+    clearTimeout(S.timers.salvar);
+    S.timers.salvar = setTimeout(async () => {
+      if (!App.p || !App.arm || typeof App.arm.atualizarSemHistorico !== 'function') return;
+      try {
+        if (Nucleo.validar(App.p).length) return; // com erro de validação, fica para o Salvar
+        try { await guardarZipPc(); } catch (e) { console.warn('ZIP do projeto conceitual', e); }
+        await App.arm.atualizarSemHistorico(App.p, JSON.stringify(App.p, null, 2));
+        App.marcarSujo(false); App.atualizarTopo && App.atualizarTopo();
+      } catch (e) { console.error('salvar sozinho', e); App.toast('Não deu para salvar sozinho: ' + esc(e.message) + '. Use o botão Salvar.', 'aviso', 8000); }
+    }, 300);
+  }
+  App.acoes['sec-alternar'] = (el) => {
+    const k = el.dataset.chave, r = recolhidas(), apoio = QFD_APOIO.some(([p]) => `qfd:${p}` === k);
+    r[k] = !estaRecolhida(k, apoio);
+    App.marcarSujo(true); App.render(); salvarSozinho();
+  };
+  App.acoes['sec-todas'] = (el) => {
+    const r = recolhidas(); el.dataset.chaves.split(',').forEach((k) => { r[k] = el.dataset.v === '1'; });
+    App.marcarSujo(true); App.render(); salvarSozinho();
+  };
+  App.acoes['sec-concluir'] = (el) => {
+    const k = el.dataset.chave, [app, pag] = k.split(':'), v = el.dataset.v === '1';
+    try {
+      if (app === 'qfd') { const w = janelaDe('qfd'); const db = w && glob(w, 'qfdDB'); if (!db) throw new Error('o QFD ainda está carregando'); db.setEtapaConcluida(pag, v); }
+      else {
+        const w = janelaDe('pc'), pc = w && glob(w, 'PC'); if (!pc || !pc.p) throw new Error('o projeto conceitual ainda está carregando');
+        pc.p.etapasConcluidas = pc.p.etapasConcluidas.filter((x) => x !== pag).concat(v ? [pag] : []); pc.salvar('concluir');
+        if (w.renderPagina) w.renderPagina(true);
+      }
+      setTimeout(() => { atualizarStatus(app); if (app === 'qfd') syncQfd(); else syncPc(true); salvarSozinho(); }, 150);
+    } catch (e) { App.toast('Não deu para marcar: ' + esc(e.message), 'erro'); }
+  };
+  // importar um backup JSON do Sistema QFD (projetos antigos)
+  document.addEventListener('change', async (ev) => {
+    const inp = ev.target; if (!inp || !inp.matches || !inp.matches('input[data-sec-json]')) return;
+    const arq = inp.files && inp.files[0]; inp.value = ''; if (!arq) return;
+    try {
+      let texto;
+      if (/\.zip$/i.test(arq.name)) {
+        const z = await JSZip.loadAsync(arq);
+        for (const n of Object.keys(z.files).filter((x) => /\.json$/i.test(x) && !z.files[x].dir)) { const t = await z.file(n).async('string'); try { const d = JSON.parse(t); if (d && Array.isArray(d.requisitosProjeto)) { texto = t; break; } } catch (e) { /* outro */ } }
+        if (!texto) throw new Error('o ZIP não tem o backup JSON do QFD');
+      } else texto = await arq.text();
+      const d = JSON.parse(texto.replace(/^\uFEFF/, ''));
+      if (!d || !Array.isArray(d.requisitosProjeto) || !Array.isArray(d.requisitosCliente)) throw new Error('o arquivo não é um backup do Sistema QFD');
+      if (App.p.qfdDados && (App.p.qfdDados.requisitosProjeto || []).length && !confirm(`Trocar o QFD deste projeto pelo do arquivo "${arq.name}"? O PDCA, os valores medidos e os requisitos cadastrados à mão na Qualidade são mantidos.`)) return;
+      if (!d.metadata) d.metadata = { schemaVersion: 1 };
+      if (App.arm) { try { await App.arm.gravarArquivo(`qfd/qfd_${Nucleo.agoraIso().replace('T', '_').replace(/:/g, '')}.json`, new Blob([texto], { type: 'application/json' })); } catch (e) { /* cópia opcional */ } }
+      const w = janelaDe('qfd'), db = w && glob(w, 'qfdDB');
+      if (db) { if (!db.importData(d)) throw new Error(db.lastImportError || 'o QFD recusou o arquivo'); }
+      else { gravarLS('qfd_data', JSON.stringify(d)); gravarLS('gp_dono_qfd', projId()); }
+      S.chave.qfd = ''; syncQfd(true);
+      App.toast(`QFD do arquivo "${esc(arq.name)}" trazido para este projeto.`, 'ok', 7000);
+    } catch (e) { App.toast('Importar JSON do QFD: ' + esc(e.message), 'erro', 9000); }
+  });
+
   App.acoes['sec-ir'] = (el, ev) => { if (ev) ev.preventDefault(); const [a, p] = el.dataset.chave.split(':'); irParaSecao(a, p); };
 
   function irParaSecao(app, pag) {
     if (app === 'qfd' && pag === 'relatorio' && App.acoes['qfd-pdf']) { App.acoes['qfd-pdf'](); return; } // relatório do QFD = PDF do Gestão
-    if (app === 'qfd' && !QFD_PAGS.some(([p]) => p === pag)) pag = QFD_PAGS[0][0];
+    const ehApoio = app === 'qfd' && QFD_APOIO.some(([p]) => p === pag);
+    if (app === 'qfd' && !ehApoio && !QFD_PAGS.some(([p]) => p === pag)) pag = QFD_PAGS[0][0];
+    const r = recolhidas(), k = `${app}:${pag}`;
+    if (estaRecolhida(k, ehApoio)) { r[k] = false; App.marcarSujo(true); salvarSozinho(); }
     if (app === 'pc' && !PC_CONC.concat(PC_PRE).some(([p]) => p === pag)) pag = 'inicio';
-    const fase = faseDe(app, pag);
-    if (App.aba !== 'produto' || App.etapaSel !== fase) { App.aba = 'produto'; App.etapaSel = fase; App.render(); }
+    const fase = ehApoio ? App.etapaSel : faseDe(app, pag);
+    if (App.aba !== 'produto' || App.etapaSel !== fase) { App.aba = 'produto'; App.etapaSel = fase; }
+    App.render();
     S.alvo = { id: `sec-${app}-${pag}`, ate: Date.now() + 6000 };
     setTimeout(() => { const l = document.getElementById(S.alvo ? S.alvo.id : ''); if (l) window.scrollTo({ top: l.getBoundingClientRect().top + window.scrollY - 66 }); }, 60);
   }
@@ -149,13 +235,14 @@
     if (!c) { c = document.createElement('div'); c.id = 'appCamada'; document.body.appendChild(c); }
     return c;
   }
+  const REAL_ST = { qfd: 'ideias', pc: 'inicio' };
   function criar(k) {
-    const [app, pag] = k.split(':');
+    const [app, pag] = k.split(':'), real = pag === '__st' ? REAL_ST[app] : pag;
     const el = document.createElement('iframe');
-    el.className = 'app-frame'; el.setAttribute('aria-label', (app === 'qfd' ? 'QFD: ' : 'Projeto conceitual: ') + pag); el.src = urlDe(app, pag);
+    el.className = 'app-frame'; el.setAttribute('aria-label', (app === 'qfd' ? 'QFD: ' : 'Projeto conceitual: ') + pag); el.src = urlDe(app, real);
     el.setAttribute('scrolling', 'no');
     camada().appendChild(el);
-    S.frames[k] = { el, app, pag, altura: 0, carregado: false, modal: false };
+    S.frames[k] = { el, app, pag, real, altura: 0, carregado: false, modal: false, oculto: pag === '__st' };
     if (app === 'pc' && S.pcInit && !S.pcInitFrame) S.pcInitFrame = k;
     el.addEventListener('load', () => aoCarregar(k));
     S.criando = true; setTimeout(() => { S.criando = false; }, 200);
@@ -167,7 +254,7 @@
 
   const CSS = {
     qfd: `html.gp-emb .topbar, html.gp-emb .sidebar, html.gp-emb .sidebar-toggle, html.gp-emb .sidebar-overlay, html.gp-emb .footer, html.gp-emb .nav-page-actions,
-      html.gp-emb .page-nav, html.gp-emb .proximo-passo-rodape { display: none !important; }
+      html.gp-emb .page-nav, html.gp-emb .proximo-passo-rodape, html.gp-emb .etapa-conclusao { display: none !important; }
       html.gp-emb, html.gp-emb body { background: transparent !important; overflow: hidden; }
       html.gp-emb .app-shell { display: block !important; min-height: 0 !important; }
       html.gp-emb .main-content { min-height: 0 !important; padding: 4px 0 8px !important; margin: 0 !important; }
@@ -175,7 +262,7 @@
       html.gp-emb.gp-modal, html.gp-emb.gp-modal body { overflow: auto; }`,
     pc: `html.gp-emb .topbar, html.gp-emb .sidebar, html.gp-emb .sidebar-toggle, html.gp-emb #etapa-nav, html.gp-emb .footer, html.gp-emb #aviso,
       html.gp-emb .card.comecar, html.gp-emb .cartao-nuvem, html.gp-emb .qfd-navegador, html.gp-emb [data-acao="baixar-zip"], html.gp-emb [data-acao="arm-salvar-completo"],
-      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .titulo-num { display: none !important; }
+      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .titulo-num, html.gp-emb #etapa-conclusao { display: none !important; }
       html.gp-emb, html.gp-emb body { background: transparent !important; overflow: hidden; }
       html.gp-emb .app-corpo { display: block !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
       html.gp-emb .app-conteudo { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
@@ -190,11 +277,11 @@
     try { w = f.el.contentWindow; doc = w.document; if (!doc) throw new Error(); } catch (e) { f.carregado = true; f.altura = 640; return; }
     // um link levou a outra página: volta à página da seção e mostra a seção certa
     const caminho = norm(w.location.pathname);
-    if (f.app === 'qfd' && !caminho.endsWith(`/pages/${f.pag}.html`)) {
+    if (f.app === 'qfd' && !caminho.endsWith(`/pages/${f.real}.html`)) {
       const m = caminho.match(/\/pages\/([a-z0-9-]+)\.html$/);
-      f.el.src = urlDe('qfd', f.pag); if (m && m[1] !== f.pag) irParaSecao('qfd', m[1]); return;
+      f.el.src = urlDe('qfd', f.real); if (m && m[1] !== f.real && !f.oculto) irParaSecao('qfd', m[1]); return;
     }
-    if (f.app === 'pc' && !/projetoconceitual|index\.html$|\/$/.test(caminho)) { f.el.src = urlDe('pc', f.pag); return; }
+    if (f.app === 'pc' && !/projetoconceitual|index\.html$|\/$/.test(caminho)) { f.el.src = urlDe('pc', f.real); return; }
     doc.documentElement.classList.add('gp-emb');
     const st = doc.createElement('style'); st.textContent = CSS[f.app]; doc.head.appendChild(st);
     const toast = (m, t) => App.toast(String(m), /erro|danger|error/.test(t || '') ? 'erro' : /aviso|warn/.test(t || '') ? 'aviso' : 'ok');
@@ -203,7 +290,7 @@
     doc.addEventListener('click', (ev) => interceptar(ev, f, w), true);
     if (f.app === 'pc') w.addEventListener('hashchange', () => {
       const h = w.location.hash.replace(/^#\/?/, '').split('?')[0];
-      if (h && h !== f.pag) { w.location.hash = '#/' + f.pag; irParaSecao('pc', h); }
+      if (h && h !== f.real) { w.location.hash = '#/' + f.real; if (!f.oculto) irParaSecao('pc', h); }
     });
     const medir = () => {
       try {
@@ -211,7 +298,7 @@
         const m = doc.querySelector('.main-content') || doc.body;
         const extra = f.app === 'pc' ? 0 : 0;
         const a = Math.max(160, Math.ceil(m.getBoundingClientRect().bottom + (f.modal ? w.scrollY : 0) + 12 + extra));
-        if (!f.modal && Math.abs(a - f.altura) > 2) f.altura = a;
+        if (!f.modal && Math.abs(a - f.altura) > 2) { f.altura = a; if (!f.oculto) { const c = App.p.config || (App.p.config = {}); (c.secoesAlturas || (c.secoesAlturas = {}))[`${f.app}:${f.pag}`] = a; } }
       } catch (e) { /* página trocando */ }
     };
     try { new w.ResizeObserver(medir).observe(doc.body); } catch (e) { /* sem ResizeObserver */ }
@@ -223,6 +310,7 @@
     try {
       if (f.app === 'qfd') await aoCarregarQfd(f, w);
       else await aoCarregarPc(f, w);
+      atualizarStatus(f.app);
     } catch (e) { console.error('seção', k, e); App.toast(`Seção ${esc(f.pag)}: ${esc(e.message)}`, 'erro', 9000); }
   }
 
@@ -276,6 +364,11 @@
     if (S.projeto !== projId()) { destruirTudo(); S.projeto = projId(); }
     const lugares = {};
     document.querySelectorAll('.app-lugar').forEach((l) => { lugares[l.dataset.chave] = l; });
+    if (!S.criando) ['qfd', 'pc'].forEach((app) => {
+      if (S.criando || !podeCriar(app) || S.frames[`${app}:__st`] || !document.querySelector(`.app-secao[id^="sec-${app}-"]`)) return;
+      if (app === 'pc' && !S.pcPronto) return;
+      if (!Object.values(S.frames).some((f) => f.app === app)) criar(`${app}:__st`);
+    });
     if (!S.criando) {
       const vh = window.innerHeight;
       for (const k in lugares) {
@@ -287,7 +380,7 @@
     const sx = window.scrollX, sy = window.scrollY;
     for (const k in S.frames) {
       const f = S.frames[k], l = lugares[k], st = f.el.style;
-      if (!l) { if (st.display !== 'none') st.display = 'none'; continue; }
+      if (!l || f.oculto) { if (st.display !== 'none') st.display = 'none'; continue; }
       if (f.altura && !f.modal && Math.abs(parseFloat(l.style.height) - f.altura) > 1) l.style.height = f.altura + 'px';
       const r = l.getBoundingClientRect();
       if (f.modal) { const topo = topoAltura(); st.position = 'fixed'; st.top = topo + 'px'; st.left = r.left + 'px'; st.width = r.width + 'px'; st.height = (window.innerHeight - topo) + 'px'; }
@@ -349,19 +442,46 @@
     App.marcarSujo(true);
     if (App.agendarAnalise) App.agendarAnalise();
   }
-  function syncQfd() {
+  function syncQfd(forcar) {
     if (S.prep.qfd !== projId() || lerLS('gp_dono_qfd') !== projId()) return;
     const txt = lerLS('qfd_data'); if (!txt) return;
-    const k = semMeta(txt); if (k === S.chave.qfd) return;
+    const k = semMeta(txt); if (k === S.chave.qfd && !forcar) return;
     S.chave.qfd = k;
     let d; try { d = JSON.parse(txt); } catch (e) { return; }
     try { aplicarQfd(d); } catch (e) { console.error('QFD → Gestão', e); }
     Object.values(S.frames).filter((f) => f.app === 'qfd' && f.carregado && f.el !== document.activeElement).forEach((f) => { f.carregado = false; try { f.el.contentWindow.location.reload(); } catch (e) { /* ok */ } });
     qfdParaPc(d);
+    setTimeout(() => atualizarStatus('qfd'), 1500);
     redesenhar();
   }
 
   // ---------------------------------------------------------------- projeto conceitual e preliminar
+  function janelaDe(app) {
+    if (app === 'pc') return pcJanela();
+    const fs = Object.values(S.frames).filter((f) => f.app === 'qfd' && f.carregado), at = fs.find((f) => f.el === document.activeElement) || fs[0];
+    try { const w = at && at.el.contentWindow; return w && glob(w, 'qfdDB') ? w : null; } catch (e) { return null; }
+  }
+  /** Situação de cada etapa (percentual, concluída, marcada) com as contas dos próprios sistemas. */
+  function atualizarStatus(app) {
+    const w = janelaDe(app); if (!w) return;
+    const novo = {};
+    const pctDe = (x) => { const m = String(x.resumo || '').match(/(\d+(?:[.,]\d+)?)\s*%/); return m ? Math.round(parseFloat(m[1].replace(',', '.'))) : x.estado === 'feito' ? 100 : x.estado === 'vazio' ? 0 : null; };
+    try {
+      if (app === 'qfd') {
+        const st = w.statusEtapasQFD(), db = glob(w, 'qfdDB');
+        QFD_PAGS.forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = db.isEtapaConcluida(p) && !!x.marcada;
+          novo['qfd:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: marcada ? pctDe(Object.assign({}, x, { estado: 'andamento' })) : pctDe(x) }; });
+      } else {
+        const pc = glob(w, 'PC'), st = w.statusEtapas(pc.p);
+        PC_CONC.concat(PC_PRE).forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = (pc.p.etapasConcluidas || []).includes(p) && !!x.marcada;
+          novo['pc:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: pctDe(marcada ? Object.assign({}, x, { estado: 'andamento' }) : x), semConclusao: p === 'relatorio' }; });
+      }
+    } catch (e) { console.warn('situação das etapas', e); return; }
+    const antes = JSON.stringify(Object.fromEntries(Object.entries(S.st).filter(([k]) => k.startsWith(app + ':'))));
+    Object.keys(S.st).filter((k) => k.startsWith(app + ':')).forEach((k) => delete S.st[k]);
+    Object.assign(S.st, novo);
+    if (JSON.stringify(novo) !== antes) redesenhar();
+  }
   const pcFrames = () => Object.values(S.frames).filter((f) => f.app === 'pc' && f.carregado);
   function pcJanela() {
     const fs = pcFrames(), at = fs.find((f) => f.el === document.activeElement) || fs[0];
@@ -384,7 +504,7 @@
         if (typeof w.preencherTudo === 'function') w.preencherTudo(pc.p);
         pc.salvar('qfd');
       }
-      if (w.location.hash !== '#/' + f.pag) w.location.hash = '#/' + f.pag;
+      if (w.location.hash !== '#/' + f.real) w.location.hash = '#/' + f.real;
       if (w.renderPagina) w.renderPagina();
       S.pcPronto = true; S.pcInit = '';
       syncPc(true);
@@ -421,6 +541,7 @@
       } catch (e) { console.error('projeto conceitual → Gestão', e); }
     } else S.pcPendenteSync = true;
     App.marcarSujo(true);
+    atualizarStatus('pc');
     redesenhar();
   }
   /** Ao salvar o Gestão: o ZIP do projeto conceitual (com as fotos) vai para a pasta do projeto, anexo à fase conceitual. */
@@ -462,8 +583,8 @@
     try {
       if (!App.p) return;
       if (S.projeto !== projId()) { destruirTudo(); S.projeto = projId(); }
-      if (document.querySelector('.app-lugar[data-chave^="qfd:"]') && S.prep.qfd !== projId()) prepararQfd();
-      if (document.querySelector('.app-lugar[data-chave^="pc:"]') && S.prep.pc !== projId()) prepararPc();
+      if (document.querySelector('.app-secao[id^="sec-qfd-"]') && S.prep.qfd !== projId()) prepararQfd();
+      if (document.querySelector('.app-secao[id^="sec-pc-"]') && S.prep.pc !== projId()) prepararPc();
       // a consolidação dos questionários mudou: os novos requisitos de cliente vão para o QFD
       const fq = Object.values(S.frames).find((f) => f.app === 'qfd' && f.carregado);
       if (fq) empurrarConsolidacao(fq.el.contentWindow);

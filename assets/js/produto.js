@@ -56,6 +56,8 @@ App.abas.produto = {
       <b>${esc(r.nome)}</b><span>${esc(r.status)} · ${r.feitas}/${r.total}</span><small>saída: ${esc(r.saida)}</small></button>`).join('')}</div></div>`;
   }).join('')}</div></div>
 
+${App.secoesHtml && App.secoesAtivas && App.secoesAtivas() ? App.secoesHtml('apoio', 'A', 'Caderno de ideias e estado da técnica do QFD: valem para todas as fases. Ficam recolhidos; abra quando precisar.') : ''}
+
 <div class="cartao"><h3 style="margin-top:0">${esc(et.nome)}</h3>
   <p>${esc(et.objetivo)} <b>Saída esperada:</b> ${esc(et.saida)}.</p>
   <div class="grade-campos">
