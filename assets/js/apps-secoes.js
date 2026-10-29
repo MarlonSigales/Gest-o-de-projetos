@@ -328,7 +328,7 @@
       html.gp-emb.gp-modal, html.gp-emb.gp-modal body { overflow: auto; }`,
     pc: `html.gp-emb .topbar, html.gp-emb .sidebar, html.gp-emb .sidebar-toggle, html.gp-emb #etapa-nav, html.gp-emb .footer, html.gp-emb #aviso,
       html.gp-emb .card.comecar, html.gp-emb .cartao-nuvem, html.gp-emb .qfd-navegador, html.gp-emb [data-acao="baixar-zip"], html.gp-emb [data-acao="arm-salvar-completo"],
-      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .titulo-num, html.gp-emb #etapa-conclusao, html.gp-emb .page-titulo h1 { display: none !important; }
+      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .cartao-prelim, html.gp-emb .titulo-num, html.gp-emb #etapa-conclusao, html.gp-emb .page-titulo h1 { display: none !important; }
       html.gp-emb, html.gp-emb body { background: transparent !important; overflow: hidden; }
       html.gp-emb .app-corpo { display: block !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
       html.gp-emb .app-conteudo { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }

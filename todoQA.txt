@@ -415,3 +415,4 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    gerando as linhas de falha (massa, fadiga, tensão dos raios), pcDados no JSON, ZIP e PDFs refeitos.
 87 [resolvido] Todas as seções começam recolhidas ao abrir o projeto (abre-se só o que for usar; ir a uma seção a abre).
 88 [resolvido] Botão "▴ Recolher" também no fim de cada seção aberta; ao recolher por ali, a tela volta ao título da seção.
+89 [resolvido] Início do conceitual (seção 1.1) não mostra mais o cartão do projeto preliminar: ele fica só na fase preliminar.
