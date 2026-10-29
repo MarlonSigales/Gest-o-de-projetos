@@ -94,7 +94,8 @@
       return `<div class="cartao app-secao ${rec ? 'recolhida' : ''}" id="sec-${ap}-${p}">
         <div class="sec-topo"><button class="sec-alternar" data-acao="sec-alternar" data-chave="${k}" aria-expanded="${!rec}" title="${rec ? 'Abrir' : 'Recolher'}">${rec ? '▸' : '▾'}</button>
           <h3 data-acao="sec-alternar" data-chave="${k}">${n0}.${i + 1} ${esc(t)}</h3><span class="sec-direita">${estadoHtml(k)}${botaoConcluir(k)}</span></div>
-        ${rec ? '' : `<div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || (App.p.config.secoesAlturas || {})[k] || alturaVista(k) || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div>`}</div>`;
+        ${rec ? '' : `<div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || (App.p.config.secoesAlturas || {})[k] || alturaVista(k) || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div>
+        <div class="sec-fim"><button class="btn pequeno" data-acao="sec-alternar" data-chave="${k}" data-fim="1">▴ Recolher ${n0}.${i + 1}</button></div>`}</div>`;
     }).join('');
     return h;
   };
@@ -115,9 +116,10 @@
     }, ms);
   }
   App.acoes['sec-alternar'] = (el) => {
-    const k = el.dataset.chave;
+    const k = el.dataset.chave, doFim = el.dataset.fim === '1';
     abrirOuFechar(k, estaRecolhida(k));
     App.marcarSujo(true); App.render(); salvarSozinho();
+    if (doFim) { const [ap, pg] = k.split(':'), c = document.getElementById(`sec-${ap}-${pg}`); if (c) window.scrollTo({ top: c.getBoundingClientRect().top + window.scrollY - 66 }); } // recolhida pelo fim: a tela volta ao título
   };
   App.acoes['sec-todas'] = (el) => {
     el.dataset.chaves.split(',').forEach((k) => abrirOuFechar(k, el.dataset.v !== '1'));
