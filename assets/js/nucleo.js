@@ -715,7 +715,13 @@ Nucleo.importarQfd = function (dados) {
   const itens = ordem.map((r, k) => {
     const e = esp.find((x) => x.requisitoProjetoId === r.id) || {};
     const sentido = sentidos[String(r.sentidoMelhoria || '').toLowerCase()] || (['up', 'down', 'none'].includes(r.sentidoMelhoria) ? r.sentidoMelhoria : 'none');
-    const metaTxt = String(e.valorUnitario || '').trim(), un = String(e.unidadeMedida || '').trim();
+    const un = String(e.unidadeMedida || '').trim();
+    // backups atuais do QFD (tipoMeta/valorMeta/valorMax/tolerancia/metaTexto); os antigos guardavam a meta em "valorUnitario"
+    const vazio = (x) => x === null || x === undefined || x === '';
+    const atual = !String(e.valorUnitario || '').trim() && (!!e.tipoMeta || !!String(e.metaTexto || '').trim());
+    const nBr = (x) => String(x).replace('.', ',');
+    const vMeta = atual && !vazio(e.valorMeta) ? Number(e.valorMeta) : null, vMax = atual && !vazio(e.valorMax) ? Number(e.valorMax) : null, tol = atual && !vazio(e.tolerancia) ? Math.abs(Number(e.tolerancia)) : null;
+    const metaTxt = atual ? (Number.isFinite(vMeta) ? nBr(vMeta) : '') : String(e.valorUnitario || '').trim();
     const meta = Nucleo.parseNumero(metaTxt);
     const medTxt = String((vals.find((v) => v.requisitoProjetoId === r.id) || {}).valor || '').trim();
     const med = Nucleo.parseNumero(medTxt);
@@ -723,19 +729,32 @@ Nucleo.importarQfd = function (dados) {
     if (meta !== null) {
       if (med === null) estado = 'sem-medicao';
       else {
-        const ok = sentido === 'up' ? med >= meta : sentido === 'down' ? med <= meta : (meta === 0 ? med === 0 : Math.abs(med - meta) <= Math.abs(meta) * QFD_TOLERANCIA);
+        let ok;
+        if (atual && e.tipoMeta === 'faixa' && Number.isFinite(vMax)) ok = med >= meta && med <= vMax;
+        else if (atual && e.tipoMeta === '>=') ok = med >= meta;
+        else if (atual && e.tipoMeta === '<=') ok = med <= meta;
+        else if (atual && e.tipoMeta === '=' && tol !== null && tol > 0) ok = Math.abs(med - meta) <= tol;
+        else if (atual && e.tipoMeta === '=') ok = meta === 0 ? med === 0 : Math.abs(med - meta) <= Math.abs(meta) * QFD_TOLERANCIA;
+        else ok = sentido === 'up' ? med >= meta : sentido === 'down' ? med <= meta : (meta === 0 ? med === 0 : Math.abs(med - meta) <= Math.abs(meta) * QFD_TOLERANCIA);
         estado = ok ? 'atingida' : 'nao-atingida';
       }
     }
     const moeda = /^(R\$|US\$|\$|€)$/.test(un);
     const valUn = (v) => (moeda ? `${un} ${v}` : `${v} ${un}`).trim();
     // sem valor-meta, a meta costuma estar escrita na observação do requisito (ex.: "entre 0,6 a 1,1 m3/s"): vira o critério
-    const obsReq = String(r.observacao || '').trim(), metaNaObs = !metaTxt && /\d/.test(obsReq);
-    const criterio = metaTxt ? `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}` + (sentido === 'none' ? ' (±5%)' : '') : (metaNaObs ? obsReq : '');
-    if (!metaTxt) avisos.push(`RP${r._i + 1} "${r.descricao}" está sem valor-meta nas especificações do QFD${metaNaObs ? ` (usada a observação: "${obsReq}")` : ''}.`);
+    const obsReq = String(r.observacao || '').trim(), metaNaObs = !metaTxt && !(atual && String(e.metaTexto || '').trim()) && /\d/.test(obsReq);
+    let criterio;
+    if (atual && metaTxt) {
+      const simb = { '>=': '≥', '<=': '≤', '=': '=' }[e.tipoMeta];
+      criterio = e.tipoMeta === 'faixa' && Number.isFinite(vMax) ? `${metaTxt} a ${valUn(nBr(vMax))}`
+        : simb ? `${simb} ${valUn(metaTxt)}${e.tipoMeta === '=' ? (tol ? ` ± ${nBr(tol)}` : ' (±5%)') : ''}`
+        : `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}`;
+    } else if (atual && String(e.metaTexto || '').trim()) criterio = String(e.metaTexto).trim();
+    else criterio = metaTxt ? `${Nucleo.SENTIDO_QFD[sentido]} ${valUn(metaTxt)}` + (sentido === 'none' ? ' (±5%)' : '') : (metaNaObs ? obsReq : '');
+    if (!metaTxt && !criterio) avisos.push(`RP${r._i + 1} "${r.descricao}" está sem valor-meta nas especificações do QFD${metaNaObs ? ` (usada a observação: "${obsReq}")` : ''}.`);
     return {
       id: 'qfd_' + r.id, requisito: `RP${r._i + 1}. ${r.descricao}`, criterioAceite: criterio,
-      metodoVerificacao: String(e.observacao || (metaNaObs ? '' : r.observacao) || '').trim(),
+      metodoVerificacao: String((atual && e.formaAvaliacao) || e.observacao || (metaNaObs ? '' : r.observacao) || '').trim(),
       status: estado === 'atingida' ? 'conforme' : estado === 'nao-atingida' ? 'não conforme' : 'pendente',
       pdca: { planejar: '', executar: '', verificar: '', agir: '' },
       aspectosIndesejaveis: String(e.aspectosIndesejaveis || '').trim(),

@@ -422,3 +422,35 @@ button.versao-proj:hover { box-shadow: 0 0 0 2px var(--teal); }
 .nav-falta { background: #fff6df; border: 1px solid #ecd9a1; color: #6b5200; border-radius: 8px; padding: 8px 12px; margin: 0 0 10px; font-size: 13.5px; }
 .nav-botoes { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .nav-botoes .btn { max-width: 100%; white-space: normal; text-align: left; }
+
+/* ---------- apps integrados (QFD e Projeto Conceitual dentro do Gestão) ---------- */
+.int-menu { display: none; }
+.integrado { position: fixed; z-index: 28; top: 54px; right: 0; bottom: 0; left: 56px; display: flex; flex-direction: column; background: var(--papel); }
+.integrado iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+.int-barra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 12px; background: var(--fundo); border-bottom: 1px solid var(--borda); }
+.int-titulo { margin-right: auto; color: var(--escuro); }
+.int-estado { font-size: 12.5px; color: var(--suave); }
+.int-estado.aviso { color: var(--aviso); font-weight: 600; }
+.int-estado.erro { color: var(--erro); font-weight: 600; }
+.int-estado.ok { color: var(--ok); }
+.int-voltar { position: fixed; right: 18px; bottom: 18px; z-index: 40; background: var(--escuro); color: #fff; border: 0; border-radius: 22px; padding: 10px 16px;
+  font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.int-voltar:hover { background: var(--teal); }
+/* com um app aberto, a barra lateral do Gestão vira uma barra flutuante estreita (abre ao passar o mouse ou no ☰) */
+body.modo-integrado .lateral { position: fixed; z-index: 35; top: 54px; left: 0; bottom: 0; height: auto; width: 56px; flex: none; overflow: hidden;
+  transition: width .15s ease; box-shadow: 2px 0 10px rgba(0,0,0,.18); }
+body.modo-integrado .lateral:hover, body.modo-integrado .lateral.aberta { width: 250px; overflow-y: auto; }
+body.modo-integrado .lateral .int-menu { display: block; width: 100%; background: none; border: 0; color: #fff; font-size: 20px; padding: 8px 0 4px 17px; text-align: left; cursor: pointer; }
+body.modo-integrado .lateral .abas button { white-space: nowrap; overflow: hidden; text-overflow: clip; padding-left: 16px; }
+body.modo-integrado .lateral:not(:hover):not(.aberta) .inserir { visibility: hidden; }
+body.modo-integrado .conteudo { visibility: hidden; }
+@media (max-width: 860px) {
+  .integrado { left: 0; top: 0; z-index: 36; }
+  .int-barra { padding-left: 52px; }
+  body.modo-integrado .lateral { top: 0; width: 0; box-shadow: none; }
+  body.modo-integrado .lateral.aberta { width: 260px; box-shadow: 2px 0 10px rgba(0,0,0,.25); z-index: 37; }
+  body.modo-integrado .lateral .abas { flex-direction: column; }
+  body.modo-integrado .lateral .inserir { flex-direction: column; }
+  body.modo-integrado .int-menu { display: block; position: fixed; top: 6px; left: 6px; z-index: 38; width: 40px !important; height: 36px; padding: 0 !important; text-align: center !important;
+    background: var(--escuro) !important; border-radius: 8px; }
+}
