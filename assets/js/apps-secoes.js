@@ -84,10 +84,12 @@
       return `<div class="cartao app-secao ${rec ? 'recolhida' : ''}" id="sec-${ap}-${p}">
         <div class="sec-topo"><button class="sec-alternar" data-acao="sec-alternar" data-chave="${k}" aria-expanded="${!rec}" title="${rec ? 'Abrir' : 'Recolher'}">${rec ? '▸' : '▾'}</button>
           <h3 data-acao="sec-alternar" data-chave="${k}">${n0}.${i + 1} ${esc(t)}</h3><span class="sec-direita">${estadoHtml(k)}${botaoConcluir(k)}</span></div>
-        ${rec ? '' : `<div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || (App.p.config.secoesAlturas || {})[k] || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div>`}</div>`;
+        ${rec ? '' : `<div class="app-lugar" data-chave="${k}" style="height:${(f && f.altura) || (App.p.config.secoesAlturas || {})[k] || alturaVista(k) || 640}px">${f && f.carregado ? '' : '<span class="muted app-carregando">Carregando…</span>'}</div>`}</div>`;
     }).join('');
     return h;
   };
+  const alturaVista = (k) => { try { return (JSON.parse(lerLS('gp_secoes_alturas') || '{}'))[k] || 0; } catch (e) { return 0; } };
+  const guardarAlturaVista = (k, a) => { try { const o = JSON.parse(lerLS('gp_secoes_alturas') || '{}'); if (o[k] !== a) { o[k] = a; gravarLS('gp_secoes_alturas', JSON.stringify(o)); } } catch (e) { /* ok */ } };
   /** Recolher/abrir e concluir salvam o projeto sozinhos. */
   /** Salvamento rápido (só o JSON do projeto, sem nova versão no histórico, PDFs ou e-mails). */
   function salvarSozinho() {
@@ -254,7 +256,7 @@
 
   const CSS = {
     qfd: `html.gp-emb .topbar, html.gp-emb .sidebar, html.gp-emb .sidebar-toggle, html.gp-emb .sidebar-overlay, html.gp-emb .footer, html.gp-emb .nav-page-actions,
-      html.gp-emb .page-nav, html.gp-emb .proximo-passo-rodape, html.gp-emb .etapa-conclusao { display: none !important; }
+      html.gp-emb .page-nav, html.gp-emb .proximo-passo-rodape, html.gp-emb .etapa-conclusao, html.gp-emb .page-titulo h1 { display: none !important; }
       html.gp-emb, html.gp-emb body { background: transparent !important; overflow: hidden; }
       html.gp-emb .app-shell { display: block !important; min-height: 0 !important; }
       html.gp-emb .main-content { min-height: 0 !important; padding: 4px 0 8px !important; margin: 0 !important; }
@@ -262,7 +264,7 @@
       html.gp-emb.gp-modal, html.gp-emb.gp-modal body { overflow: auto; }`,
     pc: `html.gp-emb .topbar, html.gp-emb .sidebar, html.gp-emb .sidebar-toggle, html.gp-emb #etapa-nav, html.gp-emb .footer, html.gp-emb #aviso,
       html.gp-emb .card.comecar, html.gp-emb .cartao-nuvem, html.gp-emb .qfd-navegador, html.gp-emb [data-acao="baixar-zip"], html.gp-emb [data-acao="arm-salvar-completo"],
-      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .titulo-num, html.gp-emb #etapa-conclusao { display: none !important; }
+      html.gp-emb [data-acao="gestao-baixar"], html.gp-emb .titulo-num, html.gp-emb #etapa-conclusao, html.gp-emb .page-titulo h1 { display: none !important; }
       html.gp-emb, html.gp-emb body { background: transparent !important; overflow: hidden; }
       html.gp-emb .app-corpo { display: block !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; }
       html.gp-emb .app-conteudo { margin: 0 !important; padding: 0 !important; min-height: 0 !important; }
@@ -298,7 +300,7 @@
         const m = doc.querySelector('.main-content') || doc.body;
         const extra = f.app === 'pc' ? 0 : 0;
         const a = Math.max(160, Math.ceil(m.getBoundingClientRect().bottom + (f.modal ? w.scrollY : 0) + 12 + extra));
-        if (!f.modal && Math.abs(a - f.altura) > 2) { f.altura = a; if (!f.oculto) { const c = App.p.config || (App.p.config = {}); (c.secoesAlturas || (c.secoesAlturas = {}))[`${f.app}:${f.pag}`] = a; } }
+        if (!f.modal && Math.abs(a - f.altura) > 2) { f.altura = a; if (!f.oculto) { const c = App.p.config || (App.p.config = {}); (c.secoesAlturas || (c.secoesAlturas = {}))[`${f.app}:${f.pag}`] = a; guardarAlturaVista(`${f.app}:${f.pag}`, a); } }
       } catch (e) { /* página trocando */ }
     };
     try { new w.ResizeObserver(medir).observe(doc.body); } catch (e) { /* sem ResizeObserver */ }
@@ -381,7 +383,11 @@
     for (const k in S.frames) {
       const f = S.frames[k], l = lugares[k], st = f.el.style;
       if (!l || f.oculto) { if (st.display !== 'none') st.display = 'none'; continue; }
-      if (f.altura && !f.modal && Math.abs(parseFloat(l.style.height) - f.altura) > 1) l.style.height = f.altura + 'px';
+      if (f.altura && !f.modal && Math.abs(parseFloat(l.style.height) - f.altura) > 1) {
+        const antes = parseFloat(l.style.height) || 0, topoL = l.getBoundingClientRect().bottom; // seção inteira acima da tela
+        l.style.height = f.altura + 'px';
+        if (!S.alvo && topoL < topoAltura() && antes) window.scrollBy(0, f.altura - antes); // compensa a rolagem
+      }
       const r = l.getBoundingClientRect();
       if (f.modal) { const topo = topoAltura(); st.position = 'fixed'; st.top = topo + 'px'; st.left = r.left + 'px'; st.width = r.width + 'px'; st.height = (window.innerHeight - topo) + 'px'; }
       else { st.position = 'absolute'; st.top = (r.top + sy) + 'px'; st.left = (r.left + sx) + 'px'; st.width = r.width + 'px'; st.height = r.height + 'px'; }

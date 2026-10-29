@@ -220,7 +220,9 @@ window.nedipNormalizar = function (prod) {
         questionarios: nedipLista(e.questionarios).map((q) => Object.assign({ publico: '', meio: '', respondentes: null, data: '', observacao: '' }, q)) }),
     };
     out.etapas[et.id] = Object.assign(base, X[et.id]());
+    if (et.id === 'informacional' && Array.isArray(e.consolidacaoNoQfd)) out.etapas.informacional.consolidacaoNoQfd = e.consolidacaoNoQfd.map(String); // o que da consolidação já foi para o QFD
   });
+  if (prod.pcDados && typeof prod.pcDados === 'object' && !Array.isArray(prod.pcDados)) out.pcDados = prod.pcDados; // projeto conceitual/preliminar completo (seções)
   return out;
 };
 

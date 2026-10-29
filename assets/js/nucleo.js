@@ -812,7 +812,10 @@ Nucleo.importarConceitual = function (p, d) {
   if (Array.isArray(d.fmea) && p.produto.etapas.preliminar) {
     const pre = p.produto.etapas.preliminar, n10 = (x) => Math.min(10, Math.max(1, Math.round(+x) || 5));
     const antigas = new Map(pre.fmea.filter((x) => String(x.id).startsWith('pc_')).map((x) => [x.id, x]));
-    const vindas = d.fmea.filter((x) => x && t(x.modo)).map((x) => Object.assign({ responsavel: '', riscoId: '' }, antigas.get(t(x.id)) || {}, {
+    // sem repetir: o mesmo modo de falha já escrito pela equipe (ou repetido no conceitual) não entra de novo
+    const daEquipe = new Set(pre.fmea.filter((x) => !String(x.id).startsWith('pc_')).map((x) => norm(x.modo)));
+    const vistosF = new Set();
+    const vindas = d.fmea.filter((x) => x && t(x.modo)).filter((x) => { const k = norm(x.modo); if (daEquipe.has(k) || vistosF.has(k + '|' + norm(x.item))) return false; vistosF.add(k + '|' + norm(x.item)); return true; }).map((x) => Object.assign({ responsavel: '', riscoId: '' }, antigas.get(t(x.id)) || {}, {
       id: t(x.id) || Nucleo.uid('fm'), item: t(x.item), modo: t(x.modo), efeito: t(x.efeito), causa: t(x.causa), s: n10(x.s), o: n10(x.o), d: n10(x.d), acao: t(x.acao) }));
     pre.fmea = vindas.concat(pre.fmea.filter((x) => !String(x.id).startsWith('pc_')));
     fmea = vindas.length;
