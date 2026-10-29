@@ -20,8 +20,28 @@ NedipRel.SECOES = [
   ['concepcoes', 'Concepções e matriz de decisão', 'conceitual'],
   ['preliminar', 'Leiaute, protótipos e FMEA', 'preliminar'],
   ['detalhado', 'Lista de materiais', 'detalhado'],
+  ['documentacao', 'Desenhos, planos, protótipo final e proteção intelectual', 'detalhado'],
+  ['producao', 'Preparação da produção', 'producao'],
   ['economia', 'Análise econômica e de mercado', 'lancamento'],
+  ['lancamentoPlano', 'Plano de lançamento, canais e certificações', 'lancamento'],
+  ['validacao', 'Validação em uso e encerramento', 'validacao'],
 ];
+/** Textos das fases em passos (passos.js) que entram nos relatórios: seção → [fase, campo, rótulo, tipo?]. */
+NedipRel.CAMPOS = {
+  documentacao: [['detalhado', 'desenhos', 'Desenhos e documentos de fabricação'], ['detalhado', 'planos', 'Planos de fabricação, montagem e controle de qualidade'],
+    ['detalhado', 'protoFinal', 'Ensaio do protótipo final'], ['detalhado', 'pi', 'Proteção intelectual']],
+  producao: [['producao', 'processos', 'Processos, recursos e leiaute de fabricação'], ['producao', 'fornecedores', 'Fornecedores e itens comprados'],
+    ['producao', 'instrucoes', 'Instruções de trabalho e plano de controle'], ['producao', 'lotePiloto', 'Lote piloto'],
+    ['producao', 'assistencia', 'Assistência técnica e peças de reposição'], ['producao', 'liberacao', 'Data de liberação da produção', 'data'],
+    ['producao', 'liberacaoAceite', 'Aceite da liberação']],
+  lancamentoPlano: [['lancamento', 'plano', 'Plano de lançamento e comunicação'], ['lancamento', 'data', 'Data de lançamento', 'data'],
+    ['lancamento', 'canais', 'Canais de venda, distribuição e assistência'], ['lancamento', 'treinamento', 'Treinamento'],
+    ['lancamento', 'certificacoes', 'Registros, certificações e homologações'], ['lancamento', 'documentacao', 'Documentação ao cliente']],
+  validacao: [['validacao', 'satisfacao', 'Satisfação dos clientes'], ['validacao', 'campo', 'Desempenho em campo, falhas e reclamações'],
+    ['validacao', 'especUso', 'Especificações confirmadas em uso'], ['validacao', 'melhorias', 'Melhorias e próxima versão'],
+    ['validacao', 'encerramento', 'Encerramento do projeto']],
+};
+const ndCampos = (p, s) => (NedipRel.CAMPOS[s] || []).map(([f, k, r, t]) => [r, String(((p.produto.etapas[f] || {})[k]) ?? '').trim(), t]).filter(([, v]) => v);
 /** Seções que o projeto usa: na versão simplificada, só funções e desdobramento (o resto fica oculto e fora dos PDFs). */
 NedipRel.SO_SIMPLIFICADA = ['funcoes', 'desdobramento'];
 NedipRel.secoesDe = (p) => (Nucleo.simplificado(p) ? NedipRel.SECOES.filter(([s]) => NedipRel.SO_SIMPLIFICADA.includes(s)) : NedipRel.SECOES);
@@ -47,6 +67,8 @@ NedipRel.disponivel = function (p, s) {
     case 'concepcoes': return ok(C.concepcoes.length, 'sem concepções');
     case 'preliminar': return ok(ndTxt(P.leiaute) || P.prototipos.length || P.fmea.length, 'leiaute, protótipos e FMEA vazios');
     case 'detalhado': return ok(E.detalhado.bom.length, 'lista de materiais vazia');
+    case 'documentacao': case 'producao': case 'lancamentoPlano': return ok(ndCampos(p, s).length, 'textos da fase não preenchidos');
+    case 'validacao': return ok(ndCampos(p, s).length || (E.validacao.questionarios || []).length, 'validação não preenchida');
     case 'economia': return ok(window.Economia && E.lancamento.ferramentas.economia !== false && Economia.temDados(E.lancamento.economia), 'análise econômica sem preço e volumes');
     default: return { ok: true };
   }
@@ -147,6 +169,7 @@ Pdf.blocoNedip = function (p, secoes, ctx) {
   const itens = [], add = (no, larga = false) => itens.push({ no, larga }), cola = (no) => itens.push({ no, cola: true });
   const tab = (cab, linhas, larg, op) => Pdf.tabelaAdaptavel(cab, linhas, larg, ctx, op).forEach((x) => itens.push(x));
   const texto = (t) => Pdf.texto(t, num).forEach((n) => add(n));
+  const campos = (sec) => ndCampos(p, sec).forEach(([r, v, t]) => { cola({ text: r, bold: true, margin: [0, 4, 0, 2] }); if (t === 'data') add({ text: Nucleo.dataBR(v) || v, style: 'corpo' }); else texto(v); });
   const S = {
     fases() {
       tab(['Fase', 'Situação', 'Recomendações aplicadas', 'Macroentrega(s)', 'Saída esperada'], nedipResumo(p).map((r) => [r.nome,
@@ -209,6 +232,18 @@ Pdf.blocoNedip = function (p, secoes, ctx) {
       tab(['Item', 'Descrição', 'Qtd.', 'Material / especificação', 'Origem', 'Fornecedor'], E.detalhado.bom.map((x) => [x.item, x.descricao, `${x.quantidade ?? ''} ${x.unidade || ''}`.trim(), x.material, x.origem, x.fornecedor]),
         [{ min: 30 }, { min: 110, w: '*' }, { min: 40 }, { min: 100, w: '*' }, { min: 55 }, { min: 70 }]);
     },
+    documentacao() { campos('documentacao'); },
+    producao() { campos('producao'); },
+    lancamentoPlano() { campos('lancamentoPlano'); },
+    validacao() {
+      const q = (E.validacao.questionarios || []).filter((x) => ndTxt(x.publico) || ndTxt(x.observacao));
+      if (q.length) {
+        cola({ text: 'Questionários de satisfação', bold: true, margin: [0, 4, 0, 2] });
+        tab(['Público', 'Meio', 'Resp.', 'Data', 'Principais achados'], q.map((x) => [x.publico, x.meio, String(x.respondentes ?? '—'), Nucleo.dataBR(x.data) || '—', x.observacao]),
+          [{ min: 80 }, { min: 55 }, { min: 30 }, { min: 50 }, { min: 150, w: '*' }]);
+      }
+      campos('validacao');
+    },
     economia() {
       Economia.pdf(Economia.normalizar(E.lancamento.economia), { h: (t) => cola({ text: t, bold: true, color: COR.escuro, margin: [0, 6, 0, 2] }), add: (n) => add(n), tab: (cab, l, larg, op) => tab(cab, l, larg, op) });
     },
@@ -231,7 +266,7 @@ App.nedipIntegracaoHtml = function () {
   const linhas = NedipRel.secoesDe(p).map(([s, nome]) => {
     const d = NedipRel.disponivel(p, s);
     const chk = (uid, marcado) => `<td class="centro"><input type="checkbox" data-acao="nedip-int" data-sec="${s}" data-macro="${esc(uid)}" ${marcado ? 'checked' : ''}></td>`;
-    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">${esc(d.motivo)}</span>${simp ? ' <span class="muted">(preencha acima)</span>' : ` <button class="btn pequeno" data-acao="sel-etapa" data-etapa="${d.etapa}">preencher em ${esc(NEDIP_ETAPAS.find((x) => x.id === d.etapa).curto)}</button>`}`}</td>
+    return `<tr class="${d.ok ? '' : 'indisp'}"><td><b>${esc(nome)}</b>${d.ok ? '' : `<br><span class="gap-neg">${esc(d.motivo)}</span>${simp ? ' <span class="muted">(preencha acima)</span>' : ` <button class="btn pequeno" data-acao="ir-etapa" data-etapa="${d.etapa}">preencher em ${esc(NEDIP_ETAPAS.find((x) => x.id === d.etapa).curto)}</button>`}`}</td>
       ${ms.map((m) => { const b = App.nedipBlocoDaMacro(m); return chk(m.uid, b && b.secoes.includes(s)); }).join('')}${chk('__rel', rel.includes(s))}</tr>`;
   }).join('');
   return cartao(simp ? 'Especificações e funções nos relatórios' : 'Projeto de produto nos relatórios', `<p class="muted" style="margin-top:0">Marque o que ${simp ? 'das funções' : 'do projeto de produto'} entra em cada macroentrega (vira o bloco “${simp ? 'Especificações e funções' : 'Projeto do produto'}” no desenvolvimento, que pode ser movido ou editado lá) e no relatório geral.

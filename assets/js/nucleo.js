@@ -90,7 +90,7 @@ Nucleo.novo = function (nome = '', versao = 'completa') {
     config: {
       versao: simp ? 'simplificada' : 'completa',
       incluirAndamentoNaMacro: true,
-      nedipRelatorio: simp ? ['funcoes', 'desdobramento'] : ['fases', 'funcoes', 'economia'], // seções do projeto de produto no relatório geral de andamento
+      nedipRelatorio: simp ? ['funcoes', 'desdobramento'] : Nucleo.NEDIP_TODAS(), // seções do projeto de produto no relatório geral (todas, por padrão)
       qfdRelatorio: window.Qfd ? Qfd.SECOES.map(([s]) => s) : [], // seções do QFD no relatório geral de andamento
       baixarAoSalvar: 'auto',
       email: { modo: 'mailto', emailjsServico: '', emailjsModelo: '', emailjsChave: '', limiteAnexoKb: 45, gerarPdfsAoSalvar: true },
@@ -181,8 +181,24 @@ Nucleo.NEDIP_GRUPOS = [
   ['informacional', 'Projeto do produto – fase informacional', ['planejamento', 'ciclo', 'necessidades', 'concorrentes', 'normas']],
   ['conceitual', 'Projeto do produto – fase conceitual', ['funcoes', 'desdobramento', 'concepcoes']],
   ['preliminar', 'Projeto do produto – fase preliminar', ['preliminar']],
-  ['detalhado', 'Projeto do produto – fase detalhada', ['detalhado']],
+  ['detalhado', 'Projeto do produto – fases detalhada e de implementação', ['detalhado', 'documentacao', 'producao', 'lancamentoPlano', 'validacao']],
 ];
+/** Todas as seções do projeto de produto (padrão do relatório geral). */
+Nucleo.NEDIP_TODAS = () => (window.NedipRel ? NedipRel.SECOES.map(([s]) => s)
+  : ['fases', 'planejamento', 'ciclo', 'necessidades', 'concorrentes', 'normas', 'funcoes', 'desdobramento', 'concepcoes', 'preliminar', 'detalhado', 'documentacao', 'producao', 'economia', 'lancamentoPlano', 'validacao']);
+/**
+ * Uma vez por projeto: o relatório geral passa a compilar todo o projeto de produto quando a escolha ainda é a do
+ * padrão antigo (fases, funções, economia) ou já tinha todas as seções antigas (aí entram as das fases novas).
+ */
+Nucleo.relatorioTudoPadrao = function (p) {
+  if (!p.config || p.config.relTudoPadrao || Nucleo.simplificado(p)) return;
+  p.config.relTudoPadrao = true;
+  const r = p.config.nedipRelatorio || [], velho = ['fases', 'funcoes', 'economia'];
+  const antigas = ['fases', 'planejamento', 'ciclo', 'necessidades', 'concorrentes', 'normas', 'funcoes', 'desdobramento', 'concepcoes', 'preliminar', 'detalhado', 'economia'];
+  if ((r.length === velho.length && velho.every((s) => r.includes(s))) || antigas.every((s) => r.includes(s))) p.config.nedipRelatorio = Nucleo.NEDIP_TODAS();
+  const q = p.config.qfdRelatorio || [], todasQ = window.Qfd ? Qfd.SECOES.map(([s]) => s) : [];
+  if (todasQ.length && todasQ.filter((s) => s !== 'dicionario').every((s) => q.includes(s))) p.config.qfdRelatorio = todasQ; // o dicionário veio depois
+};
 /**
  * Pré-marca as seções do projeto de produto nas macroentregas (uma vez por projeto): com 4 ou mais macroentregas,
  * fase informacional na 1ª, conceitual na 2ª, preliminar na 3ª e detalhada na última; com menos, distribui proporcionalmente.
@@ -245,6 +261,7 @@ Nucleo.normalizar = function (p) {
   p.trl.historico = Array.isArray(p.trl.historico) ? p.trl.historico : [];
   p.qualidade = p.qualidade.map((q) => { q.id = q.id || (q.qfd && q.qfd.id ? 'qfd_' + q.qfd.id : Nucleo.uid('q')); q.aspectosIndesejaveis = q.aspectosIndesejaveis || ''; q.valorMedido = q.valorMedido || ''; q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });
   Nucleo.preMarcarNedip(p);
+  Nucleo.relatorioTudoPadrao(p);
   p.schemaVersion = '1.0';
   return p;
 };

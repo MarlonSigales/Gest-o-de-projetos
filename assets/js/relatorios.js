@@ -8,12 +8,15 @@ App.abas.relatorios = {
     return `<h2>Relatórios e exportação</h2>
 <div class="cartao"><h3 style="margin-top:0">Relatórios em PDF</h3>
   <p class="muted">Gerados no próprio navegador a partir do que está na tela (não é preciso salvar antes).${naPasta ? ' Uma cópia também é gravada em <b>relatorios/</b> na pasta do projeto.' : ''}</p>
-  <div class="barra"><button class="btn primario" data-acao="pdf-geral">📊 Relatório geral de andamento</button></div>
+  <div class="barra"><button class="btn primario" data-acao="pdf-geral">📊 Relatório geral completo</button></div>
   <div class="barra">${App.p.macroentregas.map((m, i) => `<button class="btn" data-acao="pdf-macro" data-i="${i}">📄 Macroentrega ${i + 1}${m.finalizada ? '' : ' (andamento)'}</button>`).join('')}</div>
   <p class="muted">Macroentregas em andamento geram o relatório de andamento com o texto atual; as finalizadas, o relatório da macroentrega com o termo de aceite.</p>
   ${App.campo('config.incluirAndamentoNaMacro', 'Incluir a seção "Andamento e TRL" no relatório de cada macroentrega', { tipo: 'checkbox' })}
-  ${App.qfdRelatorioHtml()}
 </div>
+${App.relFasesHtml()}
+<h3 class="rel-sub">O que entra em cada relatório</h3>
+${App.nedipIntegracaoHtml()}
+${window.Qfd ? App.qfdIntegracaoHtml() : App.qfdRelatorioHtml()}
 
 <div class="cartao"><h3 style="margin-top:0">E-mail de andamento</h3>
   <p class="muted">Disparado a cada salvamento para os interessados, com o assunto <b>andamento projeto ${esc(App.p.projeto.nome || '<nome>')}</b>. Modo atual: <b>${esc(App.descricaoModoEmail())}</b> (⚙ Configurações).</p>
@@ -48,6 +51,64 @@ App.abas.relatorios = {
 ${naPasta ? '' : `<div class="cartao"><h3 style="margin-top:0">Excluir projeto</h3>
   <div class="barra"><button class="btn perigo" data-acao="excluir">Excluir este projeto do navegador</button><span class="muted">Exporte o ZIP antes, se quiser guardar uma cópia.</span></div></div>`}`;
   },
+};
+
+/** Relatórios das fases do projeto de produto: um PDF por fase, mais os documentos próprios de cada uma. */
+App.relFasesHtml = function () {
+  const p = App.p;
+  if (Nucleo.simplificado(p) || !p.produto || !p.produto.etapas || !window.nedipResumo) return '';
+  const secoes = !!(App.secoesAtivas && App.secoesAtivas());
+  const temQfd = !!(window.Qfd && Qfd.analisar(p.qfdDados)), inf = p.produto.etapas.informacional;
+  const extra = {
+    informacional: () => [temQfd && '<button class="btn pequeno" data-acao="qfd-pdf">📄 Análise QFD</button>',
+      inf.formulario && inf.formulario.perguntas.length && '<button class="btn pequeno" data-acao="form-pdf">📄 Questionário (resultados)</button>',
+      inf.consolidacao.length && '<button class="btn pequeno" data-acao="nedip-quest-pdf">📄 Questionário (consolidado)</button>'],
+    conceitual: () => [secoes && '<button class="btn pequeno" data-acao="sec-ir" data-chave="pc:relatorio">↗ Relatório do projeto conceitual</button>'],
+    detalhado: () => ['<button class="btn pequeno" data-acao="nedip-manual" data-tipo="projeto">📘 Manual de projeto</button>', '<button class="btn pequeno" data-acao="nedip-manual" data-tipo="uso">📗 Manual de uso</button>'],
+  };
+  const cor = (st) => (st === 'concluída' ? 'gap-pos' : st === 'em andamento' ? '' : 'muted');
+  return `<div class="cartao"><h3 style="margin-top:0">Relatórios das fases do projeto de ${p.produto.tipo === 'serviço' ? 'serviço' : 'produto'}</h3>
+  <p class="muted">Um PDF por fase, com a situação, as recomendações aplicadas, o conteúdo da fase, o registro e os documentos. O relatório geral compila todas as fases marcadas na coluna “Relatório geral” abaixo.</p>
+  <div class="rolagem"><table class="tab-edit"><thead><tr><th>Fase</th><th style="width:110px">Situação</th><th style="width:90px">Recom.</th><th style="width:80px">Macro</th><th>Relatórios</th></tr></thead><tbody>
+  ${nedipResumo(p).map((r) => `<tr><td><b>${esc(r.nome)}</b></td><td class="${cor(r.status)}">${esc(r.status)}</td><td>${r.feitas} de ${r.total}</td><td>${r.macros.join(', ') || '—'}</td>
+    <td><div class="barra" style="margin:0"><button class="btn pequeno primario" data-acao="pdf-etapa" data-etapa="${r.id}">📄 Relatório da fase</button>${((extra[r.id] || (() => []))()).filter(Boolean).join('')}</div></td></tr>`).join('')}
+  </tbody></table></div></div>`;
+};
+App.acoes['pdf-etapa'] = async (el) => {
+  const t = el.textContent, et = NEDIP_ETAPAS.find((x) => x.id === el.dataset.etapa);
+  el.disabled = true; el.textContent = 'Gerando PDF…';
+  try {
+    const blob = await Pdf.gerar(await Pdf.relatorioEtapa(App.p, et.id));
+    App.baixarBlob(blob, `Relatório da fase ${et.curto} - ${Nucleo.nomeSeguro(App.p.projeto.nome)}.pdf`);
+    try { await App.arm.gravarArquivo(`relatorios/fase_${et.id}.pdf`, blob); } catch (e) { /* opcional */ }
+  } catch (e) { console.error(e); App.toast('PDF: ' + esc(e.message), 'erro', 9000); }
+  finally { el.disabled = false; el.textContent = t; }
+};
+
+/** PDF de uma fase do projeto de produto. */
+Pdf.relatorioEtapa = async function (p, id) {
+  const et = NEDIP_ETAPAS.find((x) => x.id === id), e = p.produto.etapas[id], r = nedipResumo(p).find((x) => x.id === id) || { macros: [], feitas: 0, total: 0 };
+  const num = Nucleo.numerar(p, p.macroentregas), { h1, h2 } = secoesNumeradas();
+  const c = [{ toc: { id: 'sum', title: { text: 'Sumário', style: 'h1', margin: [0, 0, 0, 12] } }, pageBreak: 'before' }];
+  c.push(...h1('Identificação da fase', true));
+  c.push(Pdf.kpi([['Projeto', `${p.projeto.nome} (${p.projeto.codigo})`], ['Fase', et.nome], ['Situação', e.status], ['Macroentrega(s)', r.macros.join(', ') || '—'],
+    ['Objetivo', et.objetivo], ['Saída esperada', et.saida], ['Recomendações aplicadas', `${r.feitas} de ${r.total}`]]));
+  const aplic = et.recomendacoes.filter(([k]) => e.recomendacoes[k]).map(([, t]) => t), falta = et.recomendacoes.filter(([k]) => !e.recomendacoes[k]).map(([, t]) => t);
+  c.push(...h1('Recomendações da fase'));
+  c.push(aplic.length ? { ul: aplic, style: 'corpo', margin: [0, 0, 0, 6] } : { text: 'Nenhuma recomendação marcada como aplicada.', style: 'muted' });
+  if (falta.length) c.push({ text: 'Não aplicadas', bold: true, margin: [0, 4, 0, 2] }, { ul: falta, style: 'muted', margin: [0, 0, 0, 6] });
+  const secs = NedipRel.secoesDe(p).filter(([s, , etp]) => etp === id && s !== 'fases' && NedipRel.disponivel(p, s).ok).map(([s]) => s);
+  if (secs.length) { c.push(...h1('Conteúdo da fase')); c.push(...Pdf.blocoNedip(p, secs, { h: h2, num })); }
+  if (id === 'informacional' && window.Qfd && Qfd.analisar(p.qfdDados)) {
+    c.push(...h1('Análise QFD'));
+    c.push(...Pdf.blocoQfd(p.qfdDados, Qfd.SECOES.map(([s]) => s), { h: h2, origem: Pdf.qfdOrigem(p) }));
+  }
+  if (String(e.registro || '').trim()) c.push(...h1('Registro da fase'), ...Pdf.texto(e.registro, num));
+  if ((e.anexos || []).length) c.push(...h1('Documentos da fase'), Pdf.grade(['Documento', 'Descrição', 'Data'], e.anexos.map((a) => [a.nome, a.descricao || '—', Nucleo.dataBR(a.data) || '—']), ['*', '*', 60]));
+  const refs = Pdf.referenciasCitadas(p, num);
+  if (refs.length) c.push(...h1('Referências'), ...refs);
+  c.push({ text: 'Referência do método: ' + NEDIP_REF, style: 'muted', margin: [0, 8, 0, 0] });
+  return Pdf.documento(p, 'RELATÓRIO DA', 'FASE', `Relatório da fase – ${et.nome}`, c, `${et.nome} · situação: ${e.status}`);
 };
 
 /** Seções do QFD no relatório geral (a mesma escolha do cartão no projeto informacional). */

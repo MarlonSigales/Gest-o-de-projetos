@@ -495,3 +495,4 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .passo { border-left: 4px solid var(--teal); }
 .passo-prox { margin-top: 10px; text-align: right; font-size: 13px; }
 .sec-fim { margin-top: 8px; text-align: right; }
+.rel-sub { margin: 20px 0 6px; color: var(--escuro, #085357); }

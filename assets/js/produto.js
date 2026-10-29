@@ -97,7 +97,8 @@ ${App.secoesHtml && App.secoesAtivas && App.secoesAtivas() ? App.secoesHtml('apo
       h += registro;
       h += App.nedipAnexosHtml(et, e, b);
     }
-    h += App.nedipIntegracaoHtml();
+    h += cartao('Relatórios', `<p class="muted" style="margin-top:0">O relatório desta fase e a escolha do que entra em cada macroentrega e no relatório geral ficam na aba Relatórios.</p>
+  <div class="barra" style="margin:0"><button class="btn" data-acao="ir-aba" data-aba="relatorios">📊 Ir para Relatórios</button></div>`);
     return h;
   },
   depois() {
@@ -238,7 +239,6 @@ App.nedipEspecifico = {
   ${e.necessidades.length ? `<p class="muted">Soma dos pesos: ${pct(soma)}${Math.abs(soma - 1) > 0.01 ? ' — <button class="btn pequeno" data-acao="nedip-normalizar-pesos">normalizar para 100 %</button>' : ''}</p>` : ''}`);
     }
     if (ferr(e, 'especificacoes')) h += App.nedipEspecHtml();
-    h += App.qfdIntegracaoHtml();
     if (ferr(e, 'contexto')) h += App.nedipContextoHtml(e, b);
     return h;
   },
