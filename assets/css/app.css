@@ -454,3 +454,11 @@ body.modo-integrado .conteudo { visibility: hidden; }
   body.modo-integrado .int-menu { display: block; position: fixed; top: 6px; left: 6px; z-index: 38; width: 40px !important; height: 36px; padding: 0 !important; text-align: center !important;
     background: var(--escuro) !important; border-radius: 8px; }
 }
+/* QFD dentro da página do projeto informacional (o iframe é posto sobre o lugar reservado) */
+.integrado.embutido { position: absolute; z-index: 4; right: auto; bottom: auto; border: 1px solid var(--borda); border-radius: 6px; overflow: hidden; }
+.integrado.embutido .int-barra { display: none; }
+.int-lugar[data-pronto="1"] { height: calc(100vh - 130px); min-height: 560px; }
+.int-escolha { padding: 14px; border: 1px dashed var(--borda); border-radius: 6px; background: var(--fundo); }
+.int-escolha p:first-child { margin-top: 0; }
+.qfd-embutido .barra .int-estado { align-self: center; }
+@media (max-width: 860px) { .int-lugar[data-pronto="1"] { height: 80vh; min-height: 420px; } }

@@ -80,14 +80,11 @@
     I.etapa = etapa || (id === 'qfd' ? 'informacional' : 'conceitual');
     if (I.app === id && $('#integradoFrame')) { mostrar(true); if (id === 'conceitual') irPara(I.etapa); return; }
     // escolher o projeto que o app recebe
+    if (id === 'qfd' && lugarQfdDisponivel()) { App.aba = 'produto'; App.etapaSel = 'informacional'; App.render(); return; } // o QFD fica na página do projeto informacional
     if (id === 'qfd') {
-      const nav = qfdDoNavegador(), proj = App.p.qfdDados;
-      if (proj && !(nav && mesmoQfd(nav, proj))) return perguntar(id, `<p>${nav ? `O QFD aberto neste navegador é de outro projeto (<b>${esc((nav.projeto || {}).nome || 'sem nome')}</b>).` : 'Não há QFD aberto neste navegador.'}
-        Abrir o QFD <b>deste projeto</b>${App.p.qfdOrigem && App.p.qfdOrigem.importadoEm ? ` (importado em ${esc(App.quandoCurto(App.p.qfdOrigem.importadoEm))})` : ''}?</p>`,
-        [['int-carregar', 'Abrir o QFD deste projeto', 'primario'], nav ? ['int-manter', `Continuar com o do navegador (${esc((nav.projeto || {}).nome || 'sem nome')})`] : null]);
-      if (!proj && nav && (nav.projeto || {}).nome && norm(nav.projeto.nome) !== norm(App.p.projeto.nome)) return perguntar(id, `<p>Este projeto ainda não tem QFD. O QFD aberto neste navegador é <b>${esc(nav.projeto.nome)}</b>.</p>`,
-        [['int-novo', 'Começar um QFD novo para este projeto', 'primario'], ['int-manter', `Usar o QFD do navegador (${esc(nav.projeto.nome)})`]]);
-      return abrir(id, null);
+      const d = decisaoQfd();
+      if (d.opcoes) return perguntar(id, d.texto, d.opcoes);
+      return abrir(id, d.carga);
     }
     const nav = pcDoNavegador(), anx = anexoPc(), modoNuvem = lerLS('pc_modo') === 'nuvem';
     if (!mesmoPc(nav) || modoNuvem) {
@@ -100,6 +97,21 @@
     abrir(id, null);
   };
 
+  /** Qual QFD abrir: o deste projeto, o que está no navegador ou um novo. Devolve {carga} (sem perguntar) ou {texto, opcoes}. */
+  function decisaoQfd() {
+    const nav = qfdDoNavegador(), proj = App.p.qfdDados, nomeNav = esc((nav && nav.projeto && nav.projeto.nome) || 'sem nome');
+    if (proj && nav && mesmoQfd(nav, proj)) return { carga: null };
+    if (proj && !nav) return { carga: 'projeto' };
+    if (proj) return { texto: `<p>O QFD aberto neste navegador é de outro projeto (<b>${nomeNav}</b>). Abrir o QFD <b>deste projeto</b>${App.p.qfdOrigem && App.p.qfdOrigem.importadoEm ? ` (importado em ${esc(App.quandoCurto(App.p.qfdOrigem.importadoEm))})` : ''}?</p>`,
+      opcoes: [['int-carregar', 'Abrir o QFD deste projeto', 'primario'], ['int-manter', `Continuar com o do navegador (${nomeNav})`]] };
+    if (!nav) return { carga: 'novo' };
+    if (!(nav.projeto || {}).nome || norm(nav.projeto.nome) === norm(App.p.projeto.nome)) return { carga: null };
+    return { texto: `<p>Este projeto ainda não tem QFD. O QFD aberto neste navegador é <b>${nomeNav}</b>.</p>`,
+      opcoes: [['int-novo', 'Começar um QFD novo para este projeto', 'primario'], ['int-manter', `Usar o QFD do navegador (${nomeNav})`]] };
+  }
+  const lugarQfdDisponivel = () => !!(App.p && App.p.produto && App.p.produto.fases && App.p.produto.fases.informacional !== false && window.nedipEtapasAtivas && nedipEtapasAtivas(App.p).some((x) => x.id === 'informacional'));
+  const modoDe = (id) => (id === 'qfd' && $('#qfdLugar') ? 'embutido' : 'tela');
+
   function perguntar(id, texto, opcoes) {
     I.pedido = id;
     App.modal(`<h2>Abrir o ${esc(APPS[id].nome)} aqui</h2>${texto}
@@ -108,9 +120,9 @@
       <button class="btn" data-acao="fechar-modal-int">Cancelar</button></div>`);
   }
   App.acoes['fechar-modal-int'] = () => App.fecharModal();
-  App.acoes['int-manter'] = () => { App.fecharModal(); abrir(I.pedido, null); };
-  App.acoes['int-carregar'] = () => { App.fecharModal(); abrir(I.pedido, 'projeto'); };
-  App.acoes['int-novo'] = () => { App.fecharModal(); abrir(I.pedido, 'novo'); };
+  App.acoes['int-manter'] = (el) => { if (el && el.dataset.app) I.pedido = el.dataset.app; App.fecharModal(); abrir(I.pedido, null, modoDe(I.pedido)); };
+  App.acoes['int-carregar'] = (el) => { if (el && el.dataset.app) I.pedido = el.dataset.app; App.fecharModal(); abrir(I.pedido, 'projeto', modoDe(I.pedido)); };
+  App.acoes['int-novo'] = (el) => { if (el && el.dataset.app) I.pedido = el.dataset.app; App.fecharModal(); abrir(I.pedido, 'novo', modoDe(I.pedido)); };
 
   /** Guarda o que estava no app (para voltar depois). */
   function guardarReserva(id) {
@@ -119,8 +131,8 @@
     if (!gravarLS(RESERVA[id], JSON.stringify({ em: Nucleo.agoraIso(), texto: atual }))) App.toast('Sem espaço no navegador para a reserva: baixe o backup do app antes de trocar, se precisar dele.', 'aviso', 9000);
   }
 
-  function abrir(id, carga) {
-    I.app = id; I.anexo = ''; I.carregou = false; I.assinatura = ''; I.pendente = carga;
+  function abrir(id, carga, modo = 'tela') {
+    I.modo = modo; I.app = id; I.anexo = ''; I.carregou = false; I.assinatura = ''; I.pendente = carga;
     if (carga && !(id === 'conceitual' && lerLS('pc_modo') === 'nuvem')) guardarReserva(id);
     let area = $('#integrado');
     if (!area) { document.body.insertAdjacentHTML('beforeend', '<section id="integrado" class="integrado oculto" aria-label="Aplicativo integrado"></section>'); area = $('#integrado'); }
@@ -131,11 +143,12 @@
         <button class="btn primario" data-acao="int-trazer" title="Atualiza este projeto com o que foi feito no app">⬇ Trazer para o Gestão</button>
         ${lerLS(RESERVA[id]) ? '<button class="btn" data-acao="int-reserva" title="Volta ao que estava aberto no app antes de trocar">↺ Reserva</button>' : ''}
         <button class="btn" data-acao="int-aba" title="Abre o app em outra aba do navegador">↗ Outra aba</button>
-        <button class="btn" data-acao="int-fechar" title="Volta às telas do Gestão (o app continua aberto)">✕ Voltar ao Gestão</button>
+        <button class="btn" data-acao="int-fechar" title="Volta às telas do Gestão (o app continua aberto)">✕ ${id === 'qfd' && lugarQfdDisponivel() ? 'Sair da tela cheia' : 'Voltar ao Gestão'}</button>
       </div>
       <iframe id="integradoFrame" title="${esc(APPS[id].nome)}" src="${esc(enderecoApp(id, hash))}"></iframe>`;
     $('#integradoFrame').addEventListener('load', aoCarregar);
-    mostrar(true);
+    if (modo === 'embutido') { area.classList.add('embutido'); mostrar(false); posicionar(); } else { area.classList.remove('embutido'); limparPosicao(area); mostrar(true); }
+    App.render();
   }
 
   async function aoCarregar() {
@@ -182,7 +195,7 @@
   function esperar(cond, ms = 10000) {
     return new Promise((ok, falha) => { const t0 = Date.now(); (function v() { let r = false; try { r = cond(); } catch (e) { r = false; } if (r) ok(r); else if (Date.now() - t0 > ms) falha(new Error('o app demorou a carregar')); else setTimeout(v, 120); })(); });
   }
-  function estado(t, tipo) { const s = $('#intEstado'); if (s) { s.textContent = t; s.className = 'int-estado ' + (tipo || ''); } }
+  function estado(t, tipo) { I.estadoTxt = [t, tipo]; $$('#intEstado, #intEstadoCard').forEach((s) => { s.textContent = t; s.className = 'int-estado ' + (tipo || ''); }); }
   function irPara(etapa) { const w = janela(); if (I.app === 'conceitual' && w) { w.location.hash = etapa === 'preliminar' ? '#/p-requisitos' : '#/inicio'; } }
 
   function mostrar(sim) {
@@ -196,12 +209,14 @@
   /** Botão flutuante para voltar ao app que ficou aberto. */
   function chip() {
     let c = $('#intVoltar');
-    if (!I.app || I.visivel || !$('#integradoFrame')) { if (c) c.remove(); return; }
+    if (!I.app || I.visivel || !$('#integradoFrame') || (I.modo === 'embutido' && $('#qfdLugar'))) { if (c) c.remove(); return; }
     if (!c) { document.body.insertAdjacentHTML('beforeend', '<button id="intVoltar" class="int-voltar" data-acao="int-voltar"></button>'); c = $('#intVoltar'); }
     c.textContent = `◧ Voltar ao ${APPS[I.app].curto}${mudou() ? ' (mudanças não trazidas)' : ''}`;
   }
-  App.acoes['int-voltar'] = () => mostrar(true);
+  App.acoes['int-voltar'] = () => { if (I.app === 'qfd' && lugarQfdDisponivel()) { App.aba = 'produto'; App.etapaSel = 'informacional'; App.render(); setTimeout(() => { const l = $('#qfdLugar'); if (l) l.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 50); } else mostrar(true); };
+  App.acoes['int-tela'] = () => { const a = $('#integrado'); if (!a || !$('#integradoFrame')) return; I.modo = 'tela'; a.classList.remove('embutido'); limparPosicao(a); mostrar(true); };
   App.acoes['int-fechar'] = () => {
+    if (I.app === 'qfd' && lugarQfdDisponivel()) { I.modo = 'embutido'; const a = $('#integrado'); if (a) a.classList.add('embutido'); mostrar(false); App.render(); return; }
     mostrar(false);
     if (mudou()) App.toast(`Há mudanças no ${APPS[I.app].curto} ainda não trazidas para o Gestão. <button class="btn pequeno" data-acao="int-trazer">Trazer agora</button>`, 'aviso', 12000);
   };
@@ -283,7 +298,11 @@
   }
   App.acoes['int-menu'] = () => {};
   const renderBase = App.render;
-  App.render = function () { renderBase.apply(this, arguments); chip(); };
+  App.render = function () {
+    renderBase.apply(this, arguments); chip();
+    if (I.modo === 'embutido' && I.app === 'qfd' && !$('#qfdLugar') && $('#integrado')) $('#integrado').classList.add('oculto');
+    try { iniciarSePreciso(); } catch (e) { console.error(e); }
+  };
 
   /** Botões "Abrir aqui" nas entradas das fases informacional, conceitual e preliminar. */
   const entradaBase = App.nedipEntradaHtml;
@@ -295,5 +314,55 @@
     return html.replace('<div class="barra">', `<div class="barra">${botao}`);
   };
   App.acoes['int-abrir'] = (el) => App.abrirIntegrado(el.dataset.app, el.dataset.etapa);
+  // ---------------------------------------------------------------- QFD embutido na página do projeto informacional
+  function limparPosicao(a) { ['top', 'left', 'width', 'height'].forEach((k) => { a.style[k] = ''; }); }
+  /** O iframe fica fora do conteúdo (que é redesenhado a cada mudança) e é posto sobre o lugar reservado na página. */
+  function posicionar() {
+    const a = $('#integrado');
+    if (!a || I.modo !== 'embutido') return;
+    const l = $('#qfdLugar');
+    if (l && I.app === 'qfd' && l.dataset.pronto === '1') {
+      const r = l.getBoundingClientRect();
+      a.style.top = (r.top + window.scrollY) + 'px'; a.style.left = (r.left + window.scrollX) + 'px';
+      a.style.width = r.width + 'px'; a.style.height = r.height + 'px';
+      a.classList.remove('oculto');
+    } else a.classList.add('oculto');
+  }
+  (function laco() { try { if (I.modo === 'embutido') posicionar(); } catch (e) { /* segue */ } requestAnimationFrame(laco); })();
+
+  App.qfdEmbutidoHtml = function () {
+    const o = App.p.qfdOrigem || {}, aberto = I.app === 'qfd' && !!$('#integradoFrame');
+    let painel = '';
+    if (!aberto) {
+      const d = decisaoQfd();
+      painel = d.opcoes ? `<div class="int-escolha">${d.texto}<div class="barra">${d.opcoes.map(([a, r, c]) => `<button class="btn ${c || ''}" data-acao="${a}" data-app="qfd">${r}</button>`).join('')}</div>
+        <p class="muted">O QFD que sair do navegador fica guardado como reserva (botão “↺ Reserva”).</p></div>`
+        : `<div class="int-escolha"><p class="muted">Abrindo o Sistema QFD…</p><button class="btn" data-acao="int-manter" data-app="qfd">Abrir o QFD</button></div>`;
+    }
+    const est = I.estadoTxt && aberto ? I.estadoTxt : (aberto && mudou() ? ['Há mudanças ainda não trazidas para o Gestão.', 'aviso'] : ['', '']);
+    return `<div class="cartao qfd-embutido"><h3 style="margin-top:0">5. Sistema QFD (casa da qualidade)</h3>
+  <p class="muted" style="margin-top:0">O QFD funciona aqui mesmo, completo. Ao terminar uma etapa, use <b>Trazer para o Gestão</b>: requisitos de cliente, especificações e critérios de qualidade deste projeto são atualizados.
+  ${o.importadoEm ? `Última vez trazido em ${esc(o.importadoEm.replace('T', ' ').slice(0, 16))}.` : 'Ainda não trazido.'}</p>
+  <div class="barra"><button class="btn primario" data-acao="int-trazer" ${aberto ? '' : 'disabled'}>⬇ Trazer para o Gestão</button>
+    <span class="int-estado ${est[1]}" id="intEstadoCard">${esc(est[0])}</span>
+    <span style="margin-left:auto"></span>
+    <button class="btn" data-acao="int-tela" ${aberto ? '' : 'disabled'} title="Abre o QFD em tela cheia; o menu do Gestão vira barra flutuante">⛶ Tela cheia</button>
+    ${lerLS(RESERVA.qfd) && aberto ? '<button class="btn" data-acao="int-reserva" title="Volta ao QFD que estava no navegador antes">↺ Reserva</button>' : ''}
+    <button class="btn" data-acao="int-aba-qfd" title="Abre o QFD em outra aba do navegador">↗ Outra aba</button>
+    <label class="btn" title="Importar um backup JSON do QFD feito em outro computador">⬆ Importar backup JSON<input type="file" hidden id="arqQfdInf" accept=".json,.zip,application/json,application/zip"></label></div>
+  <div id="qfdLugar" class="int-lugar" data-pronto="${aberto ? '1' : '0'}">${painel}</div></div>`;
+  };
+  App.acoes['int-aba-qfd'] = () => { const w = window.open(enderecoApp('qfd'), '_blank'); if (!w) App.toast('O navegador bloqueou a nova aba.', 'aviso'); };
+  /** Na página do informacional, o QFD abre sozinho quando não há dúvida de qual projeto abrir. */
+  function iniciarSePreciso() {
+    const l = $('#qfdLugar');
+    if (!l || l.dataset.pronto === '1' || I.iniciando) return;
+    if (I.app && I.app !== 'qfd' && mudou()) return; // o Projeto Conceitual aberto tem mudanças não trazidas: espera o clique
+    const d = decisaoQfd();
+    if (d.opcoes) return;
+    I.iniciando = true;
+    setTimeout(() => { I.iniciando = false; if ($('#qfdLugar') && !(I.app === 'qfd' && $('#integradoFrame'))) abrir('qfd', d.carga, 'embutido'); }, 0);
+  }
+
   window.Integrado = { enderecoApp, mesmoQfd, mesmoPc, anexoPc };
 })();

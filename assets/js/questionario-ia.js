@@ -123,11 +123,12 @@ ${JSON.stringify(ex, null, 2)}
     </details>`;
   }
 
-  const baseHtml = App.formularioHtml;
-  App.formularioHtml = function (e, b) {
-    const h = baseHtml.apply(this, arguments);
-    try { const i = h.lastIndexOf('</div>'); return i >= 0 ? h.slice(0, i) + htmlCaixa(App.p) + h.slice(i) : h + htmlCaixa(App.p); }
-    catch (er) { console.error(er); return h; }
+  // a caixa da IA entra no passo 1 (planejamento das perguntas)
+  const basePartes = App.formularioPartes;
+  App.formularioPartes = function (e, b) {
+    const x = basePartes.apply(this, arguments);
+    try { x.plan += htmlCaixa(App.p); } catch (er) { console.error(er); }
+    return x;
   };
   document.addEventListener('toggle', (ev) => { if (ev.target && ev.target.matches && ev.target.matches('[data-det="ia-quest"]') && App.formAberto) App.formAberto.ia = ev.target.open; }, true);
 

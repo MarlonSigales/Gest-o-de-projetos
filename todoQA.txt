@@ -286,3 +286,11 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
      avaliação). Antes só lia o formato antigo ("valorUnitario") e um QFD atual entrava sem critério de aceite. O formato
      antigo continua igual (conferido com o exemplo).
 
+60 [resolvido] Página do projeto informacional e do planejamento:
+   - Planejamento e informacional sem o cartão "Entrada da fase" (as ferramentas da fase ficam num cartão pequeno no topo).
+   - Informacional na ordem do trabalho: 1. Planejamento dos questionários (roteiro, perguntas, pedido à IA) →
+     2. Exportação para o Google Forms (CSV em branco) → 3. Adição das respostas (CSV do Forms, respondentes,
+     questionários aplicados, consolidação) → 4. Documentos da fase (arquivos das respostas) → 5. Sistema QFD.
+   - O QFD fica dentro da própria página (completo, com "Trazer para o Gestão", tela cheia, outra aba e importar backup).
+     Abre sozinho com o QFD deste projeto; se o navegador tiver outro QFD, pergunta ali mesmo qual usar. Mudar um campo
+     do Gestão não recarrega o QFD.

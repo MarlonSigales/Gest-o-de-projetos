@@ -409,30 +409,24 @@ App.novos.perguntaForm = () => Formulario.novaPergunta(Formulario.proximoId(App.
 App.novos.respostaForm = () => ({ id: Formulario.proximoId(App.p.produto.etapas.informacional.formulario.respostas, 'r'), data: hojeISO(), valores: {} });
 App.formMacroAtual = () => { const m = App.p.macroentregas.find((x) => (x.blocos || []).some((b) => b.tipo === 'questionario')); return m ? m.uid : ''; };
 
-App.formularioHtml = function (e, b) {
+/**
+ * Questionário em três passos (projeto informacional): 1 planejamento das perguntas, 2 exportação para o Google Forms,
+ * 3 adição das respostas. Os arquivos de respostas vão depois em "Documentos da fase".
+ */
+App.formularioPartes = function (e, b) {
   const f = e.formulario, bf = b + '.formulario', c = App.campo;
   const an = Formulario.analisar(f);
   const temP = f.perguntas.length, temR = f.respostas.length;
   const opM = [['', '— não anexar —']].concat(App.p.macroentregas.map((m, i) => [m.uid, `Macroentrega ${i + 1} · ${m.titulo || '(sem título)'}`]));
-  let h = `<div class="form-box"><h4 style="margin-top:0">Pré-projeto informacional: questionário (Google Forms)</h4>
-  <ol class="muted" style="margin-top:0">
-    <li>Monte o formulário: baixe o <b>CSV em branco</b> (perguntas atuais ou o roteiro-modelo) e use-o como base no Google Forms.</li>
-    <li>Aplique aos clientes de cada fase do ciclo de vida.</li>
-    <li>No Forms: <b>Respostas → ⋮ → Baixar respostas (.csv)</b> e importe aqui. Perguntas e respondentes podem ser editados depois.</li></ol>
-  <div class="barra"><label class="btn primario">⬆ Importar CSV do Google Forms<input type="file" accept=".csv,.txt,text/csv,text/plain" hidden id="csvForms"></label>
-    <button class="btn" data-acao="form-csv" data-com="0">⬇ CSV em branco (base para o Forms)</button>
-    ${temR ? '<button class="btn" data-acao="form-csv" data-com="1">⬇ CSV com as respostas</button>' : ''}
-    ${temP ? '' : '<button class="btn" data-acao="form-modelo">Começar pelo roteiro-modelo</button>'}
+  // ---- 1. planejamento
+  let h = `<p class="muted" style="margin-top:0">Comece pelo roteiro-modelo ou peça as perguntas a uma IA (caixa abaixo), depois revise texto, tipo, alternativas e fase do ciclo de vida de cada pergunta.</p>
+  <div class="barra">${temP ? '' : '<button class="btn primario" data-acao="form-modelo">Começar pelo roteiro-modelo</button>'}
     ${temP ? '<button class="btn primario" data-acao="form-pdf">📄 Documento do questionário (PDF)</button>' : ''}
-    ${an.analisadas.some((x) => (x.tipo === 'grade' && x.numerica) || x.tipo === 'escala') && temR ? '<button class="btn" data-acao="form-consolidar">→ Gerar a consolidação (necessidades com importância)</button>' : ''}
     ${temP ? '<button class="btn perigo" data-acao="form-limpar">Limpar questionário</button>' : ''}</div>`;
-  if (!temP) return h + '<p class="vazio">Nenhum questionário importado.</p></div>';
-  h += `<div class="grade-campos">${c(bf + '.titulo', 'Título da pesquisa', { ph: 'ex.: Levantamento de necessidades dos clientes' })}
+  if (temP) {
+    h += `<div class="grade-campos">${c(bf + '.titulo', 'Título da pesquisa', { ph: 'ex.: Levantamento de necessidades dos clientes' })}
     ${c(bf + '.publico', 'Público / fase do ciclo de vida')}${c(bf + '.meio', 'Meio de aplicação')}
-    <label class="campo">Anexar o documento a uma macroentrega<select data-form-macro="1">${App.opcoes(opM, App.formMacroAtual())}</select></label></div>
-  <p class="muted">${temR} respondente(s)${an.periodo ? ` entre ${dataBR(an.periodo[0])} e ${dataBR(an.periodo[1])}` : ''} · ${temP} pergunta(s), ${an.analisadas.length} analisada(s)${f.arquivo ? ` · arquivo: ${esc(f.arquivo)}` : ''}${f.importadoEm ? ` (importado em ${esc(f.importadoEm.replace('T', ' ').slice(0, 16))})` : ''}.
-    Campos de identificação (nome, contato…) não são reproduzidos no documento.</p>`;
-
+    <label class="campo">Anexar o documento a uma macroentrega<select data-form-macro="1">${App.opcoes(opM, App.formMacroAtual())}</select></label></div>`;
   // perguntas
   h += `<details class="form-det" data-det="perguntas" ${App.formAberto.perguntas ? 'open' : ''}><summary>Perguntas (${temP}) — editar texto, tipo, alternativas e itens</summary>
   <div class="rolagem"><table class="tab-edit"><thead><tr><th style="width:34px">#</th><th>Pergunta</th><th style="width:190px">Tipo</th><th>Alternativas / itens (um por linha)</th><th style="width:130px">Fase do ciclo de vida</th><th style="width:96px">Escala</th><th style="width:70px">Analisar</th><th style="width:70px">Gráfico</th><th class="acoes" style="width:90px"></th></tr></thead><tbody>
@@ -453,6 +447,20 @@ App.formularioHtml = function (e, b) {
   }).join('')}</tbody></table></div>
   <div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="${bf}.perguntas" data-novo="perguntaForm">+ Pergunta</button></div></details>`;
 
+  } else h += '<p class="vazio">Nenhuma pergunta ainda.</p>';
+  const plan = h;
+  // ---- 2. exportação para o Google Forms
+  const exp = `<ol class="muted" style="margin-top:0"><li>Baixe o <b>CSV em branco</b> (${temP ? 'com as perguntas acima' : 'com o roteiro-modelo'}) e use-o como base no Google Forms: cada coluna é uma pergunta.</li>
+    <li>Aplique o formulário aos clientes de cada fase do ciclo de vida.</li></ol>
+  <div class="barra"><button class="btn primario" data-acao="form-csv" data-com="0">⬇ CSV em branco (base para o Forms)</button></div>`;
+  // ---- 3. adição das respostas
+  h = `<p class="muted" style="margin-top:0">No Forms: <b>Respostas → ⋮ → Baixar respostas (.csv)</b> e importe aqui. Perguntas e respondentes podem ser editados depois. Guarde também o arquivo original em <b>Documentos da fase</b>, logo abaixo.</p>
+  <div class="barra"><label class="btn primario">⬆ Importar CSV do Google Forms<input type="file" accept=".csv,.txt,text/csv,text/plain" hidden id="csvForms"></label>
+    ${temR ? '<button class="btn" data-acao="form-csv" data-com="1">⬇ CSV com as respostas</button>' : ''}
+    ${an.analisadas.some((x) => (x.tipo === 'grade' && x.numerica) || x.tipo === 'escala') && temR ? '<button class="btn" data-acao="form-consolidar">→ Gerar a consolidação (necessidades com importância)</button>' : ''}</div>`;
+  if (temP) {
+    h += `<p class="muted">${temR} respondente(s)${an.periodo ? ` entre ${dataBR(an.periodo[0])} e ${dataBR(an.periodo[1])}` : ''} · ${temP} pergunta(s), ${an.analisadas.length} analisada(s)${f.arquivo ? ` · arquivo: ${esc(f.arquivo)}` : ''}${f.importadoEm ? ` (importado em ${esc(f.importadoEm.replace('T', ' ').slice(0, 16))})` : ''}.
+    Campos de identificação (nome, contato…) não são reproduzidos no documento.</p>`;
   // destaques (frases para o relatório)
   h += `<details class="form-det" data-det="destaques" ${App.formAberto.destaques ? 'open' : ''}><summary>Destaques para o relatório (${f.destaques.filter((d) => d.incluir).length}) — frases com os principais resultados</summary>
   <p class="muted" style="margin-top:4px">Geradas a partir das respostas (alternativa mais citada, item mais importante…) e editáveis. Entram em “Principais resultados” no documento e no bloco do questionário. Sem destaques salvos, o relatório usa os gerados na hora.</p>
@@ -474,8 +482,14 @@ App.formularioHtml = function (e, b) {
       <td class="acoes"><button class="btn pequeno perigo" data-acao="rem-linha" data-lista="${bf}.respostas" data-i="${i}" title="Excluir respondente">✕</button></td></tr>`).join('') || `<tr><td colspan="${cols.length + 2}" class="vazio">Nenhum respondente.</td></tr>`}
     </tbody></table></div>`;
   }
-  h += `<div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="${bf}.respostas" data-novo="respostaForm">+ Respondente</button></div></details></div>`;
-  return h;
+  h += `<div class="barra"><button class="btn pequeno" data-acao="add-linha" data-lista="${bf}.respostas" data-novo="respostaForm">+ Respondente</button></div></details>`;
+  }
+  return { plan, exp, resp: h };
+};
+/** Tudo junto (compatível com o uso antigo). */
+App.formularioHtml = function (e, b) {
+  const x = App.formularioPartes(e, b);
+  return `<div class="form-box"><h4 style="margin-top:0">Questionário (Google Forms)</h4>${x.plan}<h4>Exportar para o Google Forms</h4>${x.exp}<h4>Respostas</h4>${x.resp}</div>`;
 };
 
 App.formularioDepois = function () {

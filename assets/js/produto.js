@@ -63,12 +63,24 @@ App.abas.produto = {
     ${c(b + '.macros', 'Macroentrega(s) desta fase (Ctrl+clique para várias)', { tipo: 'multi', opcoes: App.opcoesMacros(false) })}
   </div></div>`;
 
-    h += App.nedipEntradaHtml(et, e, b);
+    // planejamento e informacional não usam aplicativo externo: sem "Entrada da fase" (o QFD fica dentro da página do informacional)
+    const semEntrada = et.id === 'planejamento' || et.id === 'informacional';
+    h += semEntrada ? App.nedipFerramentasHtml(et, b) : App.nedipEntradaHtml(et, e, b);
     h += cartao('Recomendações da fase', `<p class="muted">Marque o que foi (ou será) aplicado. As marcadas aparecem no manual de projeto.</p>
   <div class="nedip-recs">${et.recomendacoes.map(([id, t]) => c(`${b}.recomendacoes.${id}`, t, { tipo: 'checkbox', classe: 'rec', render: true })).join('')}</div>`);
-    h += App.nedipEspecifico[et.id](e, b, servico);
-    h += cartao('Registro da fase (em aberto)', c(b + '.registro', 'Decisões, resultados, pendências e referências. Aceita parágrafos, listas com "- ", **negrito** e {{fig:id}}/{{tab:id}} das macroentregas.', { tipo: 'textarea', linhas: 7 }));
-    h += App.nedipAnexosHtml(et, e, b);
+    const registro = cartao('Registro da fase (em aberto)', c(b + '.registro', 'Decisões, resultados, pendências e referências. Aceita parágrafos, listas com "- ", **negrito** e {{fig:id}}/{{tab:id}} das macroentregas.', { tipo: 'textarea', linhas: 7 }));
+    if (et.id === 'informacional') {
+      // ordem do trabalho: questionários (1–3) → documentos com as respostas → QFD → requisitos e especificações
+      h += App.nedipQuestionariosHtml(e, b);
+      h += App.nedipAnexosHtml(et, e, b);
+      h += App.qfdEmbutidoHtml ? App.qfdEmbutidoHtml(e, b) : App.nedipEntradaHtml(et, e, b);
+      h += App.nedipInformacionalResto(e, b);
+      h += registro;
+    } else {
+      h += App.nedipEspecifico[et.id](e, b, servico);
+      h += registro;
+      h += App.nedipAnexosHtml(et, e, b);
+    }
     h += App.nedipIntegracaoHtml();
     return h;
   },
@@ -101,6 +113,12 @@ App.nedipEntradaHtml = function (et, e, b) {
   <div class="barra">${e.app.url ? `<button class="btn" data-acao="nedip-app-abrir">↗ Abrir ${esc(e.app.nome || 'aplicativo')}</button>` : ''}
     <label class="btn">⬆ Importar resultado do aplicativo<input type="file" hidden id="appResultado"></label>${et.id === 'conceitual' ? App.botaoConceitualNavegador() : ''}</div>${qfdInfo}
   <div class="barra nedip-ferr"><span class="muted"><b>Ferramentas internas desta fase:</b></span>${et.ferramentas.map(([id, rot]) => c(`${b}.ferramentas.${id}`, rot, { tipo: 'checkbox', render: true, classe: 'rec' })).join('')}</div>`);
+};
+
+/** Liga/desliga as ferramentas internas da fase (nas fases sem "Entrada da fase"). */
+App.nedipFerramentasHtml = function (et, b) {
+  if (!et.ferramentas || !et.ferramentas.length) return '';
+  return `<div class="cartao"><div class="barra nedip-ferr" style="margin:0"><span class="muted"><b>Ferramentas desta fase:</b></span>${et.ferramentas.map(([id, rot]) => App.campo(`${b}.ferramentas.${id}`, rot, { tipo: 'checkbox', render: true, classe: 'rec' })).join('')}</div></div>`;
 };
 
 App.acoes['nedip-app-abrir'] = () => {
@@ -146,6 +164,34 @@ App.nedipImportarResultado = async function (arquivo, etapa) {
 };
 
 // ------------------------------------------------------------------ conteúdo de cada fase
+/** Projeto informacional, passos 1 a 3: planejamento dos questionários, exportação para o Google Forms e adição das respostas. */
+App.nedipQuestionariosHtml = function (e, b) {
+  if (!ferr(e, 'questionarios')) return '';
+  const cons = e.consolidacao, x = App.formularioPartes(e, b);
+  return cartao('1. Planejamento dos questionários', `<ul class="muted" style="margin-top:0">
+    <li>Separe os clientes por fase do ciclo de vida (quem compra, usa, instala, mantém e descarta) e aplique a cada grupo.</li>
+    <li>Combine perguntas abertas (o que incomoda, o que esperam) com escala de importância de 1 a 5.</li>
+    <li>Teste o roteiro com 2 ou 3 pessoas antes. Pode usar qualquer formulário (papel, Google Forms etc.).</li></ul>
+  <div class="barra"><button class="btn" data-acao="nedip-roteiro">📄 Roteiro de questionário (${e.formulario.perguntas.length ? 'perguntas do questionário' : 'modelo'})</button></div>
+  <div class="form-box">${x.plan}</div>`)
+  + cartao('2. Exportação para o Google Forms', x.exp)
+  + cartao('3. Adição das respostas', `<div class="form-box">${x.resp}</div>
+  <h4>Questionários aplicados</h4>
+  ${App.tabela(b + '.questionarios', [
+    { campo: 'publico', rotulo: 'Público / fase do ciclo de vida' }, { campo: 'meio', rotulo: 'Meio', largura: '16%' },
+    { campo: 'respondentes', rotulo: 'Respondentes', tipo: 'number', min: 0, largura: '90px' }, { campo: 'data', rotulo: 'Data', tipo: 'date', largura: '140px' },
+    { campo: 'observacao', rotulo: 'Principais achados', tipo: 'textarea' }], { novo: 'questionario', botao: 'Registrar questionário', vazio: 'Nenhum questionário registrado.' })}
+  <h4>Consolidação das respostas</h4>
+  <p class="muted">Uma linha por necessidade citada. Pode digitar, gerar a partir das respostas do Forms ou importar um CSV com as colunas <code>necessidade; citações; importância média (1–5); fase</code>.</p>
+  ${App.tabela(b + '.consolidacao', [{ campo: 'necessidade', rotulo: 'Necessidade citada' }, { campo: 'fase', rotulo: 'Fase do ciclo de vida', largura: '18%' },
+    { campo: 'citacoes', rotulo: 'Citações', tipo: 'number', min: 0, largura: '90px' }, { campo: 'importancia', rotulo: 'Importância média (1–5)', tipo: 'number', min: 1, max: 5, largura: '120px' }],
+    { novo: 'consolidacao', botao: 'Adicionar necessidade', vazio: 'Nenhuma resposta consolidada.' })}
+  <div class="barra"><label class="btn">⬆ Importar CSV da consolidação<input type="file" accept=".csv,.txt,text/csv" hidden id="csvConsol"></label>
+    ${cons.length ? `<button class="btn" data-acao="nedip-cons-necessidades">→ Usar como requisitos de cliente</button>
+    <button class="btn primario" data-acao="nedip-quest-pdf">📄 PDF do questionário com respostas consolidadas</button>` : ''}</div>`);
+};
+App.nedipInformacionalResto = (e, b) => App.nedipEspecifico.informacionalResto(e, b);
+
 App.nedipEspecifico = {
   planejamento(e, b) {
     const c = App.campo, p = App.p;
@@ -163,31 +209,11 @@ App.nedipEspecifico = {
     return h;
   },
 
-  informacional(e, b) {
+  informacional(e, b) { return App.nedipQuestionariosHtml(e, b) + App.nedipInformacionalResto(e, b); },
+  /** Restante do projeto informacional (depois dos questionários, dos documentos e do QFD). */
+  informacionalResto(e, b) {
     const c = App.campo;
     let h = '';
-    if (ferr(e, 'questionarios')) {
-      const cons = e.consolidacao;
-      h += cartao('Questionários aos clientes', `<ul class="muted" style="margin-top:0">
-    <li>Separe os clientes por fase do ciclo de vida (quem compra, usa, instala, mantém e descarta) e aplique a cada grupo.</li>
-    <li>Combine perguntas abertas (o que incomoda, o que esperam) com escala de importância de 1 a 5.</li>
-    <li>Teste o roteiro com 2 ou 3 pessoas antes; registre data, meio e número de respondentes. Pode usar qualquer formulário (papel, Google Forms etc.).</li></ul>
-  <div class="barra"><button class="btn" data-acao="nedip-roteiro">📄 Roteiro de questionário (${e.formulario.perguntas.length ? 'perguntas do questionário' : 'modelo'})</button></div>
-  ${App.formularioHtml(e, b)}
-  <h4>Questionários aplicados</h4>
-  ${App.tabela(b + '.questionarios', [
-    { campo: 'publico', rotulo: 'Público / fase do ciclo de vida' }, { campo: 'meio', rotulo: 'Meio', largura: '16%' },
-    { campo: 'respondentes', rotulo: 'Respondentes', tipo: 'number', min: 0, largura: '90px' }, { campo: 'data', rotulo: 'Data', tipo: 'date', largura: '140px' },
-    { campo: 'observacao', rotulo: 'Principais achados', tipo: 'textarea' }], { novo: 'questionario', botao: 'Registrar questionário', vazio: 'Nenhum questionário registrado.' })}
-  <h4>Consolidação das respostas</h4>
-  <p class="muted">Uma linha por necessidade citada. Pode digitar ou importar um CSV com as colunas <code>necessidade; citações; importância média (1–5); fase</code>.</p>
-  ${App.tabela(b + '.consolidacao', [{ campo: 'necessidade', rotulo: 'Necessidade citada' }, { campo: 'fase', rotulo: 'Fase do ciclo de vida', largura: '18%' },
-    { campo: 'citacoes', rotulo: 'Citações', tipo: 'number', min: 0, largura: '90px' }, { campo: 'importancia', rotulo: 'Importância média (1–5)', tipo: 'number', min: 1, max: 5, largura: '120px' }],
-    { novo: 'consolidacao', botao: 'Adicionar necessidade', vazio: 'Nenhuma resposta consolidada.' })}
-  <div class="barra"><label class="btn">⬆ Importar CSV<input type="file" accept=".csv,.txt,text/csv" hidden id="csvConsol"></label>
-    ${cons.length ? `<button class="btn" data-acao="nedip-cons-necessidades">→ Usar como requisitos de cliente</button>
-    <button class="btn primario" data-acao="nedip-quest-pdf">📄 PDF do questionário com respostas consolidadas</button>` : ''}</div>`);
-    }
     if (ferr(e, 'necessidades')) {
       const soma = e.necessidades.reduce((s, n) => s + (+n.peso || 0), 0);
       h += cartao('Requisitos de cliente', `<p class="muted" style="margin-top:0">Manual, vindos da consolidação dos questionários ou do QFD (a importação do QFD substitui esta lista quando traz requisitos de cliente). Peso relativo de 0 a 1.</p>
@@ -496,7 +522,9 @@ App.acoes['nedip-roteiro'] = async () => {
 // ------------------------------------------------------------------ documentos da fase (salvos no ZIP)
 App.nedipAnexosHtml = function (et, e, b) {
   const det = et.id === 'detalhado';
-  return `<div class="cartao"><h3 style="margin-top:0">${det ? 'Importação de documentos do projeto (salvos no ZIP)' : 'Documentos da fase'}</h3>
+  const inf = et.id === 'informacional';
+  return `<div class="cartao"><h3 style="margin-top:0">${det ? 'Importação de documentos do projeto (salvos no ZIP)' : inf ? '4. Documentos da fase — respostas dos questionários' : 'Documentos da fase'}</h3>
+  ${inf ? '<p style="margin-top:0">Suba aqui os arquivos das respostas: o CSV baixado do Google Forms, planilhas e fotos ou digitalizações dos questionários em papel.</p>' : ''}
   <p class="muted">${det ? 'Desenhos, CAD, planilhas, listas, fotos e manuais próprios.' : 'Formulários, respostas, planilhas, esboços, resultados de aplicativos e outros arquivos desta fase.'} Ficam em <code>produto/${et.id}/</code>, junto do JSON, e entram no ZIP (até ${CONFIG.anexoMaxMb} MB por arquivo).</p>
   <div class="barra"><label class="btn primario">⬆ Importar arquivo(s)<input type="file" multiple hidden id="anexoEtapa"></label>
   ${det ? '<button class="btn" data-acao="exp-zip">📦 Exportar ZIP do projeto</button>' : ''}</div>
