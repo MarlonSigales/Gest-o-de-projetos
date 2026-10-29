@@ -483,3 +483,14 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .app-secao .app-lugar { margin-top: 10px; }
 .app-secao.recolhida { padding-top: 10px; padding-bottom: 10px; }
 .secoes-cab.apoio { border-left-color: var(--lima); }
+.sec-busca { min-width: 220px; padding: 5px 8px; border: 1px solid var(--borda); border-radius: 6px; font-size: 13px; }
+@media print {
+  #appCamada { display: none !important; }
+  .app-lugar { height: auto !important; }
+  .app-lugar::after { content: "Conteúdo do sistema (QFD / Projeto Conceitual): sai nos PDFs das macroentregas, do relatório e da análise QFD."; color: #666; font-style: italic; }
+}
+.so-leitura { background: #fbfcfc; }
+.so-leitura input[readonly], .so-leitura textarea[readonly], .so-leitura select:disabled, .linha-so-leitura input[readonly], .linha-so-leitura textarea[readonly], .linha-so-leitura select:disabled { background: #f1f4f3; color: #4a5958; cursor: default; }
+.so-leitura-aviso { margin: -6px 0 10px; font-size: 12.5px; color: var(--suave); }
+.passo { border-left: 4px solid var(--teal); }
+.passo-prox { margin-top: 10px; text-align: right; font-size: 13px; }

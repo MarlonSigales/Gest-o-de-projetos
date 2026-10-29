@@ -339,6 +339,8 @@ assets/js/abas.js, macros.js, abnt.js, gantt.js, riscos.js, trl.js, relatorios.j
 assets/js/templates.js     imagens dos templates embutidas (permite abrir do disco)
 assets/js/exemplo.js       exemplo fictício (roda de bicicleta 700c), com figuras e QFD
 assets/js/apps-secoes.js   páginas do QFD e do Projeto Conceitual como seções das fases (dados sincronizados)
+assets/js/passos.js        passos das fases detalhado, produção, lançamento e validação
+tests/secoes-e2e.js        teste de ponta a ponta das seções (node tests/secoes-e2e.js, com Playwright)
 exemplos/                  roda-bicicleta-generica.zip, qfd-roda-bicicleta.json, questionario-roda-google-forms.csv e patentes-roda-google-patents.csv
 lib/                       pdfmake 0.2.20 e JSZip 3.10.1 (licenças MIT incluídas)
 ```

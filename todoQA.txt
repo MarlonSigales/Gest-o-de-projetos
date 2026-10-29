@@ -316,49 +316,49 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
 70 [resolvido 29/10/2026: título e número da página dos apps escondidos (fica o do cartão); conclusão no título da seção; Início do conceitual diz que vem do QFD do projeto] Títulos duplicados e numeração: esconder o título/número da página do app (fica só o do cartão do Gestão)
    ou o contrário; trocar "importado em" do Início do conceitual por "vindo do QFD do projeto"; selo "Etapa concluída"
    do app → situação no cartão do Gestão.
-76 [pendente] Testar no site publicado: endereço /QFD/ x repositório qfd (maiúsculas), mesma origem, Font Awesome;
+76 [resolvido 29/10/2026: as seções usam as pastas vizinhas do Gestão no mesmo site (/qfd/ e /projetoconceitual/, nome exato dos repositórios), sem depender de /QFD/; teste automático tests/secoes-e2e.js (14 verificações). Falta só abrir no site publicado (aqui não há acesso)] Testar no site publicado: endereço /QFD/ x repositório qfd (maiúsculas), mesma origem, Font Awesome;
    criar testes automáticos de apps-secoes.js (preparar, sincronizar QFD/conceitual, salvar ZIP, modal, links).
 69 [resolvido 29/10/2026: altura guardada no projeto e a última vista da página (qualquer projeto) como altura provisória; seção inteira acima da tela que muda de altura não empurra o que se está vendo] Página pulando ao carregar: guardar no projeto a última altura de cada seção e usar como altura
    provisória; compensar a rolagem quando uma seção acima da tela mudar de altura.
-67 [pendente] Dados só no arquivo ao Salvar: salvar sozinho (como no modo navegador) alguns segundos depois de cada
+67 [resolvido 29/10/2026: mudanças vindas das seções salvam sozinhas 3 s depois (salvamento rápido do JSON); o ZIP com as fotos vai no Salvar e ao recolher/concluir; o aviso ao fechar a aba com algo não salvo continua] Dados só no arquivo ao Salvar: salvar sozinho (como no modo navegador) alguns segundos depois de cada
    mudança vinda das seções, ou ao menos marcar com destaque "mudanças do QFD/conceitual ainda não salvas"; avisar ao
    fechar a aba.
-77 [pendente] Versão simplificada: decidir se recebe seções (só as páginas do QFD de especificações) ou mantém a
+77 [decidido 29/10/2026: a versão simplificada mantém a importação opcional do QFD (ela não tem o projeto de produto nem as seções)] Versão simplificada: decidir se recebe seções (só as páginas do QFD de especificações) ou mantém a
    importação opcional.
-75 [pendente] Consolidação → QFD: mostrar a lista antes de acrescentar (marcar quais entram), casar por semelhança de
+75 [resolvido 29/10/2026: necessidades claramente novas entram sozinhas; as parecidas com um requisito do QFD esperam a decisão (aviso “Revisar” no topo das seções do QFD, com a parecida ao lado); as que saíram da consolidação são avisadas; nada é apagado sozinho] Consolidação → QFD: mostrar a lista antes de acrescentar (marcar quais entram), casar por semelhança de
    texto (não só igual) e avisar quando uma necessidade sair da consolidação mas continuar no QFD.
-72 [pendente] Janelas dentro das seções: testar Mudge, matriz QFD, telhado, editor de esboço, editor de estrutura,
+72 [resolvido 29/10/2026: detecção por MutationObserver (e checagem a cada 1 s) e genérica (modal/overlay/popup/dialog em posição fixa); testados Mudge, telhado e matriz QFD: a janela aparece na parte visível e a seção volta ao normal ao fechar. Editor de esboço e janelas da IA usam o mesmo caminho (não testados um a um)] Janelas dentro das seções: testar Mudge, matriz QFD, telhado, editor de esboço, editor de estrutura,
    imagens, IA; menus e dicas perto da borda; trocar a verificação de 300 ms por MutationObserver.
-73 [pendente] Limitações de navegador: Ctrl+F não busca dentro das seções (oferecer busca do Gestão nas seções);
+73 [parcial 29/10/2026: busca nas seções (campo no topo de cada bloco, Enter vai à próxima ocorrência; só nas seções abertas); ao imprimir, as seções viram um aviso de que o conteúdo sai nos PDFs. Ordem do Tab entre seções não mudou (limite do navegador)] Limitações de navegador: Ctrl+F não busca dentro das seções (oferecer busca do Gestão nas seções);
    ordem do Tab entre seções; imprimir a fase (gerar PDF da fase em vez de imprimir a página).
-71 [pendente] Visual: folha de estilo comum injetada nas seções (fonte, botões, cores, cartões) para parecer um sistema
+71 [parcial 29/10/2026: as cores já eram as mesmas nos três sistemas; a fonte das seções passou a ser a do Gestão. Font Awesome continua vindo de CDN no QFD (trazer para o repositório exige mudar o QFD)] Visual: folha de estilo comum injetada nas seções (fonte, botões, cores, cartões) para parecer um sistema
    só; Font Awesome local em vez de CDN.
-65 [pendente — urgente] Dois lugares para o mesmo dado: quadros do Gestão alimentados pelas seções (requisitos de
+65 [resolvido 29/10/2026: no informacional, “Requisitos de cliente” (quando o QFD tem); no conceitual, função global, estrutura de funções e princípios, desdobramento e concepções; no preliminar, as linhas da FMEA vindas do conceitual (menos responsável e risco) — só leitura, com “Editar lá” para a seção] Dois lugares para o mesmo dado: quadros do Gestão alimentados pelas seções (requisitos de
    cliente, especificações, funções/subfunções/princípios, concepções, desdobramento, FMEA vinda do conceitual) ficam
    só para leitura quando as seções estão ativas, com "editar na seção X.Y". Manter editáveis os campos só do Gestão
    (PDCA, valor medido, responsáveis, matriz de decisão, registro).
-64 [pendente — urgente] Dois projetos abertos ao mesmo tempo se misturam: o Gestão usa as mesmas chaves do navegador que o
+64 [resolvido 29/10/2026: trava entre abas — a segunda aba que abrir as seções fica parada, com “Usar nesta aba”; a outra para sozinha; ao fechar a aba que usa, a parada volta a funcionar sozinha. QFD/Projeto Conceitual abertos sozinhos em outra aba não entram na trava] Dois projetos abertos ao mesmo tempo se misturam: o Gestão usa as mesmas chaves do navegador que o
    QFD e o Projeto Conceitual sozinhos (qfd_data, pc_projeto).
    a) Trava por projeto com BroadcastChannel/localStorage: ao abrir as seções, avisar e bloquear se o QFD/conceitual já
       estiver aberto em outra aba (de outro projeto ou do QFD/Projeto Conceitual sozinhos); botão "usar aqui" que libera.
    b) Ignorar mudanças que cheguem de outra aba que não seja dona da trava (hoje só confere o "dono" do projeto).
    c) Opcional: chave por projeto nos dois sistemas (ex.: ?gp=<id> usa qfd_data_<id>); exige mudar QFD e Projeto
       Conceitual (só quando abertos com o parâmetro, para não afetar quem usa sozinho).
-74 [pendente] QFD → conceitual só quando o conceitual abre: aplicar no pcDados guardado mesmo sem a seção aberta
+74 [resolvido 29/10/2026: com o QFD mudando e o conceitual fechado, uma seção escondida do conceitual é aberta só para receber; aviso “O projeto conceitual recebeu as mudanças do QFD”] QFD → conceitual só quando o conceitual abre: aplicar no pcDados guardado mesmo sem a seção aberta
    (carregar uma seção oculta do conceitual só para isso) e mostrar "o QFD mudou desde a última vez" no conceitual.
-66 [pendente — urgente] Recarga das outras seções do QFD a cada mudança (piscam e perdem rolagem/aberturas):
+66 [resolvido 29/10/2026: as seções do QFD são atualizadas pelas funções de desenho da própria página (sem recarregar; mantém rolagem e o que estava aberto); recarrega só se a página não tiver essas funções] Recarga das outras seções do QFD a cada mudança (piscam e perdem rolagem/aberturas):
    a) Em vez de recarregar, chamar a função de desenho de cada página do QFD (levantar o nome por página);
    b) só recarregar o que não tiver função de redesenho e guardar/restaurar a rolagem e os <details> abertos;
    c) não recarregar a seção que a pessoa está usando nem a que recebeu clique nos últimos segundos.
-68 [pendente] Peso: cada seção carrega o sistema inteiro (11 do QFD + 17 do conceitual/preliminar).
+68 [resolvido 29/10/2026: no máximo 8 seções carregadas (3 no celular); acima disso, descarrega a mais longe da tela (guarda a altura) e recarrega ao chegar perto] Peso: cada seção carrega o sistema inteiro (11 do QFD + 17 do conceitual/preliminar).
    a) Descarregar seções longe da tela (guardar a altura) e recarregar ao voltar;
    b) limite de seções abertas ao mesmo tempo (ex.: 6);
    c) no celular, abrir uma seção por vez (lista com "abrir").
-78 [pendente] Versionamento (item 52): qfdDados e pcDados são grandes; comparar por item (requisito, função,
+78 [pendente: depende do versionamento (item 52), que ainda não foi feito] Versionamento (item 52): qfdDados e pcDados são grandes; comparar por item (requisito, função,
    concepção) e não pelo bloco inteiro; o log deve registrar as mudanças vindas das seções.
 
 === Resto do projeto de produto: tirar "Entrada da fase / Importar resultado do aplicativo" e fazer passos ===
-79 [pendente] Detalhado, Preparação da produção, Lançamento e Validação ainda têm o cartão "Entrada da fase" (aplicativo
+79 [resolvido 29/10/2026: passos numerados nas quatro fases (assets/js/passos.js), sem “Entrada da fase”; documentos no passo em que os arquivos são feitos; cada passo preenchido marca a recomendação; “Próximo ↓” no fim de cada passo; textos novos entram no manual de projeto] Detalhado, Preparação da produção, Lançamento e Validação ainda têm o cartão "Entrada da fase" (aplicativo
    externo, "Importar resultado do aplicativo"). Trocar por passos numerados na própria página, na ordem do trabalho,
    com "Documentos da fase" no passo em que os arquivos são produzidos (como no informacional). Os passos seguem as
    recomendações de cada fase (nedip.js), que passam a ser marcadas sozinhas quando o passo for preenchido.
@@ -404,7 +404,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    do arquivo em qfd/).
 82 [resolvido] Caderno de ideias e Estado da técnica (apoio do QFD, fora do fluxo) ficam no início do projeto de produto,
    como seções A.1 e A.2, recolhidas, em todas as fases. O tutorial do QFD ficou de fora (carrega o projeto de exemplo).
-83 [pendente] Estado da técnica do QFD (A.2) e a aba Pesquisa (patentes e referências) do Gestão tratam do mesmo
+83 [resolvido 29/10/2026: patentes (relevância alta/média) e referências da aba Pesquisa entram sozinhas no estado da técnica do QFD; patentes do QFD entram na Pesquisa; sem repetir pela identificação; aviso na aba Pesquisa com link para A.2] Estado da técnica do QFD (A.2) e a aba Pesquisa (patentes e referências) do Gestão tratam do mesmo
    assunto: unificar (uma alimenta a outra) para não haver dois lugares.
 84 [resolvido] FMEA do preliminar no Gestão: linhas vindas do conceitual com o mesmo modo de falha que a equipe já escreveu
    (ou repetidas) não entram de novo. As falhas das rodadas de teste do preliminar chegam como linhas próprias
@@ -413,4 +413,4 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    marca do que da consolidação já foi para o QFD; agora ficam.
 86 [resolvido] Exemplo regerado: FMEA da concepção da roda escrita pela equipe (a mesma do preliminar), rodadas P1 e P2
    gerando as linhas de falha (massa, fadiga, tensão dos raios), pcDados no JSON, ZIP e PDFs refeitos.
-
+87 [resolvido] Todas as seções começam recolhidas ao abrir o projeto (abre-se só o que for usar; ir a uma seção a abre).

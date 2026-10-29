@@ -209,14 +209,15 @@ window.nedipNormalizar = function (prod) {
         fmea: nedipLista(e.fmea).map((x) => Object.assign({ id: uidN('fm'), item: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '', responsavel: '', riscoId: '' }, x)),
       }),
       detalhado: () => ({
+        desenhos: nedipTxt(e.desenhos), planos: nedipTxt(e.planos), protoFinal: nedipTxt(e.protoFinal), pi: nedipTxt(e.pi), // passos (passos.js)
         bom: nedipLista(e.bom).map((x) => Object.assign({ item: '', descricao: '', quantidade: null, unidade: 'un', material: '', origem: 'fabricado', fornecedor: '' }, x)),
         manualUso: Object.fromEntries(window.NEDIP_MANUAL_USO.map(([k]) => [k, nedipTxt((e.manualUso || {})[k])])),
         manuais: Object.assign({ projeto: '', uso: '', geradoEm: '', projetoAnexo: '', usoAnexo: '' }, e.manuais || {}),
       }),
-      producao: () => ({ processos: nedipTxt(e.processos), fornecedores: nedipTxt(e.fornecedores), lotePiloto: nedipTxt(e.lotePiloto), liberacao: nedipTxt(e.liberacao) }),
-      lancamento: () => ({ plano: nedipTxt(e.plano), canais: nedipTxt(e.canais), treinamento: nedipTxt(e.treinamento), certificacoes: nedipTxt(e.certificacoes), data: nedipTxt(e.data),
+      producao: () => ({ instrucoes: nedipTxt(e.instrucoes), assistencia: nedipTxt(e.assistencia), liberacaoAceite: nedipTxt(e.liberacaoAceite), processos: nedipTxt(e.processos), fornecedores: nedipTxt(e.fornecedores), lotePiloto: nedipTxt(e.lotePiloto), liberacao: nedipTxt(e.liberacao) }),
+      lancamento: () => ({ documentacao: nedipTxt(e.documentacao), plano: nedipTxt(e.plano), canais: nedipTxt(e.canais), treinamento: nedipTxt(e.treinamento), certificacoes: nedipTxt(e.certificacoes), data: nedipTxt(e.data),
         economia: window.Economia ? Economia.normalizar(e.economia) : (e.economia || {}) }), // análise econômica e de mercado (economia.js)
-      validacao: () => ({ campo: nedipTxt(e.campo), satisfacao: nedipTxt(e.satisfacao), melhorias: nedipTxt(e.melhorias), encerramento: nedipTxt(e.encerramento),
+      validacao: () => ({ especUso: nedipTxt(e.especUso), campo: nedipTxt(e.campo), satisfacao: nedipTxt(e.satisfacao), melhorias: nedipTxt(e.melhorias), encerramento: nedipTxt(e.encerramento),
         questionarios: nedipLista(e.questionarios).map((q) => Object.assign({ publico: '', meio: '', respondentes: null, data: '', observacao: '' }, q)) }),
     };
     out.etapas[et.id] = Object.assign(base, X[et.id]());

@@ -732,22 +732,24 @@ Pdf.manualProjeto = async function (p, armazem, op = {}) {
       c.push(...txt('Viabilidade técnica e econômica', e.viabilidade));
     },
     detalhado: (e) => {
+      c.push(...txt('Desenhos e documentos de fabricação', e.desenhos));
       if (e.bom.length) c.push(h2(pr.tipo === 'serviço' ? 'Lista de materiais e recursos' : 'Lista de materiais'), Pdf.grade(['Item', 'Descrição', 'Qtd.', 'Material / especificação', 'Origem', 'Fornecedor'],
         e.bom.map((x) => [x.item, x.descricao, `${x.quantidade ?? ''} ${x.unidade || ''}`.trim(), x.material, x.origem, x.fornecedor]), [30, '*', 40, '*', 55, 70]));
+      c.push(...txt('Planos de fabricação, montagem e controle de qualidade', e.planos), ...txt('Ensaio do protótipo final', e.protoFinal), ...txt('Proteção intelectual', e.pi));
       if (e.manuais.usoAnexo || e.manuais.projetoAnexo) c.push(h2('Manuais próprios'), { ul: [e.manuais.projetoAnexo && 'Manual de projeto: ' + e.manuais.projetoAnexo, e.manuais.usoAnexo && 'Manual de uso: ' + e.manuais.usoAnexo].filter(Boolean), style: 'corpo' });
     },
-    producao: (e) => { c.push(...txt('Processos, recursos e controle de qualidade', e.processos), ...txt('Fornecedores homologados', e.fornecedores), ...txt('Lote piloto', e.lotePiloto));
-      if (e.liberacao) c.push({ text: [{ text: 'Liberação da produção: ', bold: true }, Nucleo.dataBR(e.liberacao)], style: 'corpo' }); },
+    producao: (e) => { c.push(...txt('Processos, recursos e controle de qualidade', e.processos), ...txt('Fornecedores homologados', e.fornecedores), ...txt('Instruções de trabalho e plano de controle', e.instrucoes), ...txt('Lote piloto', e.lotePiloto), ...txt('Assistência técnica e peças de reposição', e.assistencia));
+      if (e.liberacao) c.push({ text: [{ text: 'Liberação da produção: ', bold: true }, Nucleo.dataBR(e.liberacao)], style: 'corpo' }); c.push(...txt('Aceite da liberação', e.liberacaoAceite)); },
     lancamento: (e) => {
       if (e.ferramentas.economia !== false && window.Economia && Economia.temDados(e.economia)) {
         c.push(h2('Análise econômica e de mercado'));
         Economia.pdf(Economia.normalizar(e.economia), { h: (t) => c.push({ text: t, style: 'h3' }), add: (n) => c.push(n), tab: (cab, l, larg) => c.push(Pdf.grade(cab, l, larg.map((x) => x.w || x.min))) });
       }
-      c.push(...txt('Plano de lançamento', e.plano), ...txt('Canais', e.canais), ...txt('Treinamentos', e.treinamento), ...txt('Registros e certificações', e.certificacoes));
+      c.push(...txt('Plano de lançamento', e.plano), ...txt('Canais', e.canais), ...txt('Treinamentos', e.treinamento), ...txt('Registros e certificações', e.certificacoes), ...txt('Documentação ao cliente', e.documentacao));
       if (e.data) c.push({ text: [{ text: 'Lançamento: ', bold: true }, Nucleo.dataBR(e.data)], style: 'corpo' }); },
     validacao: (e) => {
       if (e.questionarios.length) c.push(h2('Questionários de satisfação'), Pdf.grade(['Público', 'Meio', 'Resp.', 'Data', 'Principais achados'], e.questionarios.map((q) => [q.publico, q.meio, q.respondentes ?? '—', Nucleo.dataBR(q.data), q.observacao]), [90, 70, 35, 50, '*']));
-      c.push(...txt('Satisfação dos clientes', e.satisfacao), ...txt('Desempenho em campo', e.campo), ...txt('Melhorias e próxima versão', e.melhorias), ...txt('Encerramento', e.encerramento));
+      c.push(...txt('Satisfação dos clientes', e.satisfacao), ...txt('Desempenho em campo', e.campo), ...txt('Especificações em uso real', e.especUso), ...txt('Melhorias e próxima versão', e.melhorias), ...txt('Encerramento', e.encerramento));
     },
   };
   nedipEtapasAtivas(p).forEach((et) => {

@@ -67,7 +67,9 @@ ${App.secoesHtml && App.secoesAtivas && App.secoesAtivas() ? App.secoesHtml('apo
 
     // planejamento e informacional não usam aplicativo externo: sem "Entrada da fase" (o QFD fica dentro da página do informacional)
     const secoes = !!(App.secoesHtml && App.secoesAtivas && App.secoesAtivas());
-    const semEntrada = et.id === 'planejamento' || et.id === 'informacional' || (secoes && (et.id === 'conceitual' || et.id === 'preliminar'));
+    const passos = secoes && App.nedipTemPassos && App.nedipTemPassos(et.id);
+    const passosHtml = passos ? App.nedipPassosHtml(et, e, b, servico) : ''; // antes das recomendações: os passos preenchidos as marcam
+    const semEntrada = et.id === 'planejamento' || et.id === 'informacional' || passos || (secoes && (et.id === 'conceitual' || et.id === 'preliminar'));
     h += semEntrada ? App.nedipFerramentasHtml(et, b) : App.nedipEntradaHtml(et, e, b);
     h += cartao('Recomendações da fase', `<p class="muted">Marque o que foi (ou será) aplicado. As marcadas aparecem no manual de projeto.</p>
   <div class="nedip-recs">${et.recomendacoes.map(([id, t]) => c(`${b}.recomendacoes.${id}`, t, { tipo: 'checkbox', classe: 'rec', render: true })).join('')}</div>`);
@@ -87,6 +89,9 @@ ${App.secoesHtml && App.secoesAtivas && App.secoesAtivas() ? App.secoesHtml('apo
       h += App.nedipEspecifico[et.id](e, b, servico);
       h += registro;
       h += App.nedipAnexosHtml(et, e, b);
+    } else if (passos) {
+      h += passosHtml;
+      h += registro;
     } else {
       h += App.nedipEspecifico[et.id](e, b, servico);
       h += registro;
