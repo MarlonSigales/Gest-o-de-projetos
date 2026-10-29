@@ -44,14 +44,14 @@
 
   // ---------------------------------------------------------------- endereços
   /**
-   * Os sistemas são as pastas vizinhas do Gestão no mesmo site (marlonsigales.github.io/qfd/ e /projetoconceitual/,
-   * com o nome exato dos repositórios). Só aberto do disco (file:) usa o endereço das configurações.
+   * Endereço dos sistemas: o das configurações (marlonsigales.github.io/QFD/ e /ProjetoConceitual/ — no GitHub Pages
+   * o caminho diferencia maiúsculas e é o nome do repositório). Só quando ele não é do mesmo site (cópia local, testes)
+   * usa as pastas vizinhas.
    */
   function base(app) {
-    const local = app === 'qfd' ? '../qfd/' : '../projetoconceitual/';
-    if (location.protocol !== 'file:') return new URL(local, location.href).href;
-    const cfg = app === 'qfd' ? CONFIG.urlQfd : CONFIG.urlConceitual;
-    try { return new URL('./', new URL(cfg, location.href)).href; } catch (e) { return new URL(local, location.href).href; }
+    const cfg = app === 'qfd' ? CONFIG.urlQfd : CONFIG.urlConceitual, local = app === 'qfd' ? '../qfd/' : '../projetoconceitual/';
+    try { const u = new URL(cfg, location.href); if (u.origin === location.origin) return new URL('./', u).href; } catch (e) { /* abaixo */ }
+    return new URL(local, location.href).href;
   }
   const urlDe = (app, pag) => (app === 'qfd' ? `${base('qfd')}pages/${pag}.html?gp=1` : `${base('pc')}index.html?gp=1#/${pag}`);
   const faseDe = (app, pag) => (app === 'qfd' ? 'informacional' : PC_PRE.some(([p]) => p === pag) ? 'preliminar' : 'conceitual');
