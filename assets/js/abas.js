@@ -151,6 +151,7 @@ App.abas.areas = {
         <label class="campo largo">Item da estrutura TRL vinculado<select class="sel-no" data-path="areas.${i}.noImatec" data-tipo="select" data-render="1">${App.opcoes(opNos, a.noImatec)}</select>
           ${a.vinculoPerdido ? '<span class="gap-neg">O item vinculado não existe mais na última avaliação importada — selecione novamente.</span>' : ''}</label>
         ${App.campo(`areas.${i}.trlEsperado`, 'TRL esperado para a área', { tipo: 'select', opcoes: App.opcoesTrl })}
+        ${App.campo(`areas.${i}.eletrica`, 'Área elétrica e de automação: só os responsáveis dela fazem a parte elétrica do projeto de produto (o coordenador e o gestor aceitam)', { tipo: 'checkbox', classe: 'largo' })}
       </div>
       <h4>Responsáveis (um ou mais)</h4>
       ${App.tabela(`areas.${i}.responsaveis`, [{ campo: 'nome', rotulo: 'Nome' }, { campo: 'email', rotulo: 'E-mail', tipo: 'email' }], { novo: 'pessoa', botao: 'Adicionar responsável', vazio: 'Sem responsável: a cobrança vai para a coordenação.' })}

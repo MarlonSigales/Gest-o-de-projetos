@@ -28,8 +28,13 @@
   /** Fluxo simplificado do Projeto Conceitual (elétrico, eletrônico, automação — Marwedel): menos páginas. */
   const PC_CONC_SIMPL = [
     ['inicio', 'Início: tipo de projeto, fluxo e preenchimento automático'], ['escopo', 'Especificação'], ['funcao-global', 'Função global'],
-    ['estrutura', 'Diagrama de blocos'], ['blocos', 'Soluções dos blocos: reuso e hardware × software'], ['concepcao', 'Concepção e plano de testes'],
+    ['estrutura', 'Diagrama de blocos'], ['blocos', 'Soluções dos blocos: reuso e hardware × software'], ['desenvolvimento', 'Desenvolvimento dos blocos (Nilsson e Riedel; Nise)'], ['concepcao', 'Concepção e plano de testes'],
     ['analises', 'Análises e TRL'], ['relatorio', 'Relatório do projeto conceitual']];
+  /** Projeto misto: a parte elétrica e de automação tem seções próprias (páginas com o prefixo e-). */
+  const pcMisto = () => !!(App.p && App.p.produto && App.p.produto.pcDados && App.p.produto.pcDados.tipoProjeto === 'misto');
+  const PCE_CONC = () => PC_CONC_SIMPL.filter(([p]) => p !== 'inicio').map(([p, t]) => ['e-' + p, t]);
+  const PCE_PRE = () => PC_PRE.map(([p, t]) => ['e-' + p, t]);
+  const todasPc = () => pcConc().concat(PC_PRE, pcMisto() ? PCE_CONC().concat(PCE_PRE()) : []);
   const pcSimplificado = () => !!(App.p && App.p.produto && App.p.produto.pcDados && App.p.produto.pcDados.fluxo === 'simplificado');
   const pcConc = () => (pcSimplificado() ? PC_CONC_SIMPL : PC_CONC_COMPLETO);
   const PC_PRE = [
@@ -44,6 +49,8 @@
   const projId = () => (App.p && App.p.id) || '';
   const glob = (w, nome) => { try { return w && w.eval(`typeof ${nome} !== 'undefined' ? ${nome} : undefined`); } catch (e) { return undefined; } };
   const clone = (x) => JSON.parse(JSON.stringify(x));
+  /** O projeto conceitual inteiro (numa seção da parte elétrica do misto, PC.p é só a parte). */
+  const pcRaiz = (pc) => (pc && (pc.raiz || pc.p)) || null;
   /** Conteúdo sem os metadados (data de modificação), para saber se algo mudou de fato. */
   const semMeta = (txt) => { try { const d = typeof txt === 'string' ? JSON.parse(txt) : txt; if (!d || typeof d !== 'object') return ''; const c = Object.assign({}, d); delete c.metadata; return JSON.stringify(c); } catch (e) { return ''; } };
   const quando = (txt, campo) => { try { const d = typeof txt === 'string' ? JSON.parse(txt) : txt; return String(((d || {}).metadata || {})[campo] || ''); } catch (e) { return ''; } };
@@ -60,12 +67,15 @@
     try { const u = new URL(cfg, location.href); if (u.origin === location.origin) return new URL('./', u).href; } catch (e) { /* abaixo */ }
     return new URL(local, location.href).href;
   }
-  const urlDe = (app, pag) => (app === 'qfd' ? `${base('qfd')}pages/${pag}.html?gp=1` : `${base('pc')}index.html?gp=1#/${pag}`);
-  const faseDe = (app, pag) => (app === 'qfd' ? 'informacional' : PC_PRE.some(([p]) => p === pag) ? 'preliminar' : 'conceitual');
+  /** Papéis de quem está usando, para a parte elétrica (só a equipe da área elétrica edita; coordenador e gestor aceitam). */
+  const papeisParam = () => { const r = App.papeisEletrica ? App.papeisEletrica() : { papeis: ['livre'], usuario: '' }; return `&papeis=${encodeURIComponent(r.papeis.join(','))}&usuario=${encodeURIComponent(r.usuario)}`; };
+  const urlDe = (app, pag) => (app === 'qfd' ? `${base('qfd')}pages/${pag}.html?gp=1`
+    : `${base('pc')}index.html?gp=1${papeisParam()}${pag.startsWith('e-') ? '&parte=eletrica' : ''}#/${pag.replace(/^e-/, '')}`);
+  const faseDe = (app, pag) => (app === 'qfd' ? 'informacional' : PC_PRE.some(([p]) => p === pag.replace(/^e-/, '')) && pag !== 'e-inicio' ? 'preliminar' : 'conceitual');
 
   // ---------------------------------------------------------------- seções na página
   /** Cartões das páginas de um sistema, numerados a partir de n0 (ex.: 5 → 5.1, 5.2…). */
-  const listaDe = (app) => (app === 'qfd' ? QFD_PAGS : app === 'apoio' ? QFD_APOIO : app === 'pc-pre' ? PC_PRE : pcConc());
+  const listaDe = (app) => (app === 'qfd' ? QFD_PAGS : app === 'apoio' ? QFD_APOIO : app === 'pc-pre' ? PC_PRE : app === 'pce' ? PCE_CONC() : app === 'pce-pre' ? PCE_PRE() : pcConc());
   /** Seções recolhidas: guardadas no projeto (config.secoesRecolhidas); as de apoio começam recolhidas. */
   const recolhidas = () => { const c = App.p.config || (App.p.config = {}); return c.secoesRecolhidas || (c.secoesRecolhidas = {}); };
   // ao abrir o projeto, todas as seções começam recolhidas; abrem só as que a pessoa abrir nesta sessão
@@ -78,16 +88,25 @@
     const txt = st.feito && !st.marcada ? '100%' : st.pct !== null ? `${st.pct}%` : st.estado === 'andamento' ? 'em andamento' : '0%';
     return `<span class="sec-pct ${cls}" title="${esc(st.resumo || '')}">${txt}${st.feito ? (st.marcada ? ' · ✓ marcada como concluída' : ' · ✓ concluída') : ''}</span>`;
   }
+  /** Etapa da parte elétrica que quem usa não pode marcar (só a equipe da área elétrica faz; especificações e leitura são livres). */
+  function bloqueadaEletrica(k) {
+    const [app, pag] = k.split(':'); if (app !== 'pc' || !App.papeisEletrica) return false;
+    const pg = pag.replace(/^e-/, ''), d = (App.p.produto || {}).pcDados || {};
+    if (['inicio', 'escopo', 'analises', 'relatorio'].includes(pg)) return false;
+    if (!pag.startsWith('e-') && !(d.tipoProjeto !== 'misto' && ['eletrico', 'automacao'].includes(d.tipoProjeto))) return false;
+    const r = App.papeisEletrica().papeis; return !r.includes('equipe') && !r.includes('livre');
+  }
   function botaoConcluir(k) {
-    const st = S.st[k]; if (!st || st.semConclusao) return '';
+    const st = S.st[k]; if (!st || st.semConclusao || bloqueadaEletrica(k)) return '';
     if (st.feito && !st.marcada) return '';
     return st.marcada ? `<button class="btn pequeno" data-acao="sec-concluir" data-chave="${k}" data-v="0" title="Desfazer a marcação">Desfazer</button>`
       : `<button class="btn pequeno" data-acao="sec-concluir" data-chave="${k}" data-v="1" title="Use quando esta etapa não precisar ser preenchida por completo">✓ Marcar como concluída</button>`;
   }
   /** Cartões das páginas de um sistema, numerados a partir de n0 (ex.: 5 → 5.1, 5.2…). */
   App.secoesHtml = function (app, n0, intro) {
-    const lista = listaDe(app), ap = app === 'pc' || app === 'pc-pre' ? 'pc' : 'qfd', apoio = app === 'apoio';
-    const nome = { qfd: 'QFD (casa da qualidade)', apoio: 'Apoio ao projeto (todas as fases)', pc: 'Projeto conceitual', 'pc-pre': 'Projeto preliminar' }[app];
+    const lista = listaDe(app), ap = /^pc/.test(app) ? 'pc' : 'qfd', apoio = app === 'apoio';
+    const nome = { qfd: 'QFD (casa da qualidade)', apoio: 'Apoio ao projeto (todas as fases)', pc: pcMisto() ? 'Projeto conceitual – parte mecânica (Pahl, Reis)' : 'Projeto conceitual', 'pc-pre': pcMisto() ? 'Projeto preliminar – parte mecânica' : 'Projeto preliminar',
+      pce: 'Projeto conceitual – parte elétrica e de automação (Marwedel)', 'pce-pre': 'Projeto preliminar – parte elétrica e de automação' }[app];
     const chaves = lista.map(([p]) => `${ap}:${p}`).join(',');
     let h = `<div class="cartao secoes-cab ${apoio ? 'apoio' : ''}"><h3 style="margin-top:0">${n0}. ${nome}</h3><p class="muted" style="margin:0">${intro}</p>
       <div class="barra">${app === 'qfd' ? `<button class="btn primario" data-acao="qfd-pdf">📄 PDF da análise QFD</button>
@@ -134,11 +153,13 @@
   };
   App.acoes['sec-concluir'] = (el) => {
     const k = el.dataset.chave, [app, pag] = k.split(':'), v = el.dataset.v === '1';
+    if (bloqueadaEletrica(k)) { App.toast('Na parte elétrica, só a equipe da área elétrica marca as etapas (aba Áreas).', 'aviso'); return; }
     try {
       if (app === 'qfd') { const w = janelaDe('qfd'); const db = w && glob(w, 'qfdDB'); if (!db) throw new Error('o QFD ainda está carregando'); db.setEtapaConcluida(pag, v); }
       else {
-        const w = janelaDe('pc'), pc = w && glob(w, 'PC'); if (!pc || !pc.p) throw new Error('o projeto conceitual ainda está carregando');
-        pc.p.etapasConcluidas = pc.p.etapasConcluidas.filter((x) => x !== pag).concat(v ? [pag] : []); pc.salvar('concluir');
+        const w = janelaDe('pc'), pc = w && glob(w, 'PC'), r = pcRaiz(pc); if (!r) throw new Error('o projeto conceitual ainda está carregando');
+        const proj = pag.startsWith('e-') ? r.parteEletrica : r, pg = pag.replace(/^e-/, ''); if (!proj) throw new Error('a parte elétrica ainda não foi criada');
+        proj.etapasConcluidas = proj.etapasConcluidas.filter((x) => x !== pg).concat(v ? [pg] : []); pc.salvar('concluir');
         if (w.renderPagina) w.renderPagina(true);
       }
       setTimeout(() => { atualizarStatus(app); if (app === 'qfd') syncQfd(); else syncPc(true); salvarSozinho(); }, 150);
@@ -202,7 +223,7 @@
     if (app === 'qfd' && !ehApoio && !QFD_PAGS.some(([p]) => p === pag)) pag = QFD_PAGS[0][0];
     const k = `${app}:${pag}`;
     if (estaRecolhida(k)) { abrirOuFechar(k, true); App.marcarSujo(true); salvarSozinho(); }
-    if (app === 'pc' && !pcConc().concat(PC_PRE).some(([p]) => p === pag)) pag = 'inicio';
+    if (app === 'pc' && !todasPc().some(([p]) => p === pag)) pag = 'inicio';
     const fase = ehApoio ? App.etapaSel : faseDe(app, pag);
     if (App.aba !== 'produto' || App.etapaSel !== fase) { App.aba = 'produto'; App.etapaSel = fase; }
     App.render();
@@ -210,6 +231,10 @@
     setTimeout(() => { const l = document.getElementById(S.alvo ? S.alvo.id : ''); if (l) window.scrollTo({ top: l.getBoundingClientRect().top + window.scrollY - 66 }); }, 60);
   }
   App.irParaSecao = irParaSecao;
+  /** Recarrega as seções do projeto conceitual (os papéis da parte elétrica mudaram). */
+  App.secoesRecarregarPc = function () {
+    Object.values(S.frames).filter((f) => f.app === 'pc').forEach((f) => { f.carregado = false; f.el.src = urlDe('pc', f.pag === '__st' ? f.real : f.pag); });
+  };
 
   // ---------------------------------------------------------------- preparar os dados do projeto para os sistemas
   function reservar(app, txt) {
@@ -309,9 +334,9 @@
   }
   const REAL_ST = { qfd: 'ideias', pc: 'inicio' };
   function criar(k) {
-    const [app, pag] = k.split(':'), real = pag === '__st' ? REAL_ST[app] : pag;
+    const [app, pag] = k.split(':'), real = pag === '__st' ? REAL_ST[app] : pag.replace(/^e-/, '');
     const el = document.createElement('iframe');
-    el.className = 'app-frame'; el.setAttribute('aria-label', (app === 'qfd' ? 'QFD: ' : 'Projeto conceitual: ') + pag); el.src = urlDe(app, real);
+    el.className = 'app-frame'; el.setAttribute('aria-label', (app === 'qfd' ? 'QFD: ' : 'Projeto conceitual: ') + pag); el.src = urlDe(app, pag === '__st' ? real : pag);
     el.setAttribute('scrolling', 'no');
     camada().appendChild(el);
     S.frames[k] = { el, app, pag, real, altura: 0, carregado: false, modal: false, oculto: pag === '__st' };
@@ -355,7 +380,7 @@
       const m = caminho.match(/\/pages\/([a-z0-9-]+)\.html$/);
       f.el.src = urlDe('qfd', f.real); if (m && m[1] !== f.real && !f.oculto) irParaSecao('qfd', m[1]); return;
     }
-    if (f.app === 'pc' && !/projetoconceitual|index\.html$|\/$/.test(caminho)) { f.el.src = urlDe('pc', f.real); return; }
+    if (f.app === 'pc' && !/projetoconceitual|index\.html$|\/$/.test(caminho)) { f.el.src = urlDe('pc', f.pag === '__st' ? f.real : f.pag); return; }
     doc.documentElement.classList.add('gp-emb');
     const st = doc.createElement('style'); st.textContent = CSS[f.app]; doc.head.appendChild(st);
     const toast = (m, t) => App.toast(String(m), /erro|danger|error/.test(t || '') ? 'erro' : /aviso|warn/.test(t || '') ? 'aviso' : 'ok');
@@ -364,7 +389,7 @@
     doc.addEventListener('click', (ev) => interceptar(ev, f, w), true);
     if (f.app === 'pc') w.addEventListener('hashchange', () => {
       const h = w.location.hash.replace(/^#\/?/, '').split('?')[0];
-      if (h && h !== f.real) { w.location.hash = '#/' + f.real; if (!f.oculto) irParaSecao('pc', h); }
+      if (h && h !== f.real) { w.location.hash = '#/' + f.real; if (!f.oculto) irParaSecao('pc', (f.pag.startsWith('e-') ? 'e-' : '') + h); }
     });
     const medir = () => {
       try {
@@ -395,7 +420,7 @@
     if (!a || a.target === '_blank') return;
     const href = a.getAttribute('href') || '';
     if (f.app === 'pc') {
-      if (href.startsWith('#/')) { const p = href.slice(2).split('?')[0]; if (p !== f.pag) { ev.preventDefault(); ev.stopPropagation(); irParaSecao('pc', p); } }
+      if (href.startsWith('#/')) { const p = (f.pag.startsWith('e-') ? 'e-' : '') + href.slice(2).split('?')[0]; if (p !== f.pag) { ev.preventDefault(); ev.stopPropagation(); irParaSecao('pc', p); } }
       else if (/qfd/i.test(href) && !/^https?:/i.test(href.replace(location.origin, ''))) { ev.preventDefault(); irParaSecao('qfd', QFD_PAGS[0][0]); }
       return;
     }
@@ -679,9 +704,12 @@
         QFD_PAGS.forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = db.isEtapaConcluida(p) && !!x.marcada;
           novo['qfd:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: marcada ? pctDe(Object.assign({}, x, { estado: 'andamento' })) : pctDe(x) }; });
       } else {
-        const pc = glob(w, 'PC'), st = w.statusEtapas(pc.p);
-        pcConc().concat(PC_PRE).forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = (pc.p.etapasConcluidas || []).includes(p) && !!x.marcada;
-          novo['pc:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: pctDe(marcada ? Object.assign({}, x, { estado: 'andamento' }) : x), semConclusao: p === 'relatorio' }; });
+        const pc = glob(w, 'PC'), r = pcRaiz(pc);
+        const uma = (proj, lista, pre) => { if (!proj) return; const st = w.statusEtapas(proj);
+          lista.forEach(([p0]) => { const p = p0.replace(/^e-/, ''), x = st[p]; if (!x) return; const marcada = (proj.etapasConcluidas || []).includes(p) && !!x.marcada;
+            novo['pc:' + pre + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: pctDe(marcada ? Object.assign({}, x, { estado: 'andamento' }) : x), semConclusao: p === 'relatorio' }; }); };
+        uma(r, pcConc().concat(PC_PRE), '');
+        if (pcMisto()) uma(r.parteEletrica, PCE_CONC().concat(PCE_PRE()), 'e-');
       }
     } catch (e) { console.warn('situação das etapas', e); return; }
     const antes = JSON.stringify(Object.fromEntries(Object.entries(S.st).filter(([k]) => k.startsWith(app + ':'))));
@@ -706,9 +734,9 @@
         pc.substituir(w.normalizarProjeto(dados));
       } else if (S.pcInit === 'qfd') {
         pc.substituir(w.criarProjetoVazio());
-        pc.p.projeto.nome = App.p.projeto.nome;
-        w.importarQFD(pc.p, w.JSON.parse(JSON.stringify(App.p.qfdDados)), 'QFD do projeto');
-        if (typeof w.preencherTudo === 'function') w.preencherTudo(pc.p);
+        pcRaiz(pc).projeto.nome = App.p.projeto.nome;
+        w.importarQFD(pcRaiz(pc), w.JSON.parse(JSON.stringify(App.p.qfdDados)), 'QFD do projeto');
+        if (typeof w.preencherTudo === 'function') w.preencherTudo(pcRaiz(pc));
         pc.salvar('qfd');
       }
       if (w.location.hash !== '#/' + f.real) w.location.hash = '#/' + f.real;
@@ -723,14 +751,14 @@
       if (b) { try { await w.lerZipOuJson(new w.File([new w.Uint8Array(await b.arrayBuffer())], anx.nome, { type: 'application/zip' })); if (w.renderPagina) w.renderPagina(true); } catch (e) { console.warn('fotos do projeto conceitual', e); } }
     }
     // o QFD do projeto mudou desde a última vez: o projeto conceitual recebe (mantém o que já foi feito)
-    if (pc && pc.p && App.p.qfdDados && semMeta(pc.p.qfdBackup) !== semMeta(App.p.qfdDados)) qfdParaPc(App.p.qfdDados);
+    if (pc && pcRaiz(pc) && App.p.qfdDados && semMeta(pcRaiz(pc).qfdBackup) !== semMeta(App.p.qfdDados)) qfdParaPc(App.p.qfdDados);
     if (S.pcPendenteSync) syncPc(true);
   }
   function qfdParaPc(d, avisar) {
     const w = pcJanela(); if (!w) return;
-    const pc = glob(w, 'PC'); if (!pc || !pc.p || !d) return;
-    if (semMeta(pc.p.qfdBackup) === semMeta(d)) return;
-    try { w.importarQFD(pc.p, w.JSON.parse(JSON.stringify(d)), 'QFD do projeto'); pc.salvar('qfd'); if (w.renderPagina) w.renderPagina(true);
+    const pc = glob(w, 'PC'); if (!pc || !pcRaiz(pc) || !d) return;
+    if (semMeta(pcRaiz(pc).qfdBackup) === semMeta(d)) return;
+    try { w.importarQFD(pcRaiz(pc), w.JSON.parse(JSON.stringify(d)), 'QFD do projeto'); pc.salvar('qfd'); if (w.renderPagina) w.renderPagina(true);
       if (avisar) { clearTimeout(S.timers.avisoPc); S.timers.avisoPc = setTimeout(() => App.toast('O projeto conceitual recebeu as mudanças do QFD (especificações e necessidades).', 'ok', 5000), 800); }
     } catch (e) { console.error('QFD → projeto conceitual', e); }
   }
@@ -747,7 +775,7 @@
     if (w) {
       try {
         const pc = glob(w, 'PC');
-        if ((pc.p.estruturas || []).length && typeof w.exportarParaGestao === 'function') Nucleo.importarConceitual(App.p, clone(w.exportarParaGestao(pc.p)));
+        if ((pcRaiz(pc).estruturas || []).length && typeof w.exportarParaGestao === 'function') Nucleo.importarConceitual(App.p, clone(w.exportarParaGestao(pcRaiz(pc))));
         S.pcPendenteSync = false;
       } catch (e) { console.error('projeto conceitual → Gestão', e); }
     } else S.pcPendenteSync = true;
@@ -761,7 +789,7 @@
   async function guardarZipPc() {
     if (!S.pcZipSujo || !App.arm || !App.p.produto.pcDados) return;
     const w = pcJanela(); if (!w || typeof w.gerarZipDoProjeto !== 'function') return;
-    const b0 = await w.gerarZipDoProjeto(glob(w, 'PC').p), blob = new Blob([await b0.arrayBuffer()], { type: 'application/zip' });
+    const b0 = await w.gerarZipDoProjeto(pcRaiz(glob(w, 'PC'))), blob = new Blob([await b0.arrayBuffer()], { type: 'application/zip' });
     const anx = anexoPc(), cam = anx && /^produto\/conceitual\//.test(anx.arquivo) ? anx.arquivo : 'produto/conceitual/projeto-conceitual.zip';
     await App.arm.gravarArquivo(cam, blob);
     const e = App.p.produto.etapas.conceitual;
@@ -857,5 +885,5 @@
     };
   }
   App.secoesAtivas = ativa;
-  window.SecoesApps = { QFD_PAGS, PC_CONC: PC_CONC_COMPLETO, PC_CONC_SIMPL, pcConc, PC_PRE, semMeta, mesmoQfd };
+  window.SecoesApps = { pcMisto, PCE_CONC, PCE_PRE, QFD_PAGS, PC_CONC: PC_CONC_COMPLETO, PC_CONC_SIMPL, pcConc, PC_PRE, semMeta, mesmoQfd };
 })();

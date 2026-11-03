@@ -85,6 +85,10 @@ ${App.secoesHtml && App.secoesAtivas && App.secoesAtivas() ? App.secoesHtml('apo
       h += et.id === 'conceitual'
         ? App.secoesHtml('pc', 1, 'Do escopo do problema à concepção selecionada (Reis, 2003; Pahl et al., 2007), página por página. Funções, concepções, desdobramento e FMEA vão sozinhos para o Gestão; as especificações vêm do QFD do projeto informacional.')
         : App.secoesHtml('pc-pre', 1, 'Do leiaute preliminar ao leiaute definitivo (Reis, 2003, fase 3; Spagnolo, 2011), com rodadas de teste, adequação e lições aprendidas. Usa a concepção escolhida no projeto conceitual.');
+      if (window.SecoesApps && SecoesApps.pcMisto()) h += App.secoesHtml(et.id === 'conceitual' ? 'pce' : 'pce-pre', 2, et.id === 'conceitual'
+        ? 'Projeto misto: a parte elétrica e de automação segue o fluxo simplificado (Marwedel), com as especificações marcadas como elétricas ou das duas partes. Fora as especificações, só a equipe da área elétrica edita; o coordenador e o gestor aceitam ou recusam cada etapa.'
+        : 'Preliminar da parte elétrica e de automação: placa, caixa, cabos e conectores, rodadas de teste e adequação às especificações. Só a equipe da área elétrica edita; o coordenador e o gestor aceitam.');
+      h += App.aceiteEletricaHtml ? App.aceiteEletricaHtml() : '';
       h += `<div class="cartao secoes-resumo"><h3 style="margin-top:0">Resumo no Gestão</h3><p class="muted" style="margin:0">Os quadros abaixo são do Gestão (relatórios, manuais e árvore TRL). ${et.id === 'conceitual' ? 'Funções, princípios, concepções e desdobramento são preenchidos sozinhos pelas seções acima.' : 'A FMEA recebe sozinha os modos de falha da concepção; leiaute, protótipos e viabilidade são os textos dos relatórios.'}</p></div>`;
       h += App.nedipEspecifico[et.id](e, b, servico);
       h += registro;

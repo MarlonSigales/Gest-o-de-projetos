@@ -431,3 +431,14 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    integração; senão, desenvolver em hardware, software ou os dois, com a plataforma) → concepção e plano de testes
    (Modelo V: unidade, integração, sistema, aceitação com uso e mau uso) → análises → relatório. As seções do Gestão seguem o
    fluxo escolhido; o plano de testes vai para o projeto preliminar e os relatórios.
+94 [resolvido 03/11/2026] Projetos mistos em duas partes: no projeto conceitual e no preliminar, as seções da parte
+   mecânica (Pahl, Reis) e as da parte elétrica e de automação (Marwedel); cada especificação do QFD é marcada como mecânica,
+   elétrica ou das duas (as das duas viram testes de integração entre as partes). O Gestão recebe as duas partes juntas.
+95 [resolvido 03/11/2026] Parte elétrica: fora as especificações, só a equipe da área marcada como elétrica (aba Áreas) edita;
+   os demais veem só para leitura. Cada etapa é enviada para aceite; o coordenador e o gestor (grupo de gestão) aceitam ou
+   recusam com motivo; mudou depois do envio, volta a pendente. Situação no cartão "Aceite da parte elétrica" e no relatório.
+   Quem é quem: nome e e-mail configurados no navegador (não é senha; com o item 52, passa a valer por conta).
+96 [resolvido 03/11/2026] Desenvolvimento dos blocos (fluxo simplificado): circuito pelo ciclo de Nilsson e Riedel (conceito,
+   modelo, simulação, componentes pelos limites de trabalho, pico e falha com fator de segurança, bancada; refinar ou voltar
+   ao modelo), controle pelos 6 passos de Nise (parâmetros de laboratório, degrau/rampa/senoide, sensibilidade, robustez,
+   conflito → reespecificar) e software com testes de unidade; alimenta o plano de testes e o relatório.

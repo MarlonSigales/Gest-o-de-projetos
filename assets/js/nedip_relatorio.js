@@ -214,6 +214,12 @@ Pdf.blocoNedip = function (p, secoes, ctx) {
     concepcoes() {
       tab(['Concepção', 'Descrição', 'Avaliação', 'Sel.'], C.concepcoes.map((x) => [{ text: x.nome, bold: x.selecionada }, x.descricao, x.avaliacao, x.selecionada ? { text: 'sim', bold: true, color: COR.teal } : '']),
         [{ min: 70 }, { min: 130, w: '*' }, { min: 120, w: '*' }, { min: 26 }]);
+      const ac = p.produto.aceiteEletrica;
+      if (Array.isArray(ac) && ac.length) {
+        const d = (x) => (x ? `${x.decisao === 'aceito' ? 'aceitou' : 'recusou'} (${x.por || '—'})${x.motivo ? ': ' + x.motivo : ''}` : '—');
+        cola({ text: 'Aceite da parte elétrica (coordenador e gestor)', bold: true, margin: [0, 4, 0, 2] });
+        tab(['Etapa', 'Situação', 'Coordenador', 'Gestor'], ac.map((x) => [x.nome, x.texto || x.estado, d(x.coordenador), d(x.gestor)]), [{ min: 90 }, { min: 90 }, { min: 100, w: '*' }, { min: 100, w: '*' }]);
+      }
       if (C.decisao.criterios.length && C.concepcoes.length) {
         const pont = nedipPontuacao(C);
         cola({ text: 'Matriz de decisão ponderada', bold: true, margin: [0, 4, 0, 2] });

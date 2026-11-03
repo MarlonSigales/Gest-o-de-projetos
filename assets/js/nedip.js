@@ -224,6 +224,7 @@ window.nedipNormalizar = function (prod) {
     out.etapas[et.id] = Object.assign(base, X[et.id]());
     if (et.id === 'informacional' && Array.isArray(e.consolidacaoNoQfd)) out.etapas.informacional.consolidacaoNoQfd = e.consolidacaoNoQfd.map(String); // o que da consolidação já foi para o QFD
   });
+  if (Array.isArray(prod.aceiteEletrica)) out.aceiteEletrica = prod.aceiteEletrica; // aceites da parte elétrica (seções do conceitual)
   if (prod.pcDados && typeof prod.pcDados === 'object' && !Array.isArray(prod.pcDados)) out.pcDados = prod.pcDados; // projeto conceitual/preliminar completo (seções)
   return out;
 };
