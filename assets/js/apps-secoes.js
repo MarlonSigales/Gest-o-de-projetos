@@ -21,10 +21,17 @@
     ['fechamento', 'Fechamento: abstração, formulação e função global']]; // o relatório do QFD sai no PDF do Gestão (botão no topo)
   /** Páginas de apoio do QFD (fora do fluxo, valem para todas as fases): no início do projeto de produto. */
   const QFD_APOIO = [['ideias', 'Caderno de ideias'], ['referencias', 'Estado da técnica (normas, produtos, patentes, artigos)']];
-  const PC_CONC = [
+  const PC_CONC_COMPLETO = [
     ['inicio', 'Início: tipo de projeto e preenchimento automático'], ['escopo', 'Escopo do problema'], ['funcao-global', 'Função global'],
     ['estrutura', 'Estrutura funcional'], ['principios', 'Princípios de solução'], ['matriz', 'Matriz morfológica'],
     ['selecao', 'Seleção da concepção'], ['concepcao', 'Concepção selecionada'], ['analises', 'Análises e TRL'], ['relatorio', 'Relatório do projeto conceitual']];
+  /** Fluxo simplificado do Projeto Conceitual (elétrico, eletrônico, automação — Marwedel): menos páginas. */
+  const PC_CONC_SIMPL = [
+    ['inicio', 'Início: tipo de projeto, fluxo e preenchimento automático'], ['escopo', 'Especificação'], ['funcao-global', 'Função global'],
+    ['estrutura', 'Diagrama de blocos'], ['blocos', 'Soluções dos blocos: reuso e hardware × software'], ['concepcao', 'Concepção e plano de testes'],
+    ['analises', 'Análises e TRL'], ['relatorio', 'Relatório do projeto conceitual']];
+  const pcSimplificado = () => !!(App.p && App.p.produto && App.p.produto.pcDados && App.p.produto.pcDados.fluxo === 'simplificado');
+  const pcConc = () => (pcSimplificado() ? PC_CONC_SIMPL : PC_CONC_COMPLETO);
   const PC_PRE = [
     ['p-requisitos', 'Requisitos e restrições'], ['p-leiautes', 'Portadores e leiautes'], ['p-detalhes', 'Funções auxiliares e diretrizes'],
     ['p-verificacoes', 'Verificações e lista de partes'], ['p-prototipo', 'Protótipo e testes'], ['p-adequacao', 'Adequação às especificações'],
@@ -58,7 +65,7 @@
 
   // ---------------------------------------------------------------- seções na página
   /** Cartões das páginas de um sistema, numerados a partir de n0 (ex.: 5 → 5.1, 5.2…). */
-  const listaDe = (app) => (app === 'qfd' ? QFD_PAGS : app === 'apoio' ? QFD_APOIO : app === 'pc-pre' ? PC_PRE : PC_CONC);
+  const listaDe = (app) => (app === 'qfd' ? QFD_PAGS : app === 'apoio' ? QFD_APOIO : app === 'pc-pre' ? PC_PRE : pcConc());
   /** Seções recolhidas: guardadas no projeto (config.secoesRecolhidas); as de apoio começam recolhidas. */
   const recolhidas = () => { const c = App.p.config || (App.p.config = {}); return c.secoesRecolhidas || (c.secoesRecolhidas = {}); };
   // ao abrir o projeto, todas as seções começam recolhidas; abrem só as que a pessoa abrir nesta sessão
@@ -195,7 +202,7 @@
     if (app === 'qfd' && !ehApoio && !QFD_PAGS.some(([p]) => p === pag)) pag = QFD_PAGS[0][0];
     const k = `${app}:${pag}`;
     if (estaRecolhida(k)) { abrirOuFechar(k, true); App.marcarSujo(true); salvarSozinho(); }
-    if (app === 'pc' && !PC_CONC.concat(PC_PRE).some(([p]) => p === pag)) pag = 'inicio';
+    if (app === 'pc' && !pcConc().concat(PC_PRE).some(([p]) => p === pag)) pag = 'inicio';
     const fase = ehApoio ? App.etapaSel : faseDe(app, pag);
     if (App.aba !== 'produto' || App.etapaSel !== fase) { App.aba = 'produto'; App.etapaSel = fase; }
     App.render();
@@ -673,7 +680,7 @@
           novo['qfd:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: marcada ? pctDe(Object.assign({}, x, { estado: 'andamento' })) : pctDe(x) }; });
       } else {
         const pc = glob(w, 'PC'), st = w.statusEtapas(pc.p);
-        PC_CONC.concat(PC_PRE).forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = (pc.p.etapasConcluidas || []).includes(p) && !!x.marcada;
+        pcConc().concat(PC_PRE).forEach(([p]) => { const x = st[p]; if (!x) return; const marcada = (pc.p.etapasConcluidas || []).includes(p) && !!x.marcada;
           novo['pc:' + p] = { estado: x.estado, resumo: x.resumo, feito: x.estado === 'feito', marcada, pct: pctDe(marcada ? Object.assign({}, x, { estado: 'andamento' }) : x), semConclusao: p === 'relatorio' }; });
       }
     } catch (e) { console.warn('situação das etapas', e); return; }
@@ -734,6 +741,7 @@
     const k = semMeta(txt); if (k === S.chave.pc && !forcar && !S.pcPendenteSync) return;
     S.chave.pc = k;
     let d; try { d = JSON.parse(txt); } catch (e) { return; }
+    const eraSimpl = pcSimplificado();
     App.p.produto.pcDados = d; S.pcZipSujo = true;
     const w = pcJanela();
     if (w) {
@@ -746,7 +754,8 @@
     App.marcarSujo(true);
     atualizarStatus('pc');
     salvarSozinho(3000, false);
-    redesenhar();
+    if (eraSimpl !== pcSimplificado()) App.render(); // trocou o fluxo (completo ↔ simplificado): a lista de seções muda
+    else redesenhar();
   }
   /** Ao salvar o Gestão: o ZIP do projeto conceitual (com as fotos) vai para a pasta do projeto, anexo à fase conceitual. */
   async function guardarZipPc() {
@@ -813,8 +822,8 @@
     card.classList.add('so-leitura');
     card.querySelectorAll('input, textarea, select').forEach((x) => { if (x.type === 'checkbox' || x.tagName === 'SELECT') x.disabled = true; else x.readOnly = true; });
     card.querySelectorAll('[data-acao="add-linha"], [data-acao="rem-linha"], [data-acao="mover"]').forEach((x) => { x.hidden = true; });
-    const [app, pag] = chave.split(':'), lista = app === 'qfd' ? QFD_PAGS : PC_CONC.concat(PC_PRE);
-    const i = lista.findIndex(([p]) => p === pag), n = app === 'qfd' ? `5.${i + 1}` : `1.${PC_CONC.findIndex(([p]) => p === pag) + 1}`;
+    const [app, pag] = chave.split(':'), lista = app === 'qfd' ? QFD_PAGS : pcConc().concat(PC_PRE);
+    const i = lista.findIndex(([p]) => p === pag), n = app === 'qfd' ? `5.${i + 1}` : `1.${pcConc().findIndex(([p]) => p === pag) + 1}`;
     const h = card.querySelector('h3');
     if (h) h.insertAdjacentHTML('afterend', `<p class="so-leitura-aviso">Preenchido sozinho pela seção ${n} (${esc((lista[i] || [, ''])[1])}). <a href="#" data-acao="sec-ir" data-chave="${chave}">Editar lá</a>.</p>`);
   }
@@ -848,5 +857,5 @@
     };
   }
   App.secoesAtivas = ativa;
-  window.SecoesApps = { QFD_PAGS, PC_CONC, PC_PRE, semMeta, mesmoQfd };
+  window.SecoesApps = { QFD_PAGS, PC_CONC: PC_CONC_COMPLETO, PC_CONC_SIMPL, pcConc, PC_PRE, semMeta, mesmoQfd };
 })();

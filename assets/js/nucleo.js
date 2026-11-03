@@ -837,6 +837,9 @@ Nucleo.importarConceitual = function (p, d) {
     pre.fmea = vindas.concat(pre.fmea.filter((x) => !String(x.id).startsWith('pc_')));
     fmea = vindas.length;
   }
+  // fluxo simplificado (Marwedel): plano de testes do Modelo V vai para o projeto preliminar (só leitura no Gestão)
+  if (p.produto.etapas.preliminar) p.produto.etapas.preliminar.planoTestes = Array.isArray(d.planoTestes)
+    ? d.planoTestes.filter((x) => x && t(x.teste)).map((x) => ({ nivel: t(x.nivel), bloco: t(x.bloco), teste: t(x.teste), criterio: t(x.criterio) })) : [];
   // lições aprendidas das recorrências do projeto preliminar: as vindas de lá são atualizadas; as da equipe ficam
   let licoes = 0;
   if (Array.isArray(d.licoes)) {

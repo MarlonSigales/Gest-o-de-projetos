@@ -76,7 +76,7 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    entrar com qualquer nome da equipe. Para separar permissões de verdade, cada pessoa precisaria de conta própria no MEGA com
    a pasta compartilhada só para leitura/escrita conforme o papel, ou uma senha pessoal guardada cifrada na pasta; decidir
    antes de implementar.
-50 [futuro] Na integração (item 47), para projetos elétricos, eletrônicos, de sistemas embarcados e de automação, poder
+50 [resolvido 03/11/2026: fluxo simplificado de Marwedel no Projeto Conceitual (item 56 de lá); as seções do conceitual no Gestão passam a ser as do fluxo escolhido e o plano de testes do Modelo V vai para o projeto preliminar e os relatórios] Na integração (item 47), para projetos elétricos, eletrônicos, de sistemas embarcados e de automação, poder
    escolher uma versão simplificada do todo baseada nas metodologias da tese e da dissertação (Nilsson e Riedel, Nise,
    Marwedel, CDIO) — detalhada no item 56 do todoQA do Projeto Conceitual.
 49 [resolvido 28/10/2026] No fim de cada fase (pedido de 28/10/2026), um botão para avançar para a próxima etapa: ao terminar uma fase do
@@ -329,9 +329,9 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    texto (não só igual) e avisar quando uma necessidade sair da consolidação mas continuar no QFD.
 72 [resolvido 29/10/2026: detecção por MutationObserver (e checagem a cada 1 s) e genérica (modal/overlay/popup/dialog em posição fixa); testados Mudge, telhado e matriz QFD: a janela aparece na parte visível e a seção volta ao normal ao fechar. Editor de esboço e janelas da IA usam o mesmo caminho (não testados um a um)] Janelas dentro das seções: testar Mudge, matriz QFD, telhado, editor de esboço, editor de estrutura,
    imagens, IA; menus e dicas perto da borda; trocar a verificação de 300 ms por MutationObserver.
-73 [parcial 29/10/2026: busca nas seções (campo no topo de cada bloco, Enter vai à próxima ocorrência; só nas seções abertas); ao imprimir, as seções viram um aviso de que o conteúdo sai nos PDFs. Ordem do Tab entre seções não mudou (limite do navegador)] Limitações de navegador: Ctrl+F não busca dentro das seções (oferecer busca do Gestão nas seções);
+73 [resolvido 03/11/2026: busca nas seções (campo no topo de cada bloco, Enter vai à próxima ocorrência; só nas seções abertas); ao imprimir, as seções viram um aviso de que o conteúdo sai nos PDFs. Ordem do Tab entre seções não mudou (limite do navegador); imprimir a fase virou o "Relatório da fase" em PDF (item 92)] Limitações de navegador: Ctrl+F não busca dentro das seções (oferecer busca do Gestão nas seções);
    ordem do Tab entre seções; imprimir a fase (gerar PDF da fase em vez de imprimir a página).
-71 [parcial 29/10/2026: as cores já eram as mesmas nos três sistemas; a fonte das seções passou a ser a do Gestão. Font Awesome continua vindo de CDN no QFD (trazer para o repositório exige mudar o QFD)] Visual: folha de estilo comum injetada nas seções (fonte, botões, cores, cartões) para parecer um sistema
+71 [resolvido 03/11/2026: as cores já eram as mesmas nos três sistemas; a fonte das seções passou a ser a do Gestão. Font Awesome, jsPDF e html2canvas do QFD agora ficam em lib/ (sem CDN)] Visual: folha de estilo comum injetada nas seções (fonte, botões, cores, cartões) para parecer um sistema
    só; Font Awesome local em vez de CDN.
 65 [resolvido 29/10/2026: no informacional, “Requisitos de cliente” (quando o QFD tem); no conceitual, função global, estrutura de funções e princípios, desdobramento e concepções; no preliminar, as linhas da FMEA vindas do conceitual (menos responsável e risco) — só leitura, com “Editar lá” para a seção] Dois lugares para o mesmo dado: quadros do Gestão alimentados pelas seções (requisitos de
    cliente, especificações, funções/subfunções/princípios, concepções, desdobramento, FMEA vinda do conceitual) ficam
@@ -425,3 +425,9 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    documentos; QFD no informacional), com os PDFs próprios ao lado (análise QFD, questionário, relatório do conceitual, manuais);
    as escolhas do que entra em cada macroentrega e no relatório geral (produto e QFD) passaram para lá; o relatório geral
    compila por padrão todo o projeto de produto, inclusive as fases detalhada, produção, lançamento e validação (novas seções).
+93 [resolvido 03/11/2026] Fluxo simplificado para projetos elétricos, eletrônicos e de automação (Marwedel): no Início do
+   conceitual, escolher "Simplificado"; etapas: especificação → função global → diagrama de blocos → soluções dos blocos
+   (sugere usar a solução que já existe — biblioteca da equipe ou módulo pronto do mercado — e aí só falta o teste de
+   integração; senão, desenvolver em hardware, software ou os dois, com a plataforma) → concepção e plano de testes
+   (Modelo V: unidade, integração, sistema, aceitação com uso e mau uso) → análises → relatório. As seções do Gestão seguem o
+   fluxo escolhido; o plano de testes vai para o projeto preliminar e os relatórios.

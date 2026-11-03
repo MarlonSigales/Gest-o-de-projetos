@@ -207,6 +207,7 @@ window.nedipNormalizar = function (prod) {
         leiaute: nedipTxt(e.leiaute), viabilidade: nedipTxt(e.viabilidade),
         prototipos: nedipLista(e.prototipos).map((x) => Object.assign({ nome: '', data: '', descricao: '', resultado: '' }, x)),
         fmea: nedipLista(e.fmea).map((x) => Object.assign({ id: uidN('fm'), item: '', modo: '', efeito: '', causa: '', s: 5, o: 5, d: 5, acao: '', responsavel: '', riscoId: '' }, x)),
+        planoTestes: nedipLista(e.planoTestes).map((x) => Object.assign({ nivel: '', bloco: '', teste: '', criterio: '' }, x)), // fluxo simplificado (Marwedel)
       }),
       detalhado: () => ({
         desenhos: nedipTxt(e.desenhos), planos: nedipTxt(e.planos), protoFinal: nedipTxt(e.protoFinal), pi: nedipTxt(e.pi), // passos (passos.js)

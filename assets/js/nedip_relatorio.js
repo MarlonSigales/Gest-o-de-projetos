@@ -65,7 +65,7 @@ NedipRel.disponivel = function (p, s) {
     case 'funcoes': return ok(nedipTemFuncoes(p), 'função global e funções não cadastradas');
     case 'desdobramento': return ok(Object.values(C.desdobramento).some((d) => d.funcoes.length || d.obs), 'desdobramento não preenchido');
     case 'concepcoes': return ok(C.concepcoes.length, 'sem concepções');
-    case 'preliminar': return ok(ndTxt(P.leiaute) || P.prototipos.length || P.fmea.length, 'leiaute, protótipos e FMEA vazios');
+    case 'preliminar': return ok(ndTxt(P.leiaute) || P.prototipos.length || P.fmea.length || (P.planoTestes || []).length, 'leiaute, protótipos e FMEA vazios');
     case 'detalhado': return ok(E.detalhado.bom.length, 'lista de materiais vazia');
     case 'documentacao': case 'producao': case 'lancamentoPlano': return ok(ndCampos(p, s).length, 'textos da fase não preenchidos');
     case 'validacao': return ok(ndCampos(p, s).length || (E.validacao.questionarios || []).length, 'validação não preenchida');
@@ -225,6 +225,8 @@ Pdf.blocoNedip = function (p, secoes, ctx) {
     preliminar() {
       if (ndTxt(PR.leiaute)) { cola({ text: 'Leiaute', bold: true, margin: [0, 4, 0, 2] }); texto(PR.leiaute); }
       if (PR.prototipos.length) tab(['Protótipo', 'Data', 'Descrição e ensaios', 'Resultado'], PR.prototipos.map((x) => [x.nome, Nucleo.dataBR(x.data), x.descricao, x.resultado]), [{ min: 70 }, { min: 50 }, { min: 120, w: '*' }, { min: 120, w: '*' }]);
+      if ((PR.planoTestes || []).length) { cola({ text: 'Plano de testes (Modelo V)', bold: true, margin: [0, 4, 0, 2] });
+        tab(['Nível', 'Bloco', 'Teste', 'Critério'], PR.planoTestes.map((x) => [{ text: x.nivel, bold: true }, x.bloco, x.teste, x.criterio]), [{ min: 55 }, { min: 80 }, { min: 150, w: '*' }, { min: 110, w: '*' }]); }
       if (PR.fmea.length) tab(['Item', 'Modo de falha', 'Efeito', 'Causa', 'S', 'O', 'D', 'RPN', 'Ação'], PR.fmea.map((x) => { const r = nedipRpn(x); return [x.item, x.modo, x.efeito, x.causa, String(x.s), String(x.o), String(x.d), { text: String(r), bold: true, color: r >= NEDIP_FMEA_LIMITE || +x.s >= 9 ? '#c0392b' : COR.texto }, x.acao]; }),
         [{ min: 60 }, { min: 75, w: '*' }, { min: 70, w: '*' }, { min: 70, w: '*' }, { min: 14 }, { min: 14 }, { min: 14 }, { min: 26 }, { min: 80, w: '*' }]);
     },
