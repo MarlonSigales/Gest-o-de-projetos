@@ -458,3 +458,7 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    da universidade. O diferencial vai primeiro na solução, para virar a parte caracterizante da 1ª reivindicação. Sem CPF ou
    endereço (cada inventor completa lá). Exemplo: ideia fictícia do cubo com cartucho de rolamentos.
 
+
+99. [feito] Requisito marcado no QFD como formador de função ou boa prática de projeto não vai mais para o quadro de
+   especificações (Qualidade), nem para as necessidades, a casa da qualidade e as especificações dos relatórios do Gestão
+   (como no próprio QFD e no projeto conceitual). Se já estava no quadro, sai ao sincronizar ou reimportar o QFD.

@@ -631,7 +631,7 @@
   }
   /** O QFD mudou numa seção: critérios de qualidade e requisitos de cliente do Gestão acompanham (o que a importação fazia). */
   function aplicarQfd(dados) {
-    const r = Nucleo.importarQfd(dados), m = Nucleo.mesclarQfd(App.p.qualidade, r.itens);
+    const r = Nucleo.importarQfd(dados), m = Nucleo.mesclarQfd(App.p.qualidade, r.itens, r.fora);
     App.p.qualidade = m.itens;
     const primeiraVez = !App.p.qfdDados;
     App.p.qfdDados = dados;

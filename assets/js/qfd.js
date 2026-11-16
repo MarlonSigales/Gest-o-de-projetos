@@ -37,9 +37,11 @@ Qfd.sentido = (s) => ({ crescente: 'up', decrescente: 'down', nominal: 'none' }[
 /** Interpreta o backup do QFD em estruturas prontas para tabelas. Devolve null se não for um backup válido. */
 Qfd.analisar = function (d) {
   if (!d || typeof d !== 'object' || !Array.isArray(d.requisitosProjeto)) return null;
-  const rc = (d.requisitosCliente || []).map((r, i) => ({ id: r.id, n: i + 1, cod: 'RC' + (i + 1), descricao: qTxt(r.descricao), obs: qTxt(r.observacao), pts: +r.importancia || 0, peso: +r.peso || 0 }));
-  const rp = d.requisitosProjeto.map((r, i) => ({ id: r.id, n: i + 1, cod: 'RP' + (i + 1), descricao: qTxt(r.descricao), obs: qTxt(r.observacao),
-    sentido: Qfd.sentido(r.sentidoMelhoria), dificuldade: r.dificuldadeTecnica ?? null, impAbs: +r.importanciaAbsoluta || 0, peso: +r.pesoRelativo || 0 }));
+  // formador de função / boa prática: fora da comparação, da matriz e das especificações (como no próprio QFD); o código RPn segue o do QFD
+  const noQfd = (r) => !(r && ['funcao', 'boa-pratica'].includes(r.classificacao));
+  const rc = (d.requisitosCliente || []).map((r, i) => (noQfd(r) ? { id: r.id, n: i + 1, cod: 'RC' + (i + 1), descricao: qTxt(r.descricao), obs: qTxt(r.observacao), pts: +r.importancia || 0, peso: +r.peso || 0 } : null)).filter(Boolean);
+  const rp = d.requisitosProjeto.map((r, i) => (noQfd(r) ? { id: r.id, n: i + 1, cod: 'RP' + (i + 1), descricao: qTxt(r.descricao), obs: qTxt(r.observacao),
+    sentido: Qfd.sentido(r.sentidoMelhoria), dificuldade: r.dificuldadeTecnica ?? null, impAbs: +r.importanciaAbsoluta || 0, peso: +r.pesoRelativo || 0 } : null)).filter(Boolean);
   const rcId = new Map(rc.map((x) => [x.id, x])), rpId = new Map(rp.map((x) => [x.id, x]));
 
   // comparação aos pares: o primeiro requisito do par é o preferido; "valor" é a intensidade (1, 3 ou 5)

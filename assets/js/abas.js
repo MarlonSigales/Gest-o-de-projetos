@@ -364,7 +364,7 @@ App.importarQfd = async function (arquivo) {
     let dados;
     try { dados = JSON.parse(texto.replace(/^\uFEFF/, '')); } catch (e) { throw new Error('O arquivo não é um JSON válido.'); }
     const r = Nucleo.importarQfd(dados);
-    const m = Nucleo.mesclarQfd(App.p.qualidade, r.itens);
+    const m = Nucleo.mesclarQfd(App.p.qualidade, r.itens, r.fora);
     const quando = Nucleo.agoraIso();
     const arqGuardado = `qfd/qfd_${quando.replace('T', '_').replace(/:/g, '')}.json`;
     await App.arm.gravarArquivo(arqGuardado, new Blob([texto], { type: 'application/json' }));

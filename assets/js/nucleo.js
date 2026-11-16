@@ -728,7 +728,10 @@ Nucleo.importarQfd = function (dados) {
   const esp = dados.especificacoesProjeto || [];
   const vals = ((dados.avaliacaoCompetitiva || {}).valoresTecnicos || []).filter((v) => v.produtoId === 'nosso');
   const sentidos = { crescente: 'up', decrescente: 'down', nominal: 'none' };
-  const rps = dados.requisitosProjeto.map((r, i) => Object.assign({ _i: i }, r));
+  // requisitos marcados no QFD como formador de função ou boa prática ficam fora do QFD: não viram especificação nem critério
+  const noQfd = (r) => !(r && ['funcao', 'boa-pratica'].includes(r.classificacao));
+  const fora = dados.requisitosProjeto.concat(dados.requisitosCliente || []).filter((r) => !noQfd(r)).map((r) => r.id);
+  const rps = dados.requisitosProjeto.map((r, i) => Object.assign({ _i: i }, r)).filter(noQfd);
   const ordem = [...rps].sort((a, b) => (b.importanciaAbsoluta || 0) - (a.importanciaAbsoluta || 0) || a._i - b._i);
   const avisos = [];
   const itens = ordem.map((r, k) => {
@@ -782,8 +785,8 @@ Nucleo.importarQfd = function (dados) {
         pesoRelativo: r.pesoRelativo || 0, dificuldadeTecnica: r.dificuldadeTecnica ?? null, estado },
     };
   });
-  const clientes = (dados.requisitosCliente || []).map((c) => ({ descricao: String(c.descricao || '').trim(), peso: +c.peso || 0 })).sort((a, b) => b.peso - a.peso);
-  return { itens, avisos, clientes, meta: { schemaVersion: (dados.metadata || {}).schemaVersion ?? null, requisitosCliente: (dados.requisitosCliente || []).length, requisitosProjeto: itens.length } };
+  const clientes = (dados.requisitosCliente || []).filter(noQfd).map((c) => ({ descricao: String(c.descricao || '').trim(), peso: +c.peso || 0 })).sort((a, b) => b.peso - a.peso);
+  return { itens, avisos, clientes, fora, meta: { schemaVersion: (dados.metadata || {}).schemaVersion ?? null, requisitosCliente: clientes.length, requisitosProjeto: itens.length } };
 };
 /** Mescla: itens do QFD são atualizados pelo id do requisito; situação só muda quando o QFD tem medição; PDCA e itens manuais são mantidos. */
 /**
@@ -866,8 +869,9 @@ Nucleo.importarConceitual = function (p, d) {
   return { funcoes: c.funcoes.length, subfuncoes: c.funcoes.reduce((s, f) => s + f.subfuncoes.length, 0), concepcoes: vindas.length, manuais, fmea, licoes, desdobramento: Object.keys(k.desdobramento || {}).length };
 };
 
-Nucleo.mesclarQfd = function (atual, novos) {
-  const porId = new Map((atual || []).filter((q) => q.qfd && q.qfd.id).map((q) => [q.qfd.id, q]));
+Nucleo.mesclarQfd = function (atual, novos, fora) {
+  const tirar = new Set(fora || []); // marcados no QFD como formador de função / boa prática: saem do quadro
+  const porId = new Map((atual || []).filter((q) => q.qfd && q.qfd.id && !tirar.has(q.qfd.id)).map((q) => [q.qfd.id, q]));
   const saida = novos.map((n) => {
     const a = porId.get(n.qfd.id);
     if (!a) return n;
