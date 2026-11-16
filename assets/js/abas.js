@@ -429,3 +429,60 @@ ${App.tabela('licoesAprendidas', [
   ], { novo: 'licao', botao: 'Adicionar lição' })}</div>`;
   },
 };
+
+/**
+ * Trazer um QFD ou um projeto conceitual com um projeto já aberto: pergunta se é um projeto NOVO (todoQA 100).
+ * Antes, importar sempre atualizava o projeto aberto, e os dados de dois projetos se misturavam.
+ *  - Projeto novo: abre um projeto vazio no Gestão (todos os campos limpos) e só então traz o arquivo.
+ *  - Mesmo projeto: atualiza o projeto aberto, como antes.
+ */
+App.temConteudo = () => !!(App.p && (App.p.qfdDados || (App.p.produto && App.p.produto.pcDados) || (App.p.projeto.nome || '').trim()
+  || App.p.qualidade.length || App.p.macroentregas.some((m) => (m.titulo || '').trim() || (m.blocos || []).length)));
+App.perguntarProjetoNovo = function (oQue, nomeVindo) {
+  return new Promise((ok) => {
+    if (App._novoOk) App._novoOk(null);
+    const atual = (App.p.projeto.nome || '').trim() || '(sem nome)';
+    App.modal(`<h2>Este ${esc(oQue)} é de um projeto novo?</h2>
+      <p>Projeto aberto agora: <b>${esc(atual)}</b>${nomeVindo ? `<br>Projeto no arquivo: <b>${esc(nomeVindo)}</b>` : ''}</p>
+      <div class="grade-campos grade-2">
+        <div class="cartao" style="margin:0"><h3 style="margin-top:0">✚ Projeto novo</h3><p>Abre um projeto vazio, com todos os campos limpos, e traz o arquivo para ele. O projeto aberto agora não muda${App.sujo ? ' (as alterações não salvas dele se perdem: salve antes)' : ''}.</p>
+          <div class="barra"><button class="btn primario" data-acao="novo-ou-atual" data-v="novo">É um projeto novo</button></div></div>
+        <div class="cartao" style="margin:0"><h3 style="margin-top:0">↻ Mesmo projeto</h3><p>Atualiza o projeto <b>${esc(atual)}</b> com o arquivo. O que já foi feito no Gestão é mantido.</p>
+          <div class="barra"><button class="btn" data-acao="novo-ou-atual" data-v="atual">Atualizar o projeto aberto</button></div></div>
+      </div>`, true);
+    App._novoOk = ok;
+  });
+};
+App.acoes['novo-ou-atual'] = (el) => { const ok = App._novoOk; App._novoOk = null; App.fecharModal(); if (ok) ok(el.dataset.v); };
+/** Abre um projeto vazio (no navegador) com a mesma versão do aberto, para receber o arquivo. */
+App.abrirVazioPara = function (nome) {
+  const p = Nucleo.novo('', (App.p && App.p.config && App.p.config.versao) || 'completa');
+  if (nome) p.projeto.nome = String(nome).slice(0, 160);
+  App.carregarEstado(p, new ArmazemNavegador(p.id, p.projeto.nome || ''));
+  App.marcarSujo(true);
+};
+(function () {
+  const nomeDe = (d) => { try { return String((d && d.projeto && d.projeto.nome) || '').trim(); } catch (e) { return ''; } };
+  const qfdOriginal = App.importarQfd, concOriginal = App.importarConceitual;
+  async function decidir(oQue, nomeVindo) {
+    if (App._importando || !App.temConteudo()) return 'atual';
+    const r = await App.perguntarProjetoNovo(oQue, nomeVindo);
+    if (r === 'novo') { App.sujo = false; App.abrirVazioPara(nomeVindo); App.toast('Projeto novo aberto (no navegador). Confira os dados trazidos e clique em Salvar.', 'ok', 8000); }
+    return r;
+  }
+  App.importarQfd = async function (arquivo) {
+    if (App._importando) return qfdOriginal.call(this, arquivo);
+    let nome = '', conc = null;
+    try { conc = await App.lerConceitual(arquivo); if (!conc && !/\.zip$/i.test(arquivo.name)) nome = nomeDe(JSON.parse((await arquivo.text()).replace(/^﻿/, ''))); } catch (e) { /* o importador avisa */ }
+    if (conc) return App.importarConceitual(conc, arquivo.name);
+    if (!(await decidir('QFD', nome))) return;
+    App._importando = true;
+    try { await qfdOriginal.call(this, arquivo); } finally { App._importando = false; }
+  };
+  App.importarConceitual = async function (d, nomeArquivo) {
+    if (App._importando) return concOriginal.call(this, d, nomeArquivo);
+    if (!(await decidir('projeto conceitual', nomeDe(d)))) return;
+    App._importando = true;
+    try { await concOriginal.call(this, d, nomeArquivo); } finally { App._importando = false; }
+  };
+})();

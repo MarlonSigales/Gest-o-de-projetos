@@ -462,3 +462,8 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
 99. [feito] Requisito marcado no QFD como formador de função ou boa prática de projeto não vai mais para o quadro de
    especificações (Qualidade), nem para as necessidades, a casa da qualidade e as especificações dos relatórios do Gestão
    (como no próprio QFD e no projeto conceitual). Se já estava no quadro, sai ao sincronizar ou reimportar o QFD.
+
+100. [feito] Importar um QFD ou um projeto conceitual com um projeto já aberto pergunta se é um PROJETO NOVO: se sim, abre um
+   projeto vazio (todos os campos limpos) e só então traz o arquivo; se não, atualiza o projeto aberto, como antes. Antes,
+   importar sempre atualizava o aberto e os dados dos dois projetos se misturavam. (No Projeto Conceitual a mesma pergunta
+   vem com "salvar na mesma pasta do MEGA, numa nova ou neste computador?".)
