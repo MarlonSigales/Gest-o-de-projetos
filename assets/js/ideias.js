@@ -23,12 +23,15 @@ Ideias.nova = () => ({
   id: Nucleo.uid('ip'), titulo: '', natureza: '', situacao: 'ideia', criadaEm: hojeISO(), exportadaEm: '',
   texto: '', campo: '', problema: '', estadoTecnica: '', solucao: '', diferencial: '', vantagens: '', aplicacoes: '', ensaios: '',
   componentes: [], inventores: [], palavras: '', classes: '', divulgacoes: '', usarPesquisa: true, observacoes: '',
+  figurasFora: [], figurasLeg: {}, // figuras do projeto deixadas de fora do pedido e legendas trocadas (ideias-export.js)
 });
 window.ideiasNormalizar = function (lista) {
   return (Array.isArray(lista) ? lista : []).filter((x) => x && typeof x === 'object').map((x) => {
     const i = Object.assign(Ideias.nova(), x);
     i.componentes = (Array.isArray(i.componentes) ? i.componentes : []).filter((c) => c && typeof c === 'object').map((c) => Object.assign({ nome: '', funcao: '' }, c));
     i.inventores = (Array.isArray(i.inventores) ? i.inventores : []).filter((c) => c && typeof c === 'object').map((c) => Object.assign({ nome: '', email: '', percentual: null }, c));
+    i.figurasFora = (Array.isArray(i.figurasFora) ? i.figurasFora : []).map(String);
+    i.figurasLeg = i.figurasLeg && typeof i.figurasLeg === 'object' && !Array.isArray(i.figurasLeg) ? i.figurasLeg : {};
     return i;
   });
 };
@@ -146,6 +149,7 @@ App.abas.ideias = {
 <div class="cartao"><p style="margin-top:0">Anote aqui cada ideia que pode virar patente. Para cada uma, o sistema gera um <b>pré-preenchimento completo</b> para o app <b>Apoio à Escrita de Patentes</b>: lá, na entrada, use <b>📂 Continuar um pedido</b> e escolha o arquivo. Vão a ficha da invenção, os componentes numerados, os inventores com a participação, a busca da aba Pesquisa e os dados do projeto para os formulários da universidade; o app escreve sozinho os rascunhos de resumo, reivindicações e relatório.</p>
   <p class="muted">Ideia de patente é sigilosa: não divulgue (apresentação, artigo, feira, rede social) antes do depósito. Se já houve divulgação, anote a data — o prazo de graça é de 12 meses (art. 12 da Lei 9.279/96).</p>
   <div class="barra"><button class="btn primario" data-acao="ideia-nova">+ Nova ideia de patente</button><a class="btn" href="${Ideias.URL_APP}" target="_blank" rel="noopener">↗ Abrir o Apoio à Escrita de Patentes</a></div></div>`;
+    if (Ideias.htmlPlano) h += Ideias.htmlPlano();
     if (!L.length) h += '<p class="vazio">Nenhuma ideia ainda.</p>';
     L.forEach((i, k) => {
       const b = `ideiasPatente.${k}`, aberta = App.ideiaAberta === i.id, falta = Ideias.faltando(i);
@@ -171,7 +175,8 @@ App.abas.ideias = {
         ${App.tabela(b + '.componentes', [{ campo: 'nome', rotulo: 'Peça / bloco', largura: '35%' }, { campo: 'funcao', rotulo: 'Função' }], { novo: 'componenteIdeia', botao: 'Adicionar componente', vazio: 'Nenhum componente.' })}
         <h4>Inventores e participação (1/3 dos ganhos da universidade; soma 100%)</h4>
         ${App.tabela(b + '.inventores', [{ campo: 'nome', rotulo: 'Nome completo (como no Lattes)', largura: '40%' }, { campo: 'email', rotulo: 'E-mail', tipo: 'email' }, { campo: 'percentual', rotulo: '%', tipo: 'number', largura: '90px', min: 0, max: 100, render: true }], { novo: 'inventorIdeia', botao: 'Adicionar inventor', vazio: 'Nenhum inventor.' })}
-        <p class="muted">CPF, endereço e qualificação são completados por cada inventor no app de patentes (não ficam neste projeto).</p>`;
+        <p class="muted">CPF, endereço e qualificação são completados por cada inventor no app de patentes (não ficam neste projeto).</p>
+        ${Ideias.htmlFiguras ? Ideias.htmlFiguras(i, k) : ''}`;
       }
       h += '</div>';
     });

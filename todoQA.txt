@@ -467,3 +467,13 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    projeto vazio (todos os campos limpos) e só então traz o arquivo; se não, atualiza o projeto aberto, como antes. Antes,
    importar sempre atualizava o aberto e os dados dos dois projetos se misturavam. (No Projeto Conceitual a mesma pergunta
    vem com "salvar na mesma pasta do MEGA, numa nova ou neste computador?".)
+
+101. [feito] Ideias de patente → pré-preenchimento completo do Apoio à Escrita de Patentes: além da ficha, leva o resumo do
+   projeto (função global, estrutura de funções, concepção selecionada e alternativas, projeto preliminar, quadro de
+   especificações com valores medidos, necessidades, TRL) como fonte; os valores medidos do quadro vão aos ensaios; o
+   PLANO DE TRABALHO EMBRAPII anexado na aba (.docx; PDF anexado + texto colado) vai como fonte e preenche os dados do
+   projeto nos formulários da universidade (título, código, objeto, empresa, contexto) — e pode completar os campos vazios
+   do próprio projeto; e as FIGURAS: diagramas da estrutura de funções (do Projeto Conceitual aberto, do ZIP anexado ou o
+   diagrama do Gestão), imagens da concepção e do projeto preliminar e as figuras das macroentregas do conceitual e do
+   preliminar, como figuras editáveis com legenda. Na ideia, "Procurar as figuras do projeto" mostra as figuras para
+   escolher e mudar a legenda.

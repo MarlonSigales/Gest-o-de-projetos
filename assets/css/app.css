@@ -500,3 +500,8 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .ideia-item .ref-linha { align-items: center; }
 .ideia-item.aberta { border-color: #b9dcd2; background: #fbfefd; }
 .ideia-item h4 { margin: 14px 0 6px; }
+.ideia-figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 8px 0; }
+.ideia-fig { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--borda, #d6dfdc); border-radius: 8px; padding: 6px; background: #fff; }
+.ideia-fig img { width: 100%; height: 120px; object-fit: contain; background: #f6f8f7; border-radius: 4px; }
+.ideia-fig.fora { opacity: .5; }
+.ideia-fig input[type=text] { width: 100%; font-size: .85em; }

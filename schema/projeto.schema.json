@@ -2914,7 +2914,37 @@
                 }
               }
             }
+          },
+          "figurasFora": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "figuras do projeto deixadas de fora do pedido (chaves)"
+          },
+          "figurasLeg": {
+            "type": "object",
+            "description": "legendas trocadas das figuras do projeto (chave → legenda)"
           }
+        }
+      }
+    },
+    "planoTrabalho": {
+      "type": "object",
+      "description": "Plano de trabalho EMBRAPII anexado (texto lido do .docx ou colado do PDF); vai como fonte nos pré-preenchimentos de patente.",
+      "properties": {
+        "nome": {
+          "type": "string"
+        },
+        "arquivo": {
+          "type": "string",
+          "description": "caminho do arquivo guardado (documentos/plano-de-trabalho.*)"
+        },
+        "data": {
+          "type": "string"
+        },
+        "texto": {
+          "type": "string"
         }
       }
     }

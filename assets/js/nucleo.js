@@ -84,6 +84,7 @@ Nucleo.novo = function (nome = '', versao = 'completa') {
     riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
     qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
     pesquisa: window.pesquisaNormalizar ? window.pesquisaNormalizar({}) : { estrategia: {}, patentes: [], referencias: [] }, // anterioridade e referências
+    planoTrabalho: { nome: '', arquivo: '', data: '', texto: '' }, // plano de trabalho EMBRAPII anexado (vai como fonte nas ideias de patente)
     ideiasPatente: [],       // ideias de patente (aba Ideias de patente → pré-preenchimento do Apoio à Escrita de Patentes)
     dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
     trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
