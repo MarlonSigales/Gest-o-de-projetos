@@ -1,6 +1,6 @@
 TODO / QA — Gestão de Projetos
 Marcadores: [fazer] [futuro] [resolvido] [rejeitado]
-Atualizado em 27/10/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
+Atualizado em 16/11/2026. Os números são fixos (servem de referência); a ordem dentro de cada parte é do mais simples para o mais difícil.
 
 === DIRETRIZES PERMANENTES
 - A cada recurso novo, incluí-lo no exemplo da roda e no Guia do exemplo (item 18).
@@ -442,3 +442,10 @@ Atualizado em 27/10/2026. Os números são fixos (servem de referência); a orde
    modelo, simulação, componentes pelos limites de trabalho, pico e falha com fator de segurança, bancada; refinar ou voltar
    ao modelo), controle pelos 6 passos de Nise (parâmetros de laboratório, degrau/rampa/senoide, sensibilidade, robustez,
    conflito → reespecificar) e software com testes de unidade; alimenta o plano de testes e o relatório.
+97 [resolvido 16/11/2026] Pesquisa: importar a busca de anterioridade exportada pelo app Apoio à Escrita de Patentes (JSON
+   "apoio-escrita-patentes-busca", botão "⬇ Exportar a busca" na etapa Buscas de lá). Patentes vão para a tabela (situação,
+   relevância pela categoria X/Y/A e relevância 1–5, titular, ano, link, base); artigos, TCCs e outros vão para as referências;
+   palavras-chave, classes, bases e data completam a estratégia; contagens por base, conclusão, diferenciais, ameaças, lacunas e
+   recomendações vão para as observações. Só acrescenta: número repetido (com ou sem código de tipo) só completa o que falta.
+   O mesmo JSON escolhido no botão do CSV também é reconhecido. Exemplo: exemplos/busca-roda-apoio-escrita-patentes.json.
+

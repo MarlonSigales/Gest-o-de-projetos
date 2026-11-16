@@ -1,0 +1,38 @@
+{
+  "formato": "apoio-escrita-patentes-busca",
+  "versao": 1,
+  "origem": "Apoio à Escrita de Patentes",
+  "observacao_exemplo": "EXEMPLO FICTÍCIO para aprender a importar: números, titulares e contagens foram inventados.",
+  "exportado_em": "2026-03-20",
+  "titulo_pedido": "RODA DE BICICLETA 700C COM CUBO DE ROLAMENTO SELADO",
+  "natureza": "MU",
+  "data_busca": "2026-03-20",
+  "estrategia": {
+    "objetivo": "Busca de anterioridade para o pedido de modelo de utilidade \"RODA DE BICICLETA 700C COM CUBO DE ROLAMENTO SELADO\"",
+    "palavras_chave": ["roda de bicicleta", "cubo de rolamento selado", "bicycle wheel sealed bearing hub"],
+    "classificacao": ["B60B 27/02"],
+    "bases": ["INPI", "Google Patents", "Google Acadêmico"],
+    "depositantes": ["Empresa Exemplo Beta (fictícia)"],
+    "caracteristicas": [
+      { "codigo": "C1", "texto": "cubo dianteiro com rolamentos selados" },
+      { "codigo": "C2", "texto": "aro de parede dupla com ilhoses para os raios" }
+    ]
+  },
+  "registro": [
+    { "base": "inpi", "estrategia": "A", "consulta": "roda de bicicleta AND cubo", "resultados": 42, "triados": 42, "acessada": true, "data": "2026-03-20", "obs": "" },
+    { "base": "google", "estrategia": "A", "consulta": "(bicycle wheel) AND (sealed bearing hub)", "resultados": 1270, "triados": 60, "acessada": true, "data": "2026-03-20", "obs": "" },
+    { "base": "scholar", "estrategia": "F", "consulta": "\"bicycle wheel\" \"hub\" design", "resultados": 310, "triados": 20, "acessada": true, "data": "2026-03-20", "obs": "" }
+  ],
+  "documentos": [
+    { "numero": "BR-102019000002-B1 (fictício)", "titulo": "Aro de liga de alumínio com parede dupla e ilhoses para raios", "depositante": "Empresa Exemplo Beta (fictícia)", "prioridade": "2019-08-20", "publicacao": "2021-03-02", "pais": "BR", "situacao": "vigente", "link": "https://patents.google.com/", "base": "inpi", "tipo": "Patente ou MU", "categoria": "Y", "relevancia": 4, "lido": "reivindicações", "diferenca": "Divulga o aro de parede dupla (C2), mas não o cubo selado.", "caracteristicas": { "C1": "N", "C2": "S" } },
+    { "numero": "BR-202022000005-U2 (fictício)", "titulo": "Cubo de roda de bicicleta com rolamentos blindados", "depositante": "Oficina Exemplo Épsilon (fictícia)", "prioridade": "2022-02-14", "publicacao": "2023-08-29", "pais": "BR", "situacao": "em exame", "link": "https://patents.google.com/", "base": "google", "tipo": "Patente ou MU", "categoria": "Y", "relevancia": 4, "lido": "resumo", "diferenca": "Cubo com rolamentos blindados (C1) em roda de 26 polegadas; não trata do aro.", "caracteristicas": { "C1": "P", "C2": "N" } },
+    { "numero": "", "titulo": "Estudo comparativo de cubos de rolamento selado e de esferas soltas em rodas de bicicleta (exemplo fictício)", "depositante": "Autora Exemplo; Autor Exemplo", "prioridade": "", "publicacao": "2021-06-01", "pais": "", "situacao": "", "link": "https://scholar.google.com/", "base": "scholar", "tipo": "Artigo ou Livro", "categoria": "A", "relevancia": 3, "lido": "resumo", "diferenca": "Estado da técnica sobre durabilidade dos cubos.", "caracteristicas": {} }
+  ],
+  "anterioridades_encontradas": true,
+  "nota_explicativa": "Exemplo fictício: o aro de parede dupla e o cubo selado aparecem em documentos diferentes (categoria Y); a combinação dos dois na mesma roda 700c não foi encontrada.",
+  "diferenciais": ["Combinação do cubo de rolamento selado com o aro de parede dupla na roda 700c"],
+  "ameacas": ["BR-102019000002-B1 combinado com BR-202022000005-U2 (categoria Y)"],
+  "lacunas": ["Espacenet e PATENTSCOPE não pesquisados"],
+  "recomendacoes": ["Conferir a vigência dos dois documentos no INPI antes de decidir sobre o depósito"],
+  "alerta_prazos": ""
+}

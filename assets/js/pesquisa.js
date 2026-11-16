@@ -189,6 +189,113 @@ Pesquisa.lerCsvPatentes = function (txt) {
   }).filter((p) => p.numero || p.titulo);
 };
 
+// ================================================================== importação: busca exportada pelo Apoio à Escrita de Patentes
+/*
+ * O app "Apoio à Escrita de Patentes" exporta a busca de anterioridade no JSON "apoio-escrita-patentes-busca"
+ * (o mesmo formato do retorno da busca feita com IA). Patentes vão para a tabela; artigos, TCCs e outros documentos
+ * vão para as referências; estratégia, contagens por base, conclusão e análise completam a estratégia de busca.
+ * Só acrescenta: o que já está preenchido aqui não é apagado, e documentos repetidos (mesmo número) só ganham o que falta.
+ */
+Pesquisa.FORMATO_BUSCA_PATENTES = 'apoio-escrita-patentes-busca';
+Pesquisa.NOMES_BASES = { inpi: 'INPI', google: 'Google Patents', espacenet: 'Espacenet', patentscope: 'WIPO Patentscope', uspto: 'USPTO', scholar: 'Google Acadêmico', scielo: 'SciELO', capes: 'Periódicos CAPES' };
+Pesquisa.nomeBase = (b) => { const k = pzTxt(b).toLowerCase(); return Pesquisa.NOMES_BASES[k] || Object.values(Pesquisa.NOMES_BASES).find((n) => k.startsWith(n.toLowerCase().split(' ')[0])) || pzTxt(b); };
+Pesquisa.numeroChave = (n) => pzTxt(n).toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/([0-9])[A-Z][0-9]?$/, '$1');
+Pesquisa.lerBuscaPatentes = function (txt) {
+  const t = String(txt || ''), bloco = t.match(/```(?:json)?\s*([\s\S]*?)```/i), fonte = bloco ? bloco[1] : t;
+  const ini = fonte.indexOf('{'), fim = fonte.lastIndexOf('}');
+  let o = null;
+  try { o = ini >= 0 && fim > ini ? JSON.parse(fonte.slice(ini, fim + 1)) : null; } catch (e) { o = null; }
+  if (!o || typeof o !== 'object' || (o.formato && o.formato !== Pesquisa.FORMATO_BUSCA_PATENTES) || (!Array.isArray(o.documentos) && !Array.isArray(o.registro)))
+    throw new Error('não é o JSON da busca do Apoio à Escrita de Patentes (formato "apoio-escrita-patentes-busca").');
+  const atual = new Date().getFullYear(), est = o.estrategia || {};
+  const situacao = (s, anoPri) => {
+    const k = pzTxt(s).toLowerCase();
+    if (/extint|expirad|dom[ií]nio p/.test(k)) return 'expirada';
+    if (/arquiv|abandon|indeferid/.test(k)) return 'abandonada';
+    if (/vigente|concedid/.test(k)) return 'concedida';
+    if (/exame|pedido|pendente|publicad/.test(k)) return 'pedido';
+    return anoPri && +anoPri + 20 < atual ? 'expirada' : 'verificar';
+  };
+  const CAT = { X: 'Cat. X (sozinho afeta a novidade)', Y: 'Cat. Y (combinado com outro)', A: 'Cat. A (estado da técnica)' };
+  const patentes = [], referencias = [];
+  for (const d of Array.isArray(o.documentos) ? o.documentos : []) {
+    if (!d || (!pzTxt(d.numero) && !pzTxt(d.titulo))) continue;
+    const anoPri = (pzTxt(d.prioridade).match(/(19|20)\d{2}/) || [''])[0], ano = anoPri || (pzTxt(d.publicacao).match(/(19|20)\d{2}/) || [''])[0];
+    const tipo = pzTxt(d.tipo) || 'Patente ou MU';
+    if (!/patente|\bmu\b|modelo de utilidade/i.test(tipo)) {
+      const r = Pesquisa.novaReferencia();
+      Object.assign(r, { tipo: /artigo|livro/i.test(tipo) ? 'artigo' : /trabalho de conclus|tese|disserta/i.test(tipo) ? 'tese' : 'outro', autores: pzTxt(d.depositante), titulo: pzTxt(d.titulo) || pzTxt(d.numero), ano, url: pzTxt(d.link) });
+      referencias.push(r);
+      continue;
+    }
+    const sit = situacao(d.situacao, anoPri), rel = Number(d.relevancia) || 3, cat = pzTxt(d.categoria).toUpperCase().slice(0, 1);
+    const obs = [CAT[cat] || '', pzTxt(d.diferenca), pzTxt(d.lido) ? 'lido: ' + pzTxt(d.lido) : '', /sem entrada no brasil/i.test(pzTxt(d.situacao)) ? 'sem entrada no Brasil (conferir)' : '',
+      sit === 'verificar' || !pzTxt(d.situacao) || /n[aã]o verificad/i.test(d.situacao) ? 'confirmar a vigência na base oficial' : ''].filter(Boolean).join(' · ');
+    patentes.push(Object.assign(Pesquisa.novaPatente(), {
+      numero: pzTxt(d.numero).replace(/\s+/g, ' '), titulo: pzTxt(d.titulo), titular: pzTxt(d.depositante), pais: pzTxt(d.pais) || (pzTxt(d.numero).match(/^[A-Z]{2}/) || [''])[0], ano, situacao: sit,
+      relevancia: rel >= 4 || cat === 'X' ? 'alta' : rel <= 2 ? 'baixa' : 'média', fto: sit === 'expirada' ? 'livre' : 'verificar', observacao: obs, link: /^https?:/.test(pzTxt(d.link)) ? pzTxt(d.link) : '', base: Pesquisa.nomeBase(d.base),
+    }));
+  }
+  const registro = (Array.isArray(o.registro) ? o.registro : []).filter((r) => r && pzTxt(r.consulta)).map((r) => ({ base: Pesquisa.nomeBase(r.base), consulta: pzTxt(r.consulta), n: r.resultados, triados: r.triados, acessada: r.acessada !== false }));
+  const lista = (v) => (Array.isArray(v) ? v : v ? [v] : []).map(pzTxt).filter(Boolean);
+  const bases = [...new Set([...lista(est.bases), ...registro.map((r) => r.base), ...patentes.map((p) => p.base)].map(Pesquisa.nomeBase).filter(Boolean))];
+  const palavras = lista(est.palavras_chave).length ? lista(est.palavras_chave) : [...new Set(registro.map((r) => r.consulta))];
+  return { titulo: pzTxt(o.titulo_pedido), data: pzTxt(o.data_busca).slice(0, 10), objetivo: pzTxt(est.objetivo), palavras, classificacao: lista(est.classificacao), bases, depositantes: lista(est.depositantes),
+    caracteristicas: (Array.isArray(est.caracteristicas) ? est.caracteristicas : []).map((c) => (typeof c === 'object' && c ? `${c.codigo || ''} ${c.texto || ''}`.trim() : pzTxt(c))).filter(Boolean),
+    registro, patentes, referencias, achou: typeof o.anterioridades_encontradas === 'boolean' ? o.anterioridades_encontradas : null, nota: pzTxt(o.nota_explicativa),
+    diferenciais: lista(o.diferenciais), ameacas: lista(o.ameacas), lacunas: lista(o.lacunas), recomendacoes: lista(o.recomendacoes), prazos: pzTxt(o.alerta_prazos) };
+};
+/** Junta a busca lida ao projeto (só acrescenta). Devolve as contagens do que entrou. */
+Pesquisa.aplicarBuscaPatentes = function (pq, b) {
+  const e = pq.estrategia, out = { patentes: 0, completadas: 0, referencias: 0, palavras: 0 };
+  if (!pzTxt(e.objetivo) && b.objetivo) e.objetivo = b.objetivo;
+  const termos = pzTxt(e.palavras).split(/\s*[;\n]\s*/).filter(Boolean), chaves = new Set(termos.map((x) => x.toLowerCase()));
+  const novos = b.palavras.filter((x) => !chaves.has(x.toLowerCase()));
+  if (novos.length) { e.palavras = [...termos, ...novos].join('; '); out.palavras = novos.length; }
+  const cls = pzTxt(e.classificacao).split(/\s*[;,]\s*/).filter(Boolean), novasCls = b.classificacao.filter((c) => !cls.some((x) => x.replace(/\s/g, '') === c.replace(/\s/g, '')));
+  if (novasCls.length) e.classificacao = [...cls, ...novasCls].join('; ');
+  e.bases = [...new Set([...(e.bases || []), ...b.bases])];
+  if (!pzTxt(e.dataBusca) && b.data) e.dataBusca = b.data;
+  const marca = '[Busca do Apoio à Escrita de Patentes';
+  if (!pzTxt(e.observacoes).includes(marca + (b.titulo ? `: ${b.titulo}` : ''))) {
+    const L = [`${marca}${b.titulo ? `: ${b.titulo}` : ''}${b.data ? ` · ${Nucleo.dataBR(b.data)}` : ''}]`];
+    if (b.nota) L.push('Conclusão: ' + b.nota);
+    if (b.achou !== null) L.push(`Anterioridades que afetam a novidade (cat. X/Y): ${b.achou ? 'sim' : 'não'}.`);
+    if (b.registro.length) L.push('Registro: ' + b.registro.map((r) => `${r.base} — "${r.consulta}": ${pzTxt(r.n) === '' ? '—' : r.n} resultado(s)${pzTxt(r.triados) !== '' ? `, ${r.triados} triado(s)` : ''}${r.acessada ? '' : ' (não acessada)'}`).join('; ') + '.');
+    if (b.depositantes.length) L.push('Depositantes buscados: ' + b.depositantes.join('; ') + '.');
+    if (b.caracteristicas.length) L.push('Características comparadas: ' + b.caracteristicas.join(' | ') + '.');
+    [['Diferenciais', b.diferenciais], ['Ameaças', b.ameacas], ['Lacunas', b.lacunas], ['Recomendações', b.recomendacoes]].forEach(([n, l]) => { if (l.length) L.push(`${n}: ${l.join('; ')}.`); });
+    if (b.prazos) L.push('Prazos: ' + b.prazos);
+    e.observacoes = [pzTxt(e.observacoes), L.join('\n')].filter(Boolean).join('\n\n');
+  }
+  for (const x of b.patentes) {
+    const k = Pesquisa.numeroChave(x.numero);
+    const ja = k ? pq.patentes.find((y) => { const ky = Pesquisa.numeroChave(y.numero); return ky && (ky === k || ky.startsWith(k) || k.startsWith(ky)); }) : null;
+    if (!ja) { pq.patentes.push(x); out.patentes++; continue; }
+    let mudou = false;
+    for (const c of ['titulo', 'titular', 'pais', 'ano', 'link', 'base', 'observacao']) if (!pzTxt(ja[c]) && pzTxt(x[c])) { ja[c] = x[c]; mudou = true; }
+    if (ja.situacao === 'verificar' && x.situacao !== 'verificar') { ja.situacao = x.situacao; mudou = true; }
+    if (mudou) out.completadas++;
+  }
+  const ids = new Set(pq.referencias.map((r) => r.id)), titulos = new Set(pq.referencias.map((r) => pzTxt(r.titulo).toLowerCase()));
+  for (const r of b.referencias) {
+    if (titulos.has(pzTxt(r.titulo).toLowerCase())) continue;
+    r.id = Pesquisa.codigoLimpo(((Pesquisa.autores(r.autores)[0] || {}).sobrenome || 'busca').toLowerCase() + (r.ano || '')) || r.id;
+    while (ids.has(r.id)) r.id += 'b';
+    ids.add(r.id); titulos.add(pzTxt(r.titulo).toLowerCase()); pq.referencias.push(r); out.referencias++;
+  }
+  return out;
+};
+App.importarBuscaPatentes = function (txt) {
+  try {
+    const b = Pesquisa.lerBuscaPatentes(txt);
+    const r = Pesquisa.aplicarBuscaPatentes(App.p.pesquisa, b);
+    if (App.p.produto && App.p.produto.etapas && App.p.produto.etapas.informacional) App.p.produto.etapas.informacional.recomendacoes.inf_bench = true;
+    App.fecharModal(); App.marcarSujo(true); App.render();
+    App.toast(`Busca importada${b.titulo ? ` (${esc(b.titulo)})` : ''}: ${r.patentes} patente(s) nova(s)${r.completadas ? `, ${r.completadas} completada(s)` : ''}${r.referencias ? `, ${r.referencias} referência(s)` : ''}${r.palavras ? `, ${r.palavras} palavra(s)-chave` : ''}. Confira a situação e a liberdade de operação.`, 'ok', 9000);
+  } catch (e) { App.toast('Busca do Apoio à Escrita de Patentes: ' + esc(e.message), 'erro', 9000); }
+};
+
 /** Endereços da busca pronta nas bases (a partir das palavras-chave e da classificação). */
 Pesquisa.urlsBusca = function (e) {
   const termos = pzTxt(e.palavras).split(/\s*[;\n]\s*/).filter(Boolean);
@@ -226,7 +333,8 @@ App.abas.pesquisa = {
     ${c('pesquisa.estrategia.dataBusca', 'Data da busca', { tipo: 'date' })}
     ${c('pesquisa.estrategia.observacoes', 'Observações da estratégia', { tipo: 'textarea', classe: 'largo', linhas: 2 })}</div>
   <div class="barra">${Pesquisa.BASES.map((b) => `<a class="btn" href="${esc(urls[b])}" target="_blank" rel="noopener" ${pzTxt(e.palavras) || b === 'INPI' ? '' : 'aria-disabled="true"'}>↗ ${esc(b)}</a>`).join('')}
-    <label class="btn primario">⬆ Importar CSV de patentes<input type="file" accept=".csv,.txt,text/csv,text/plain" hidden id="csvPatentes"></label></div>
+    <label class="btn primario">⬆ Importar CSV de patentes<input type="file" accept=".csv,.txt,text/csv,text/plain" hidden id="csvPatentes"></label>
+    <label class="btn primario" title="JSON exportado na etapa Buscas do app Apoio à Escrita de Patentes (⬇ Exportar a busca)">⬆ Importar busca do Apoio à Escrita de Patentes (.json)<input type="file" accept=".json,application/json,.txt" hidden id="jsonBuscaPatentes"></label></div>
   ${pzTxt(e.palavras) ? '<p class="muted">No INPI a busca é manual: copie as palavras-chave acima.</p>' : '<p class="muted">Preencha as palavras-chave para os botões abrirem a busca pronta.</p>'}
   ${App.tabela('pesquisa.patentes', [{ campo: 'numero', rotulo: 'Número', largura: '130px' }, { campo: 'titulo', rotulo: 'Título', tipo: 'textarea' }, { campo: 'titular', rotulo: 'Titular', largura: '13%' },
     { campo: 'ano', rotulo: 'Ano', largura: '60px' }, { campo: 'situacao', rotulo: 'Situação', tipo: 'select', opcoes: Pesquisa.SITUACOES, largura: '150px', render: true },
@@ -258,9 +366,12 @@ App.abas.pesquisa = {
   },
   depois() {
     const liga = (sel, fn) => { const i = $(sel); if (i) i.addEventListener('change', async (ev) => { const f = ev.target.files[0]; ev.target.value = ''; if (f) await fn(f); }); };
+    liga('#jsonBuscaPatentes', async (f) => App.importarBuscaPatentes(Formulario.decodificar(await f.arrayBuffer())));
     liga('#csvPatentes', async (f) => {
       try {
-        const l = Pesquisa.lerCsvPatentes(Formulario.decodificar(await f.arrayBuffer()));
+        const txt = Formulario.decodificar(await f.arrayBuffer());
+        if (/^\s*[{`]/.test(txt)) { App.importarBuscaPatentes(txt); return; }   // escolheu o JSON do Apoio à Escrita de Patentes no botão do CSV
+        const l = Pesquisa.lerCsvPatentes(txt);
         if (!l.length) throw new Error('nenhuma patente no arquivo.');
         const tem = new Set(App.p.pesquisa.patentes.map((x) => x.numero));
         const novas = l.filter((x) => !x.numero || !tem.has(x.numero));
