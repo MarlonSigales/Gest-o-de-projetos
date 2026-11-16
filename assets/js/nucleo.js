@@ -84,6 +84,7 @@ Nucleo.novo = function (nome = '', versao = 'completa') {
     riscos: [], qualidade: [], qfdOrigem: { arquivo: '', importadoEm: '', requisitosProjeto: 0, requisitosCliente: 0, schemaVersion: null },
     qfdDados: null,          // backup completo do sistema QFD (para o relatório da casa da qualidade)
     pesquisa: window.pesquisaNormalizar ? window.pesquisaNormalizar({}) : { estrategia: {}, patentes: [], referencias: [] }, // anterioridade e referências
+    ideiasPatente: [],       // ideias de patente (aba Ideias de patente → pré-preenchimento do Apoio à Escrita de Patentes)
     dfx: window.dfxNormalizar ? window.dfxNormalizar({}) : { condicaoTeste: '', itens: [] }, licoesAprendidas: [],
     trl: { ultimaImportacao: '', arquivoOrigem: '', arvore: [], historico: [] },
     produto: window.nedipNormalizar ? window.nedipNormalizar({}) : { tipo: 'produto', etapas: {} },
@@ -257,6 +258,7 @@ Nucleo.normalizar = function (p) {
   if (window.dfxNormalizar) p.dfx = window.dfxNormalizar(p.dfx);
   if (window.nedipNormalizar) p.produto = window.nedipNormalizar(p.produto);
   if (window.pesquisaNormalizar) p.pesquisa = window.pesquisaNormalizar(p.pesquisa);
+  p.ideiasPatente = window.ideiasNormalizar ? window.ideiasNormalizar(p.ideiasPatente) : (Array.isArray(p.ideiasPatente) ? p.ideiasPatente : []);
   p.trl.arvore = Nucleo.normalizarArvore(p.trl.arvore || []);
   p.trl.historico = Array.isArray(p.trl.historico) ? p.trl.historico : [];
   p.qualidade = p.qualidade.map((q) => { q.id = q.id || (q.qfd && q.qfd.id ? 'qfd_' + q.qfd.id : Nucleo.uid('q')); q.aspectosIndesejaveis = q.aspectosIndesejaveis || ''; q.valorMedido = q.valorMedido || ''; q.pdca = Object.assign({ planejar: '', executar: '', verificar: '', agir: '' }, (q.pdca && !Array.isArray(q.pdca)) ? q.pdca : {}); return q; });

@@ -2814,6 +2814,109 @@
           }
         }
       }
+    },
+    "ideiasPatente": {
+      "type": "array",
+      "description": "ideias de patente (aba Ideias de patente); cada uma gera o pré-preenchimento do app Apoio à Escrita de Patentes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "natureza": {
+            "type": "string"
+          },
+          "situacao": {
+            "type": "string"
+          },
+          "criadaEm": {
+            "type": "string"
+          },
+          "exportadaEm": {
+            "type": "string"
+          },
+          "texto": {
+            "type": "string"
+          },
+          "campo": {
+            "type": "string"
+          },
+          "problema": {
+            "type": "string"
+          },
+          "estadoTecnica": {
+            "type": "string"
+          },
+          "solucao": {
+            "type": "string"
+          },
+          "diferencial": {
+            "type": "string"
+          },
+          "vantagens": {
+            "type": "string"
+          },
+          "aplicacoes": {
+            "type": "string"
+          },
+          "ensaios": {
+            "type": "string"
+          },
+          "palavras": {
+            "type": "string"
+          },
+          "classes": {
+            "type": "string"
+          },
+          "divulgacoes": {
+            "type": "string"
+          },
+          "observacoes": {
+            "type": "string"
+          },
+          "usarPesquisa": {
+            "type": "boolean"
+          },
+          "componentes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "type": "string"
+                },
+                "funcao": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "inventores": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "percentual": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

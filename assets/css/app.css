@@ -496,3 +496,7 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .passo-prox { margin-top: 10px; text-align: right; font-size: 13px; }
 .sec-fim { margin-top: 8px; text-align: right; }
 .rel-sub { margin: 20px 0 6px; color: var(--escuro, #085357); }
+/* ideias de patente */
+.ideia-item .ref-linha { align-items: center; }
+.ideia-item.aberta { border-color: #b9dcd2; background: #fbfefd; }
+.ideia-item h4 { margin: 14px 0 6px; }

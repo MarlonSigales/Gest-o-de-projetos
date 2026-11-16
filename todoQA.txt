@@ -448,4 +448,13 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    palavras-chave, classes, bases e data completam a estratégia; contagens por base, conclusão, diferenciais, ameaças, lacunas e
    recomendações vão para as observações. Só acrescenta: número repetido (com ou sem código de tipo) só completa o que falta.
    O mesmo JSON escolhido no botão do CSV também é reconhecido. Exemplo: exemplos/busca-roda-apoio-escrita-patentes.json.
+98 [resolvido 16/11/2026] Aba 💡 Ideias de patente (nas duas versões): cada ideia tem título, natureza (PI/MU), situação, o texto
+   com as palavras de quem teve a ideia, campo, problema, o que existe hoje, como funciona, diferencial (o que reivindicar),
+   vantagens, aplicações, ensaios, divulgações, palavras-chave, classes, componentes e inventores com %. "🪄 Puxar do projeto"
+   completa só o vazio (função global, necessidades do QFD, concepção selecionada, funções → componentes, concorrentes,
+   pesquisa, equipe). "⬇ Pré-preenchimento (.json)" gera o pedido completo no formato do Apoio à Escrita de Patentes
+   ("apoio-escrita-patentes-pedido"), aberto lá em "📂 Continuar um pedido": ficha, componentes 01…, ideia para as rodadas com
+   IA, inventores e participação, documentos da aba Pesquisa, palavras-chave, classes e dados do projeto para os formulários
+   da universidade. O diferencial vai primeiro na solução, para virar a parte caracterizante da 1ª reivindicação. Sem CPF ou
+   endereço (cada inventor completa lá). Exemplo: ideia fictícia do cubo com cartucho de rolamentos.
 
