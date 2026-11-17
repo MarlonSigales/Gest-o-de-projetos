@@ -489,3 +489,13 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    fim previsto. CPF, telefones, identidade e valores de bolsa não são guardados. PDFs com fonte de mapa trocado
    (Word para Mac: "InovaÁ„o") são corrigidos. O plano fica anexado e vai como fonte nas ideias de patente.
    Testes: node tests/plano.test.js (plano fictício).
+
+103. [feito] Leitura do plano de trabalho conferida com 20 planos reais da InovaAgro (não ficam no repositório):
+   código pelo campo "Código" (a capa às vezes traz outro), período com datas (dd/mm/aaaa – dd/mm/aaaa), empresa em
+   várias linhas, adjunto com rótulo trocado, objetivos em tópicos (●, a), b)…), requisitos com títulos de grupo e
+   glossário, equipe com nome centralizado/quebrado, CPF sem pontos e bolsistas a selecionar, cronograma com títulos em
+   duas linhas, início e término na mesma coluna e meses que faltam (completados pela macroentrega vizinha), fontes com
+   mapa trocado em poucas palavras. Versão simplificada: o plano preenche também "o que o produto faz" (objetivo geral
+   encurtado), as funções (objetivos específicos; sem eles, as macroentregas) e as especificações (rótulo + meta); sem
+   data no plano, o início fica provisório (hoje) e o fim vai pelos meses do plano. Tabelas que são imagem (escaneadas)
+   não são lidas: a prévia mostra "não encontrado".

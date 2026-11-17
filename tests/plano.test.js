@@ -83,6 +83,9 @@ ok(d.equipe.length === 2 && d.equipe[0].nome === 'Ana Exemplo da Silva' && d.equ
 ok(!/\d{3}\.\d{3}\.\d{3}-\d{2}/.test(JSON.stringify(d)), 'nenhum CPF nos dados lidos');
 ok(d.macros.length === 2 && d.macros[0].titulo === 'Projeto do sensor' && d.macros[0].mesIni === 1 && d.macros[0].mesFim === 6 && d.macros[1].mesIni === 7 && d.macros[1].mesFim === 12 && d.macros[1].recurso === '40.000,00', 'macroentregas do cronograma: ' + JSON.stringify(d.macros.map((m) => [m.titulo, m.mesIni, m.mesFim, m.recurso])));
 
+ok(Plano.funcaoGlobal(d) === 'Desenvolver um sensor de umidade' && Plano.funcoes(d).map((f) => f.nome).join('|') === 'Projetar o sensor|Testar o sensor', 'versão simplificada: função global e funções pelos objetivos');
+ok(Plano.encurtar('Desenvolver, otimizar e validar um sistema de aeração, visando reduzir perdas') === 'Desenvolver, otimizar e validar um sistema de aeração', 'nome de função encurtado sem cortar o verbo');
+
 // fonte com o mapa MacRoman trocado
 const pm = Plano.linhasDeItens([{ itens: [{ s: 'InovaÁ„o', x: 90, y: 10, w: 40, h: 10, f: 'mac' }, { s: 'n∫ 01', x: 90, y: 30, w: 30, h: 10, f: 'mac' }, { s: 'Órgão – ok', x: 90, y: 50, w: 50, h: 10, f: 'boa' }] }]);
 ok(Plano.texto(pm[0]) === 'Inovação' && Plano.texto(pm[1]) === 'nº 01' && Plano.texto(pm[2]) === 'Órgão – ok', 'texto de fonte com mapa trocado é desfeito (as outras fontes ficam como estão)');
