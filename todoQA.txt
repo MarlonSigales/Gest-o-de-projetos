@@ -477,3 +477,15 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    diagrama do Gestão), imagens da concepção e do projeto preliminar e as figuras das macroentregas do conceitual e do
    preliminar, como figuras editáveis com legenda. Na ideia, "Procurar as figuras do projeto" mostra as figuras para
    escolher e mudar a legenda.
+
+102. [feito] Começar pelo plano de trabalho EMBRAPII: na tela "Criar ou carregar projeto" (e no botão "📄 Importar plano de
+   trabalho" da aba Projeto) escolhe-se o plano em PDF, .docx ou .txt; uma prévia mostra o que foi encontrado e cria um
+   projeto novo preenchido ou completa só os campos vazios do aberto. Entram: nome (título público), código, empresa,
+   responsável na empresa, unidade, coordenador e adjunto (nome e e-mail), TRL ao final, objetivo geral, introdução
+   (resumo, justificativa, escopo positivo/negativo, requisitos, objetivos específicos, metodologia, resultados), equipe
+   (nome, vínculo e função), macroentregas do cronograma físico-financeiro (título, parâmetros, indicador, meses,
+   responsável, recurso; objetivos específicos repartidos), requisitos de alto nível no quadro de especificações e o
+   contato da empresa nos interessados. Com a data de início, "📅 Datas das macroentregas pelo plano" calcula as datas e o
+   fim previsto. CPF, telefones, identidade e valores de bolsa não são guardados. PDFs com fonte de mapa trocado
+   (Word para Mac: "InovaÁ„o") são corrigidos. O plano fica anexado e vai como fonte nas ideias de patente.
+   Testes: node tests/plano.test.js (plano fictício).

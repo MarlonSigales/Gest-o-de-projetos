@@ -77,6 +77,7 @@
     const nome = arq.name || 'plano de trabalho';
     if (/\.docx$/i.test(nome)) return { nome, texto: await textoDocx(arq) };
     if (/\.(txt|md)$/i.test(nome) || /^text\//.test(arq.type)) return { nome, texto: await arq.text() };
+    if (/\.pdf$/i.test(nome) && window.Plano) return { nome, texto: (await Plano.lerPdf(arq)).map(Plano.texto).join('\n') };
     if (/\.pdf$/i.test(nome)) throw new Error('PDF: abra o plano, selecione o texto (Ctrl+A, Ctrl+C) e cole no campo "texto do plano" abaixo. O PDF fica anexado ao projeto.');
     throw new Error('use o plano em .docx (ou cole o texto).');
   };
@@ -276,7 +277,7 @@
     try { await App.arm.gravarArquivo(cam, arq); } catch (e) { /* o texto ainda serve */ }
     let lido = null, erro = '';
     try { lido = await Ideias.lerPlano(arq); } catch (e) { erro = e.message; }
-    App.p.planoTrabalho = { nome: arq.name, arquivo: cam, data: hojeISO(), texto: lido ? t(lido.texto) : t((App.p.planoTrabalho || {}).texto) };
+    App.p.planoTrabalho = { nome: arq.name, arquivo: cam, data: hojeISO(), texto: lido ? (window.Plano ? Plano.semPessoais(t(lido.texto)) : t(lido.texto)) : t((App.p.planoTrabalho || {}).texto) };
     App.marcarSujo(true); App.render();
     App.toast(erro ? esc(erro) : 'Plano de trabalho anexado. Ele vai como fonte nos pré-preenchimentos de patente.', erro ? 'aviso' : 'ok', 9000);
   });

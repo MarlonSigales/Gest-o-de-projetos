@@ -505,3 +505,7 @@ body.modo-integrado .conteudo { visibility: hidden; }
 .ideia-fig img { width: 100%; height: 120px; object-fit: contain; background: #f6f8f7; border-radius: 4px; }
 .ideia-fig.fora { opacity: .5; }
 .ideia-fig input[type=text] { width: 100%; font-size: .85em; }
+/* prévia do plano de trabalho */
+.tabela-simples { width: 100%; border-collapse: collapse; font-size: .92em; }
+.tabela-simples th { text-align: left; width: 26%; vertical-align: top; padding: 4px 8px 4px 0; color: var(--verde-escuro, #0b4f4a); }
+.tabela-simples td { padding: 4px 0; border-bottom: 1px solid #e3ebe8; }

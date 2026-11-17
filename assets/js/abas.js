@@ -9,6 +9,8 @@ App.abas.projeto = {
     return `
 <h2>${esc(App.p.projeto.nome || 'Novo projeto')} ${App.seloVersao()}</h2>
 ${App.guiaExemploHtml ? App.guiaExemploHtml() : ''}
+<div class="barra" style="margin:0 0 10px"><label class="btn pequeno" title="Completa os campos vazios do projeto com o plano de trabalho (PDF, .docx ou .txt)">📄 Importar plano de trabalho<input type="file" class="arq-plano-trabalho" accept=".pdf,.docx,.txt,.md" hidden></label>
+  ${App.p.planoTrabalho && App.p.planoTrabalho.texto ? `<span class="muted">Plano anexado: ${esc(App.p.planoTrabalho.nome || '')}</span>${App.p.projeto.dataInicio && App.p.macroentregas.some((m) => /Prazo:\s*\d+º/.test(m.descricao || '')) ? '<button class="btn pequeno" data-acao="plano-datas" title="Datas das macroentregas pelos meses do cronograma do plano">📅 Datas das macroentregas pelo plano</button>' : ''}` : ''}</div>
 <div class="cartao vigencia"><h3 style="margin-top:0">Vigência do projeto</h3><div class="grade-campos">
   ${c('projeto.dataInicio', 'Data de início', { tipo: 'date' })}
   ${c('projeto.dataFimPrevista', 'Data de término (original)', { tipo: 'date' })}

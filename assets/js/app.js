@@ -388,6 +388,7 @@ App.telaProjetos = async function () {
       ${nav.length ? nav.map((r) => `<div class="barra" style="margin:4px 0"><button class="btn" data-acao="abrir-navegador" data-id="${esc(r.id)}">${esc(r.nome || '(sem nome)')}${r.codigo ? ' · ' + esc(r.codigo) : ''} <span class="muted">(${esc(r.atualizado)})</span></button></div>`).join('') : '<p class="vazio">Nenhum projeto guardado no navegador.</p>'}
     </div>
   </div>
+  ${window.Plano && Plano.cartaoInicio ? Plano.cartaoInicio() : ''}
   <div class="cartao" style="margin:14px 0 0"><h3 style="margin-top:0">Importar ou experimentar</h3>
     <div class="barra"><button class="btn" data-acao="ir-importar">Importar ZIP ou JSON + imagens…</button>
     <button class="btn" data-acao="carregar-exemplo">Abrir o exemplo (roda de bicicleta)</button></div>
