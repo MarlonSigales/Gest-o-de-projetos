@@ -499,3 +499,7 @@ Atualizado em 16/11/2026. Os números são fixos (servem de referência); a orde
    encurtado), as funções (objetivos específicos; sem eles, as macroentregas) e as especificações (rótulo + meta); sem
    data no plano, o início fica provisório (hoje) e o fim vai pelos meses do plano. Tabelas que são imagem (escaneadas)
    não são lidas: a prévia mostra "não encontrado".
+
+104. [feito] Plano de trabalho: o "Coordenador Adjunto" do plano é quem coordena o projeto de fato e vira o coordenador no
+   Gestão (nome e e-mail); o "Coordenador" do plano (o formal da Unidade EMBRAPII) entra nos interessados. A prévia mostra
+   os dois assim. Sem adjunto no plano, o coordenador do plano é usado.

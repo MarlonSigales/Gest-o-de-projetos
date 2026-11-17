@@ -362,6 +362,9 @@ Plano.funcoes = function (d) {
   const vistos = new Set();
   return fs.filter((f) => { const k = semAc(f.nome); if (vistos.has(k)) return false; vistos.add(k); return true; }).slice(0, 12);
 };
+/** Quem coordena o projeto de fato: o adjunto do plano (sem adjunto, o coordenador). */
+Plano.coordenadorReal = (d) => (d.coordenadorAdjunto && T(d.coordenadorAdjunto.nome) ? d.coordenadorAdjunto : d.coordenador && T(d.coordenador.nome) ? d.coordenador : null);
+Plano.coordenadorFormal = (d) => (d.coordenadorAdjunto && T(d.coordenadorAdjunto.nome) && d.coordenador && T(d.coordenador.nome) && semAc(d.coordenador.nome) !== semAc(d.coordenadorAdjunto.nome) ? d.coordenador : null);
 /** Texto da introdução montado com as partes do plano. */
 Plano.textoIntroducao = function (d) {
   const P = [];
@@ -387,8 +390,14 @@ Plano.aplicar = function (p, d, soVazios) {
   const CONFIGpadrao = (k) => (k === 'unidadeEmbrapii' && typeof CONFIG !== 'undefined' ? CONFIG.unidade.nome : null);
   put(pj, 'nome', d.titulo, 'nome'); put(pj, 'codigo', d.codigo, 'código'); put(pj, 'empresaParceira', d.empresa, 'empresa parceira');
   put(pj, 'responsavelEmpresa', d.responsavelEmpresa, 'responsável na empresa'); put(pj, 'unidadeEmbrapii', d.unidade, 'unidade EMBRAPII');
-  if (d.coordenador) { put(pj.coordenador, 'nome', d.coordenador.nome, 'coordenador'); put(pj.coordenador, 'email', d.coordenador.email, 'e-mail do coordenador'); }
-  if (d.coordenadorAdjunto) { put(pj.coordenadorAdjunto, 'nome', d.coordenadorAdjunto.nome, 'coordenador adjunto'); put(pj.coordenadorAdjunto, 'email', d.coordenadorAdjunto.email, 'e-mail do adjunto'); }
+  // nos planos da Unidade, o "Coordenador" é o formal da Unidade EMBRAPII; o "Coordenador Adjunto" é quem coordena de fato
+  // o projeto: ele vira o coordenador no Gestão, e o formal entra nos interessados (assina o plano)
+  const real = Plano.coordenadorReal(d), formal = Plano.coordenadorFormal(d);
+  if (real) { put(pj.coordenador, 'nome', real.nome, 'coordenador (o adjunto do plano)'); put(pj.coordenador, 'email', real.email, 'e-mail do coordenador'); }
+  if (formal && formal.nome && !(p.interessados || []).some((x) => semAc(T(x.nome)) === semAc(formal.nome))) {
+    p.interessados.push({ nome: formal.nome, email: formal.email || '', papel: 'Coordenador formal no plano de trabalho (Unidade EMBRAPII)', grupos: [] });
+    feito.push('coordenador formal nos interessados');
+  }
   put(pj, 'objetivoGeral', d.objetivoGeral, 'objetivo geral');
   const intro = Plano.textoIntroducao(d); put(pj, 'introducao', intro, 'introdução (resumo, justificativa, escopo, requisitos, objetivos, metodologia, resultados)');
   if (d.trl && (!soVazios || !pj.trlEsperadoFinal || pj.trlEsperadoFinal === 6)) { pj.trlEsperadoFinal = d.trl; feito.push('TRL ' + d.trl + ' ao final'); }
@@ -475,8 +484,8 @@ if (typeof window !== 'undefined' && typeof App !== 'undefined') (function () {
       <p class="muted">${esc2(arq.name)} — confira; tudo pode ser editado depois no projeto.${d.avisos.length ? ` <b class="gap-neg">Não encontrado: ${esc2(d.avisos.join('; '))}.</b>` : ''}</p>
       <table class="tabela-simples"><tbody>
         ${li('Nome (título)', d.titulo)}${li('Código', d.codigo)}${li('Empresa parceira', d.empresa)}${li('Responsável na empresa', d.responsavelEmpresa)}
-        ${li('Unidade EMBRAPII', d.unidade)}${li('Coordenador', d.coordenador && [d.coordenador.nome, d.coordenador.email].filter(Boolean).join(' · '))}
-        ${li('Coordenador adjunto', d.coordenadorAdjunto && [d.coordenadorAdjunto.nome, d.coordenadorAdjunto.email].filter(Boolean).join(' · '))}
+        ${li('Unidade EMBRAPII', d.unidade)}${li('Coordenador do projeto (adjunto no plano)', Plano.coordenadorReal(d) && [Plano.coordenadorReal(d).nome, Plano.coordenadorReal(d).email].filter(Boolean).join(' · '))}
+        ${Plano.coordenadorFormal(d) ? li('Coordenador formal (vai aos interessados)', [Plano.coordenadorFormal(d).nome, Plano.coordenadorFormal(d).email].filter(Boolean).join(' · ')) : ''}
         ${li('Período de execução', d.meses ? d.meses + ' meses' : '')}${li('Valor total', d.valor)}${li('TRL ao final', d.trl ? 'TRL ' + d.trl : '')}
         ${li('Objetivo geral', d.objetivoGeral)}
         ${li('Introdução', [d.resumo && 'resumo', (d.introducao || []).length && 'justificativa', (d.escopo || []).length && 'escopo', (d.requisitos || []).length && 'requisitos', (d.objetivosEspecificos || []).length && d.objetivosEspecificos.length + ' objetivos específicos', (d.metodologia || []).length && 'metodologia', (d.resultados || []).length && 'resultados'].filter(Boolean).join(', '))}

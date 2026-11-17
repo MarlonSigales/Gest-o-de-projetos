@@ -99,6 +99,7 @@ Plano.aplicar(p, d, false);
 ok(p.projeto.nome === d.titulo && p.projeto.trlEsperadoFinal === 5 && p.projeto.dataFimPrevista === '2028-01-09', 'projeto preenchido e fim previsto pelos meses: ' + p.projeto.dataFimPrevista);
 ok(p.macroentregas.length === 2 && p.macroentregas[1].dataInicio === '2027-07-10' && p.macroentregas[1].dataPrevista === '2028-01-09', 'macroentregas com datas pelos meses: ' + p.macroentregas.map((m) => m.dataInicio + '→' + m.dataPrevista));
 ok(p.projeto.equipe.length === 2 && /Introdução|Justificativa/.test(p.projeto.introducao), 'equipe e introdução');
+ok(p.projeto.coordenador.nome === 'Bruno Exemplo' && p.projeto.coordenador.email === 'bruno@exemplo.org' && !p.projeto.coordenadorAdjunto.nome && p.interessados.some((x) => x.nome === 'Ana Exemplo da Silva' && /formal/.test(x.papel)), 'o adjunto do plano é o coordenador do projeto; o formal vai aos interessados');
 const nome = p.projeto.nome; p.projeto.nome = 'Meu nome';
 Plano.aplicar(p, Object.assign({}, d, { titulo: 'Outro' }), true);
 ok(p.projeto.nome === 'Meu nome' && p.projeto.equipe.length === 2, 'completar o aberto não troca o que já tem texto nem repete a equipe');
